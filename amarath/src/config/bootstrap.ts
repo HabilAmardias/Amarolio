@@ -8,6 +8,8 @@ import { NewMessagePublisher } from "../repository/redis/MessagePublisher";
 import { NewChatroomService } from "../services/ChatroomService";
 import { NewChatroomController } from "../controller/ChatroomController";
 import { Logger } from "@logtape/logtape";
+import { NewChatroomCache } from "../repository/redis/ChatroomCache";
+import { NewMessageCache } from "../repository/redis/MessageCache";
 
 export function Bootstrap(
   app: Elysia,
@@ -18,10 +20,14 @@ export function Bootstrap(
   const ollamaUtil = NewOllamaUtil();
 
   const messagePublisherRepo = NewMessagePublisher(redisClient);
+  const chatroomCacheRepo = NewChatroomCache(redisClient);
+  const messageCacheRepo = NewMessageCache(redisClient);
 
   const messageService = NewMessageService(
     messagePublisherRepo,
     ollamaUtil,
+    chatroomCacheRepo,
+    messageCacheRepo,
     pgClient,
   );
 
@@ -29,6 +35,8 @@ export function Bootstrap(
     pgClient,
     ollamaUtil,
     messagePublisherRepo,
+    chatroomCacheRepo,
+    messageCacheRepo,
   );
   const messageController = NewMessageController(messageService);
   const chatroomController = NewChatroomController(chatroomService);

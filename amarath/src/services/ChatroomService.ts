@@ -18,6 +18,11 @@ interface OllamaUtilItf {
   CreateTitle: (userMessage: string) => Promise<string>;
 }
 
+interface ChatroomCacheItf {
+  DeleteChatroom: (chatroomID: string) => Promise<void>;
+  SetChatroom: (chatroom: Chatroom) => Promise<void>;
+}
+
 interface MessagePublisherItf {
   PublishMessage: (
     channel: string,
@@ -27,26 +32,44 @@ interface MessagePublisherItf {
   ) => Promise<number>;
 }
 
+interface MessageCacheItf {
+  RemoveHistoryContext: (chatroomID: string) => Promise<void>;
+}
+
 export function NewChatroomService(
   db: SQL,
   ollamaUtil: OllamaUtilItf,
   messagePublisher: MessagePublisherItf,
+  chatroomCache: ChatroomCacheItf,
+  messageCache: MessageCacheItf,
 ) {
-  return new ChatroomService(db, ollamaUtil, messagePublisher);
+  return new ChatroomService(
+    db,
+    ollamaUtil,
+    messagePublisher,
+    chatroomCache,
+    messageCache,
+  );
 }
 
 class ChatroomService {
   ollamaUtil: OllamaUtilItf;
   messagePublisher: MessagePublisherItf;
+  chatrooomCache: ChatroomCacheItf;
+  messageCache: MessageCacheItf;
   db: SQL;
   constructor(
     db: SQL,
     ollamaUtil: OllamaUtilItf,
     messagePublisher: MessagePublisherItf,
+    chatroomCache: ChatroomCacheItf,
+    messageCache: MessageCacheItf,
   ) {
     this.ollamaUtil = ollamaUtil;
     this.messagePublisher = messagePublisher;
     this.db = db;
+    this.chatrooomCache = chatroomCache;
+    this.messageCache = messageCache;
   }
   CreateChatroom: (param: CreateChatroomParam) => Promise<string> = async (
     param,
@@ -62,9 +85,11 @@ class ChatroomService {
       .CreateTitle(param.userQuery)
       .catch(() => "New Chat")
       .then(async (val) => {
+        chatroom.title = val;
         await Promise.all([
           this.messagePublisher.PublishMessage(channel, TITLE, ASSISTANT, val),
           chatroomRepo.UpdateChatroom(chatroom.id, val),
+          this.chatrooomCache.SetChatroom(chatroom),
         ]);
       });
 
@@ -108,5 +133,7 @@ class ChatroomService {
       await messageRepo.DeleteAllMessages(param.chatroomID);
       await chatroomRepo.DeleteChatroom(param.chatroomID);
     });
+    await this.messageCache.RemoveHistoryContext(param.chatroomID);
+    await this.chatrooomCache.DeleteChatroom(param.chatroomID);
   };
 }

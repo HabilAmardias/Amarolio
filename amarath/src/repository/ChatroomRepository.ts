@@ -30,15 +30,18 @@ class ChatroomRepository {
       );
     }
   };
-  FindByID: (chatroomID: string) => Promise<Chatroom | undefined> = async (
+  FindByID: (chatroomID: string) => Promise<Chatroom | null> = async (
     chatroomID,
   ) => {
     try {
       const [chatroom] = await this.dbHandle<(Chatroom | undefined)[]>`
-    SELECT id, user_id, title, created_at, updated_at, deleted_at
-    FROM chatrooms
-    WHERE id = ${chatroomID} AND deleted_at IS NULL
-    `;
+      SELECT id, user_id, title, created_at, updated_at, deleted_at
+      FROM chatrooms
+      WHERE id = ${chatroomID} AND deleted_at IS NULL
+      `;
+      if (!chatroom) {
+        return null;
+      }
       return chatroom;
     } catch (err) {
       throw new CustomError(
