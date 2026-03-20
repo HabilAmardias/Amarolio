@@ -1,11 +1,19 @@
 import { Message, Ollama } from "ollama";
-import {
-  ContextPrompt,
-  RoutingPrompt,
-  SystemPrompt,
-  TitlePrompt,
-} from "../constants";
+import { ContextPrompt } from "../constants";
 import { CustomError, TimeoutError } from "../customerror";
+import { Glob, file } from "bun";
+
+function ReadPrompts() {
+  const glob = new Glob("./prompts/*.md");
+  const files = Array.from(glob.scanSync()).sort();
+  const promises = files.map((val) => {
+    return file(val).text();
+  });
+
+  return Promise.all(promises);
+}
+
+const [routingPrompt, systemPrompt, titlePrompt] = await ReadPrompts();
 
 export function NewOllamaUtil() {
   return new OllamaUtil();
@@ -15,6 +23,7 @@ class OllamaUtil {
   ollamaClient: Ollama;
   constructor() {
     this.ollamaClient = new Ollama({
+      host: process.env.OLLAMA_HOST,
       headers: {
         Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
       },
@@ -25,7 +34,7 @@ class OllamaUtil {
     const titleMessages = [
       {
         role: "system",
-        content: TitlePrompt,
+        content: titlePrompt,
       },
       {
         role: "user",
@@ -48,7 +57,7 @@ class OllamaUtil {
     const routingMessages = [
       {
         role: "system",
-        content: RoutingPrompt,
+        content: routingPrompt,
       },
       {
         role: "user",
@@ -89,7 +98,7 @@ class OllamaUtil {
     const messages: Message[] = [
       {
         role: "system",
-        content: SystemPrompt,
+        content: systemPrompt,
       },
     ];
     if (context.length > 0) {

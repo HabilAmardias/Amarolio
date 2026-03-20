@@ -1,7 +1,7 @@
 import Elysia from "elysia";
 import { Bootstrap } from "./bootstrap";
-import { NewRedisClient } from "../../db/redis";
-import { NewPostgresClient } from "../../db/postgresql";
+import { NewRedisClient } from "../db/redis";
+import { Migrate, NewPostgresClient } from "../db/postgresql";
 import { ProductionMode } from "../constants";
 import { configure, getConsoleSink, getLogger } from "@logtape/logtape";
 
@@ -22,12 +22,12 @@ export async function Run() {
     });
     const redisClient = await NewRedisClient();
     const pgClient = await NewPostgresClient();
+    await Migrate(pgClient);
 
     Bootstrap(app, redisClient, pgClient, logger);
 
     app.listen({
       port: Number(process.env.SERVER_PORT),
-      hostname: process.env.SERVER_HOST,
     });
   } catch (err) {
     const castedErr = err as Error;
