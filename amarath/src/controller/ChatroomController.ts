@@ -19,19 +19,19 @@ export function NewChatroomController(chatroomService: ChatroomServiceItf) {
   return new Elysia().group("/api/v1", (app) => {
     return app
       .guard({
-        cookie: t.Object({
-          user_id: t.Optional(t.String()),
+        headers: t.Object({
+          "x-user-id": t.Optional(t.String()),
         }),
       })
-      .resolve(({ cookie }) => {
-        if (!cookie.user_id.value) {
+      .resolve(({ headers }) => {
+        if (!headers["x-user-id"]) {
           throw new CustomError(
             "unauthorized access",
             UnauthorizedError,
             "no user id found",
           );
         }
-        return { userID: cookie.user_id.value };
+        return { userID: headers["x-user-id"] };
       })
       .post(
         "/chatrooms",

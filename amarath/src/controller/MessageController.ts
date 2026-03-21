@@ -18,19 +18,19 @@ export function NewMessageController(messageService: MessageServiceItf) {
   return new Elysia().group("/api/v1", (app) => {
     return app
       .guard({
-        cookie: t.Object({
-          user_id: t.Optional(t.String({ minLength: 1 })),
+        headers: t.Object({
+          "x-user-id": t.Optional(t.String()),
         }),
       })
-      .resolve(({ cookie }) => {
-        if (!cookie.user_id.value) {
+      .resolve(({ headers }) => {
+        if (!headers["x-user-id"]) {
           throw new CustomError(
             "unauthorized access",
             UnauthorizedError,
-            "user id not found",
+            "no user id found",
           );
         }
-        return { userID: cookie.user_id.value };
+        return { userID: headers["x-user-id"] };
       })
       .get(
         "/chatrooms/:id/messages",
