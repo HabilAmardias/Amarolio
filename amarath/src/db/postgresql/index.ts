@@ -1,11 +1,13 @@
-import { Glob, SQL } from "bun";
+import { Glob, SQL, file } from "bun";
 
 export async function Migrate(db: SQL) {
   const glob = new Glob("./db/migration/*.sql");
   const files = Array.from(glob.scanSync()).sort();
+  let query = "";
   for (const filename of files) {
-    await db.file(filename);
+    query += await file(filename).text();
   }
+  await db(query).simple();
 }
 
 export async function NewPostgresClient() {

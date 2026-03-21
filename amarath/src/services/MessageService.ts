@@ -2,7 +2,11 @@ import { NewMessageRepository } from "../repository/MessageRepository";
 import { SQL } from "bun";
 import { WithTransaction } from "./helper";
 import { NewChatroomRepository } from "../repository/ChatroomRepository";
-import { GetMessagesParam, SendMessageParam } from "../entity/MessageEntity";
+import {
+  GetMessagesParam,
+  SaveMessageQuery,
+  SendMessageParam,
+} from "../entity/MessageEntity";
 import { Chatroom } from "../entity/ChatroomEntity";
 import { Message, MessageResponse } from "../entity/MessageEntity";
 import {
@@ -115,6 +119,7 @@ class MessageService {
           );
         }
       }
+
       if (chatroom.user_id !== param.userID) {
         throw new CustomError(
           "unauthorized access",
@@ -148,6 +153,7 @@ class MessageService {
       );
       fullResponse += response.streamResponse;
 
+      // Continue stream once if it hit limit for the first time
       if (response.wasTruncated) {
         await this.messagePublisher.PublishMessage(
           channel,
@@ -173,24 +179,32 @@ class MessageService {
         hitLimit ? "TOKEN LIMIT" : "",
       );
 
+      // Update database for persistence
       await WithTransaction(this.db, async (tx) => {
         const messageRepo = NewMessageRepository(tx);
         const chatroomRepo = NewChatroomRepository(tx);
-
-        await messageRepo.SaveMessage(param.userMessage, param.id, USER);
-        await messageRepo.SaveMessage(fullResponse, param.id, ASSISTANT);
-        await chatroomRepo.UpdateChatroom(param.id);
-      });
-
-      chatroomRepo.FindByID(param.id).then((val) => {
-        if (val) {
-          this.chatroomCache.SetChatroom(val);
+        const messages: SaveMessageQuery[] = [
+          {
+            role: USER,
+            content: param.userMessage,
+          },
+          {
+            role: ASSISTANT,
+            content: fullResponse,
+          },
+        ];
+        const addedMessage = await messageRepo.SaveMessages(messages, param.id);
+        if (addedMessage) {
+          history.push(...addedMessage);
         }
+        chatroom = await chatroomRepo.UpdateChatroom(param.id);
       });
 
-      messageRepo.GetMessages(param.id, 5).then((val) => {
-        this.messageCache.SetHistoryContext(param.id, val);
-      });
+      // Update Cache (fire and forget)
+      if (chatroom) {
+        this.chatroomCache.SetChatroom(chatroom);
+      }
+      this.messageCache.SetHistoryContext(param.id, history);
 
       return fullResponse;
     } finally {

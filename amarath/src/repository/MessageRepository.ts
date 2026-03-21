@@ -1,5 +1,5 @@
 import { SQL } from "bun";
-import { Message } from "../entity/MessageEntity";
+import { Message, SaveMessageQuery } from "../entity/MessageEntity";
 import { CustomError, DatabaseExecError } from "../customerror";
 
 export function NewMessageRepository(dbHandle: SQL) {
@@ -11,11 +11,24 @@ class MessageRepository {
   constructor(dbHandle: SQL) {
     this.dbHandle = dbHandle;
   }
-  SaveMessage = async (message: string, chatroomID: string, role: string) => {
+  SaveMessages = async (messages: SaveMessageQuery[], chatroomID: string) => {
     try {
-      await this.dbHandle`INSERT INTO messages(chatroom_id, role, content)
-    VALUES (${chatroomID}, ${role}, ${message})
-    `;
+      if (messages.length === 0) {
+        return null;
+      }
+
+      let query = "INSERT INTO messages(chatroom_id, role, content) VALUES ";
+      messages.forEach((val, i) => {
+        query += `(${chatroomID}, ${val.role}, ${val.content})`;
+        if (i !== messages.length - 1) {
+          query += ",";
+        }
+        query += " ";
+      });
+      query +=
+        "RETURNING id, chatroom_id, role, content, created_at, updated_at, deleted_at";
+
+      return await this.dbHandle<Message[]>(query);
     } catch (err) {
       throw new CustomError(
         "something went wrong",

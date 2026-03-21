@@ -14,6 +14,11 @@ export type SendMessageParam = {
   userMessage: string;
 };
 
+export type SaveMessageQuery = {
+  content: string;
+  role: string;
+};
+
 export interface MessageResponse {
   message: {
     thinking?: string;

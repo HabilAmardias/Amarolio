@@ -54,11 +54,13 @@ class ChatroomRepository {
   UpdateChatroom = async (chatroomID: string, title?: string) => {
     try {
       let titleUpdate = this.dbHandle`, title = ${title}`;
-      await this.dbHandle`
-    UPDATE chatrooms
-    SET updated_at = NOW() ${title ? titleUpdate : this.dbHandle``}
-    WHERE id = ${chatroomID} AND deleted_at IS NULL
-    `;
+      const [newChatroom] = await this.dbHandle<Chatroom[]>`
+      UPDATE chatrooms
+      SET updated_at = NOW() ${title ? titleUpdate : this.dbHandle``}
+      WHERE id = ${chatroomID} AND deleted_at IS NULL
+      RETURNING id, user_id, title, created_at, updated_at, deleted_at
+      `;
+      return newChatroom;
     } catch (err) {
       throw new CustomError(
         "something went wrong",

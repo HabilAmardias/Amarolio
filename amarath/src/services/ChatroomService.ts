@@ -85,12 +85,11 @@ class ChatroomService {
       .CreateTitle(param.userQuery)
       .catch(() => "New Chat")
       .then(async (val) => {
-        chatroom.title = val;
-        await Promise.all([
+        const [_, newChatroom] = await Promise.all([
           this.messagePublisher.PublishMessage(channel, TITLE, ASSISTANT, val),
           chatroomRepo.UpdateChatroom(chatroom.id, val),
-          this.chatrooomCache.SetChatroom(chatroom),
         ]);
+        await this.chatrooomCache.SetChatroom(newChatroom);
       });
 
     return chatroom.id;
