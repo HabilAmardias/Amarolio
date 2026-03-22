@@ -6,13 +6,17 @@ import (
 	"amarolio-auth/src/users"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 )
 
-func Bootstrap(db *db.DBHandle, app *fiber.App) {
+func Bootstrap(db *db.DBHandle, rc *redis.Client, lg *zap.SugaredLogger, app *fiber.App) {
 	ju := users.CreateJWTUtil()
 	oau := users.CreateGoogleOauthUtil()
 
-	us := users.NewUserService(oau, ju, db)
+	uc := users.NewUserCache(rc)
+
+	us := users.NewUserService(oau, ju, db, uc, lg)
 
 	uh := users.NewUserHandler(us)
 

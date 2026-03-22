@@ -33,6 +33,7 @@ func Run() {
 	if err != nil {
 		panic(err)
 	}
+
 	dbh, err := db.ConnectDB(lg)
 	if err != nil {
 		lg.Panicln(err)
@@ -41,11 +42,13 @@ func Run() {
 		lg.Fatalln(err)
 	}
 
+	rc := db.NewRedisClient()
+
 	app := fiber.New(fiber.Config{
 		ErrorHandler:    middlewares.NewErrorMiddleware(lg),
 		StructValidator: &structValidator{validate: validator.New()},
 	})
-	Bootstrap(dbh, app)
+	Bootstrap(dbh, rc, lg, app)
 
 	server := &fasthttp.Server{
 		Handler: app.Handler(),

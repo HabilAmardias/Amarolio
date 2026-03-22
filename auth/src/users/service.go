@@ -24,14 +24,27 @@ type JWTUtilItf interface {
 	GenerateJWT(id string, usedFor int, age time.Duration) (string, error)
 }
 
+type UserCacheItf interface {
+	FindCacheByID(ctx context.Context, userID string, user *User) error
+	FindCacheByEmail(ctx context.Context, userEmail string, user *User) error
+	SetCacheByID(ctx context.Context, user *User) error
+	SetCacheByEmail(ctx context.Context, user *User) error
+}
+
+type Logger interface {
+	Errorln(args ...interface{})
+}
+
 type UserServiceImpl struct {
 	ou   OauthUtilItf
 	ju   JWTUtilItf
 	dbtx *db.DBHandle
+	uc   UserCacheItf
+	lg   Logger
 }
 
-func NewUserService(ou OauthUtilItf, ju JWTUtilItf, dbtx *db.DBHandle) *UserServiceImpl {
-	return &UserServiceImpl{ou, ju, dbtx}
+func NewUserService(ou OauthUtilItf, ju JWTUtilItf, dbtx *db.DBHandle, uc UserCacheItf, lg Logger) *UserServiceImpl {
+	return &UserServiceImpl{ou, ju, dbtx, uc, lg}
 }
 
 func (us *UserServiceImpl) Login() (string, string) {
@@ -46,10 +59,31 @@ func (us *UserServiceImpl) Login() (string, string) {
 
 func (us *UserServiceImpl) RefreshAuth(ctx context.Context, userID string) (string, error) {
 	user := new(User)
-	ur := NewUserRepository(us.dbtx)
 
-	if err := ur.FindByID(ctx, userID, user); err != nil {
-		return "", err
+	// try fetch from cache
+	if err := us.uc.FindCacheByID(ctx, userID, user); err != nil {
+		var parsed *customerrors.CustomError
+		if !errors.As(err, &parsed) {
+			return "", customerrors.NewError(
+				"something went wrong",
+				errors.New("parse error failed"),
+				customerrors.CommonErr,
+			)
+		}
+		if parsed.ErrCode != customerrors.ItemNotFound {
+			return "", err
+		}
+		// if cache miss, fetch from db
+		ur := NewUserRepository(us.dbtx)
+		if err := ur.FindByID(ctx, userID, user); err != nil {
+			return "", err
+		}
+		// renew cache asynchronously
+		go func() {
+			if err := us.uc.SetCacheByID(ctx, user); err != nil {
+				us.lg.Errorln(err)
+			}
+		}()
 	}
 
 	token, err := us.ju.GenerateJWT(userID, constants.ForAuth, constants.AUTH_AGE)
@@ -109,9 +143,8 @@ func (us *UserServiceImpl) LoginCallback(ctx context.Context, code string) (stri
 	}
 
 	user := new(User)
-	ur := NewUserRepository(us.dbtx)
-
-	if err := ur.FindByEmail(ctx, email, user); err != nil {
+	// try fetch from cache
+	if err := us.uc.FindCacheByEmail(ctx, email, user); err != nil {
 		var parsedErr *customerrors.CustomError
 		if !errors.As(err, &parsedErr) {
 			return "", "", customerrors.NewError(
@@ -123,9 +156,32 @@ func (us *UserServiceImpl) LoginCallback(ctx context.Context, code string) (stri
 		if parsedErr.ErrCode != customerrors.ItemNotFound {
 			return "", "", err
 		}
-		if err := ur.AddNewUser(ctx, email, user); err != nil {
-			return "", "", err
+
+		// if cache miss, fetch from db
+		ur := NewUserRepository(us.dbtx)
+		if err := ur.FindByEmail(ctx, email, user); err != nil {
+			var parsedErr *customerrors.CustomError
+			if !errors.As(err, &parsedErr) {
+				return "", "", customerrors.NewError(
+					"something went wrong",
+					errors.New("fail parse error"),
+					customerrors.CommonErr,
+				)
+			}
+			if parsedErr.ErrCode != customerrors.ItemNotFound {
+				return "", "", err
+			}
+			// if user does not exist, register the new email
+			if err := ur.AddNewUser(ctx, email, user); err != nil {
+				return "", "", err
+			}
 		}
+		// renew cache asynchronously
+		go func() {
+			if err := us.uc.SetCacheByEmail(ctx, user); err != nil {
+				us.lg.Errorln(err)
+			}
+		}()
 	}
 
 	return us.generateAuthAndRefreshToken(user.ID)
