@@ -5,6 +5,7 @@ import (
 	"amarolio-auth/src/dto"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -18,7 +19,7 @@ type Logger interface {
 func NewErrorMiddleware(logger Logger) fiber.ErrorHandler {
 	return func(ctx fiber.Ctx, err error) error {
 		code := http.StatusInternalServerError
-		var errDetail any = "Internal Server Error"
+		var errDetail string = "Internal Server Error"
 
 		var ce *customerrors.CustomError
 		if errors.As(err, &ce) {
@@ -30,15 +31,16 @@ func NewErrorMiddleware(logger Logger) fiber.ErrorHandler {
 
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) {
-			fes := []dto.DetailsError{}
+			fes := []string{}
 			for _, fe := range ve {
-				fes = append(fes, dto.DetailsError{
+				de := dto.DetailsError{
 					Field:   fe.Field(),
 					Message: fe.Error(),
-				})
+				}
+				fes = append(fes, de.ToString())
 			}
 			code = http.StatusBadRequest
-			errDetail = fes
+			errDetail = strings.Join(fes, "; ")
 
 			logger.Errorln(ctx.Method(), ctx.Path(), code, ve.Error())
 		}
