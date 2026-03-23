@@ -47,10 +47,10 @@ func wrapDB(db *sql.DB, logger Logger) *DBHandle {
 
 func ConnectDB(logger Logger) (*DBHandle, error) {
 	dbHost := os.Getenv("AUTH_DATABASE_HOST")
-	dbPort := os.Getenv("AUTH_DATABASE_PORT")
-	dbName := os.Getenv("AUTH_POSTGRES_DB")
-	dbUser := os.Getenv("AUTH_POSTGRES_USER")
-	dbPass := os.Getenv("AUTH_POSTGRES_PASSWORD")
+	dbPort := os.Getenv("POSTGRES_PORT")
+	dbName := os.Getenv("POSTGRES_DB")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPass := os.Getenv("POSTGRES_PASSWORD")
 
 	connString := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",

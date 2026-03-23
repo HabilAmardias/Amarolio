@@ -54,7 +54,7 @@ func Run() {
 		Handler: app.Handler(),
 	}
 	go func() {
-		if err := server.ListenAndServe(":" + os.Getenv("AUTH_SERVER_PORT")); !errors.Is(err, fasthttp.ErrConnectionClosed) {
+		if err := server.ListenAndServe(":" + os.Getenv("SERVER_PORT")); !errors.Is(err, fasthttp.ErrConnectionClosed) {
 			lg.Fatalln(err)
 		}
 	}()

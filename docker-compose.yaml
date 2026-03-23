@@ -1,8 +1,8 @@
 services:
   database_amarath:
-    container_name: database_amarath
     env_file:
       - .env
+    container_name: database_amarath
     image: postgres:16-alpine
     volumes:
       - database_amarath_data:/var/lib/postgresql/data
@@ -13,6 +13,8 @@ services:
       retries: 5
     restart: unless-stopped
   redis_amarath:
+    env_file:
+      - .env
     container_name: redis_amarath
     image: redis:latest
     restart: unless-stopped
@@ -31,20 +33,60 @@ services:
           cpus: '2'
           memory: '4096M'
   amarath:
+    env_file:
+      - .env
     container_name: amarath
     build:
       context: ./amarath
       dockerfile: Dockerfile
+    depends_on:
+      database_amarath:
+        condition: service_healthy
+      redis_amarath:
+        condition: service_started
+      ollama_amarath:
+        condition: service_started
+    restart: unless-stopped
+  database_auth:
     env_file:
       - .env
+    container_name: database_auth
+    image: postgres:16-alpine
+    volumes:
+      - database_auth_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  redis_auth:
+    env_file:
+      - .env
+    container_name: redis_auth
+    image: redis:latest
+    restart: unless-stopped
+    volumes:
+      - redis_auth_data:/data
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+  auth:
+    env_file:
+      - .env
+    container_name: auth
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    depends_on:
+      database_auth:
+        condition: service_healthy
+      redis_auth:
+        condition: service_started
+    restart: unless-stopped
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
-    depends_on:
-      - database_amarath
-      - redis_amarath
-      - ollama_amarath
-    restart: unless-stopped
 volumes:
   ollama_amarath_data:
   database_amarath_data:
   redis_amarath_data:
+  database_auth_data:
+  redis_auth_data:
