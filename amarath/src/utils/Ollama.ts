@@ -95,6 +95,7 @@ class OllamaUtil {
   ) => {
     const NUM_PREDICT = 1024;
     const NUM_CONTEXT = 2048;
+    const TEMP = 0.1; // low temp for more deterministic answer
     const messages: Message[] = [
       {
         role: "system",
@@ -129,9 +130,19 @@ class OllamaUtil {
       messages: messages,
       think: true,
       stream: true,
+      tools: [
+        // fake function to prevent overthinking
+        {
+          type: "function",
+          function: {
+            name: "x",
+          },
+        },
+      ],
       options: {
         num_predict: NUM_PREDICT,
         num_ctx: NUM_CONTEXT,
+        temperature: TEMP,
       },
     });
     if (controller?.signal.aborted) {
