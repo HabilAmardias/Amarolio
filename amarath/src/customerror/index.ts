@@ -12,7 +12,7 @@ export class CustomError extends Error {
       {
         success: false,
         data: {
-          message: this.message,
+          detail: this.message,
         },
       },
       { status: this.status },

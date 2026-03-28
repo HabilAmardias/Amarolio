@@ -19,7 +19,7 @@ func (ar *AppRouter) Setup() {
 
 func (ar *AppRouter) publicSetup() {
 	v1 := ar.App.Group("/api/v1")
-	v1.Get("/login", ar.Uh.Login)
+	v1.Post("/login", ar.Uh.Login)
 	v1.Post("/login/callback", ar.Uh.LoginCallback)
 }
 
