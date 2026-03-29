@@ -11,7 +11,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func Call[T any](host string, port string, path string, method string, successStatus int, body []byte, queries map[string]string) (*dto.ServerResponse[T], error) {
+func Call[T any](host string, port string, path string, method string, successStatus int, body []byte, queries map[string]string, headers map[string]string) (*dto.ServerResponse[T], error) {
 	req := fasthttp.AcquireRequest()
 	req.Header.SetMethod(method)
 	queryString := []string{}

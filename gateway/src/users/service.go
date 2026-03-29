@@ -19,11 +19,11 @@ func NewUserService(hs string, pr string) *UserServiceImpl {
 }
 
 func (us *UserServiceImpl) callLogin() (*dto.ServerResponse[LoginData], error) {
-	return services.Call[LoginData](us.hs, us.pr, "/api/v1/login", fasthttp.MethodPost, fasthttp.StatusOK, nil, nil)
+	return services.Call[LoginData](us.hs, us.pr, "/api/v1/login", fasthttp.MethodPost, fasthttp.StatusOK, nil, nil, nil)
 }
 
 func (us *UserServiceImpl) callRefreshAuth() (*dto.ServerResponse[AuthData], error) {
-	return services.Call[AuthData](us.hs, us.pr, "/api/v1/refresh", fasthttp.MethodPost, fasthttp.StatusOK, nil, nil)
+	return services.Call[AuthData](us.hs, us.pr, "/api/v1/refresh", fasthttp.MethodPost, fasthttp.StatusOK, nil, nil, nil)
 }
 
 func (us *UserServiceImpl) callLoginCallback(code string, state string) (*dto.ServerResponse[LoginCallbackData], error) {
@@ -40,7 +40,7 @@ func (us *UserServiceImpl) callLoginCallback(code string, state string) (*dto.Se
 			customerrors.CommonErr,
 		)
 	}
-	return services.Call[LoginCallbackData](us.hs, us.pr, "/api/v1/login/callback", fasthttp.MethodPost, fasthttp.StatusOK, reqBody, queries)
+	return services.Call[LoginCallbackData](us.hs, us.pr, "/api/v1/login/callback", fasthttp.MethodPost, fasthttp.StatusOK, reqBody, queries, nil)
 }
 
 func (us *UserServiceImpl) LoginCallback(code string, state string) (string, string, error) {

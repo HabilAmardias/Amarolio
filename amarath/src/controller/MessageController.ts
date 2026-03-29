@@ -39,7 +39,7 @@ export function NewMessageController(messageService: MessageServiceItf) {
             userID,
             chatroomID: params.id,
             limit: query.limit,
-            lastID: query.lastID,
+            lastID: query.last_id,
           };
           const messages = await messageService.GetMessages(param);
           const res: ServerResponse<GetMessagesRes> = {
@@ -56,7 +56,7 @@ export function NewMessageController(messageService: MessageServiceItf) {
           }),
           query: t.Object({
             limit: t.Number({ minimum: 1, default: 15 }),
-            lastID: t.Optional(t.Number({ minimum: 1 })),
+            last_id: t.Optional(t.Number({ minimum: 1 })),
           }),
         },
       )
