@@ -12,13 +12,13 @@ type (
 		UpdatedAt  time.Time  `json:"updated_at"`
 		DeletedAt  *time.Time `json:"deleted_at"`
 	}
-	AIResponseMessage struct {
+	SendMessage struct {
 		Message string `json:"message"`
 	}
-	UserRequestMessage struct {
+	SendMessageBody struct {
 		Message string `json:"user_message"`
 	}
-	ChatroomMessages struct {
+	GetMessages struct {
 		Messages []Message `json:"messages"`
 	}
 )

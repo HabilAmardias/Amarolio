@@ -18,20 +18,20 @@ func NewUserService(hs string, pr string) *UserServiceImpl {
 	return &UserServiceImpl{hs, pr}
 }
 
-func (us *UserServiceImpl) callLogin() (*dto.ServerResponse[LoginData], error) {
-	return services.Call[LoginData](us.hs, us.pr, "/api/v1/login", fasthttp.MethodPost, fasthttp.StatusOK, nil, nil, nil)
+func (us *UserServiceImpl) callLogin() (*dto.ServerResponse[Login], error) {
+	return services.Call[Login](us.hs, us.pr, "/api/v1/login", fasthttp.MethodPost, fasthttp.StatusOK, nil, nil, nil)
 }
 
-func (us *UserServiceImpl) callRefreshAuth() (*dto.ServerResponse[AuthData], error) {
-	return services.Call[AuthData](us.hs, us.pr, "/api/v1/refresh", fasthttp.MethodPost, fasthttp.StatusOK, nil, nil, nil)
+func (us *UserServiceImpl) callRefreshAuth() (*dto.ServerResponse[RefreshAuth], error) {
+	return services.Call[RefreshAuth](us.hs, us.pr, "/api/v1/refresh", fasthttp.MethodPost, fasthttp.StatusOK, nil, nil, nil)
 }
 
-func (us *UserServiceImpl) callLoginCallback(code string, state string) (*dto.ServerResponse[LoginCallbackData], error) {
+func (us *UserServiceImpl) callLoginCallback(code string, state string) (*dto.ServerResponse[LoginCallback], error) {
 	queries := map[string]string{
 		"code":  code,
 		"state": state,
 	}
-	b := new(AuthRefreshData)
+	b := new(LoginCallbackBody)
 	reqBody, err := json.Marshal(b)
 	if err != nil {
 		return nil, customerrors.NewError(
@@ -40,7 +40,7 @@ func (us *UserServiceImpl) callLoginCallback(code string, state string) (*dto.Se
 			customerrors.CommonErr,
 		)
 	}
-	return services.Call[LoginCallbackData](us.hs, us.pr, "/api/v1/login/callback", fasthttp.MethodPost, fasthttp.StatusOK, reqBody, queries, nil)
+	return services.Call[LoginCallback](us.hs, us.pr, "/api/v1/login/callback", fasthttp.MethodPost, fasthttp.StatusOK, reqBody, queries, nil)
 }
 
 func (us *UserServiceImpl) LoginCallback(code string, state string) (string, string, error) {

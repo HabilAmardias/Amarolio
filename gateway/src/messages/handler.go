@@ -20,6 +20,10 @@ type MessageHandlerImpl struct {
 	ms MessageServiceItf
 }
 
+func NewMessageHandler(ms MessageServiceItf) *MessageHandlerImpl {
+	return &MessageHandlerImpl{ms}
+}
+
 func (mh *MessageHandlerImpl) GetMessages(ctx fiber.Ctx) error {
 	claim, err := handlers.GetAuthPayload(ctx, constants.AUTH_CLAIM_KEY)
 	if err != nil {
@@ -81,7 +85,7 @@ func (mh *MessageHandlerImpl) SendMessage(ctx fiber.Ctx) error {
 	return ctx.JSON(dto.ServerResponse[SendMessageRes]{
 		Success: true,
 		Data: SendMessageRes{
-			SystemMessage: res,
+			Message: res,
 		},
 	})
 }

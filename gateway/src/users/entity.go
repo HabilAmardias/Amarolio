@@ -1,19 +1,19 @@
 package users
 
 type (
-	LoginCallbackData struct {
+	LoginCallback struct {
 		AuthToken    string `json:"auth_token"`
 		RefreshToken string `json:"refresh_token"`
 	}
-	AuthRefreshData struct {
+	LoginCallbackBody struct {
 		AuthToken    string `json:"auth_token"`
 		RefreshToken string `json:"refresh_token"`
 	}
-	LoginData struct {
+	Login struct {
 		URL   string `json:"url"`
 		State string `json:"oauthstate"`
 	}
-	AuthData struct {
+	RefreshAuth struct {
 		Token string `json:"auth_token"`
 	}
 )

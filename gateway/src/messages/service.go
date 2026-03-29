@@ -21,9 +21,9 @@ func NewMessageService(hs string, pr string) *MessageServiceImpl {
 	return &MessageServiceImpl{hs, pr}
 }
 
-func (ms *MessageServiceImpl) callSendMessage(userID string, chatroomID string, userMessage string) (*dto.ServerResponse[AIResponseMessage], error) {
+func (ms *MessageServiceImpl) callSendMessage(userID string, chatroomID string, userMessage string) (*dto.ServerResponse[SendMessage], error) {
 	path := fmt.Sprintf("/api/v1/chatrooms/%s/messages", chatroomID)
-	reqBody, err := json.Marshal(UserRequestMessage{
+	reqBody, err := json.Marshal(SendMessageBody{
 		Message: userMessage,
 	})
 	if err != nil {
@@ -36,10 +36,10 @@ func (ms *MessageServiceImpl) callSendMessage(userID string, chatroomID string, 
 	headers := map[string]string{
 		constants.X_USER_ID: userID,
 	}
-	return services.Call[AIResponseMessage](ms.hs, ms.pr, path, fasthttp.MethodPost, fasthttp.StatusCreated, reqBody, nil, headers)
+	return services.Call[SendMessage](ms.hs, ms.pr, path, fasthttp.MethodPost, fasthttp.StatusCreated, reqBody, nil, headers)
 }
 
-func (ms *MessageServiceImpl) callGetMessages(userID string, chatroomID string, limit *int, lastID *int) (*dto.ServerResponse[ChatroomMessages], error) {
+func (ms *MessageServiceImpl) callGetMessages(userID string, chatroomID string, limit *int, lastID *int) (*dto.ServerResponse[GetMessages], error) {
 	path := fmt.Sprintf("/api/v1/chatrooms/%s/messages", chatroomID)
 	headers := map[string]string{
 		constants.X_USER_ID: userID,
@@ -51,7 +51,7 @@ func (ms *MessageServiceImpl) callGetMessages(userID string, chatroomID string, 
 	if lastID != nil {
 		queries["last_id"] = strconv.Itoa(*lastID)
 	}
-	return services.Call[ChatroomMessages](ms.hs, ms.pr, path, fasthttp.MethodGet, fasthttp.StatusOK, nil, nil, headers)
+	return services.Call[GetMessages](ms.hs, ms.pr, path, fasthttp.MethodGet, fasthttp.StatusOK, nil, nil, headers)
 }
 
 func (ms *MessageServiceImpl) GetMessages(userID string, chatroomID string, limit *int, lastID *int) ([]Message, error) {

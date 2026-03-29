@@ -5,7 +5,7 @@ type (
 		UserMessage string `json:"user_message"`
 	}
 	SendMessageRes struct {
-		SystemMessage string `json:"system_message"`
+		Message string `json:"message"`
 	}
 	GetMessagesReq struct {
 		Limit  *int `query:"limit"`
