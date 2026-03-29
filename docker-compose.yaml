@@ -1,26 +1,26 @@
 services:
   database_amarath:
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=${AMARATH_POSTGRES_USER}
+      - POSTGRES_DB=${AMARATH_POSTGRES_DB}
+      - POSTGRES_PASSWORD=${AMARATH_POSTGRES_PASSWORD}
     container_name: database_amarath
     image: postgres:16-alpine
     volumes:
       - database_amarath_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${AMARATH_POSTGRES_USER} -d ${AMARATH_POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
     restart: unless-stopped
   redis_amarath:
-    env_file:
-      - .env
     container_name: redis_amarath
     image: redis:latest
     restart: unless-stopped
     volumes:
       - redis_amarath_data:/data
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server --requirepass ${AMARATH_REDIS_PASSWORD}
   ollama_amarath:
     container_name: ollama_amarath
     image: alpine/ollama:latest
@@ -48,27 +48,27 @@ services:
         condition: service_started
     restart: unless-stopped
   database_auth:
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
     container_name: database_auth
     image: postgres:16-alpine
     volumes:
       - database_auth_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${AUTH_POSTGRES_USER} -d ${AUTH_POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
     restart: unless-stopped
   redis_auth:
-    env_file:
-      - .env
     container_name: redis_auth
     image: redis:latest
     restart: unless-stopped
     volumes:
       - redis_auth_data:/data
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server --requirepass ${AUTH_REDIS_PASSWORD}
   auth:
     env_file:
       - .env

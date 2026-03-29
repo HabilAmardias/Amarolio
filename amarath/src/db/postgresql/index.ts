@@ -9,10 +9,10 @@ export async function Migrate(db: SQL) {
 }
 
 export async function NewPostgresClient() {
-  const pgUser = process.env.POSTGRES_USER;
-  const pgPassword = process.env.POSTGRES_PASSWORD;
+  const pgUser = process.env.AMARATH_POSTGRES_USER;
+  const pgPassword = process.env.AMARATH_POSTGRES_PASSWORD;
   const pgHost = process.env.AMARATH_DATABASE_HOST;
-  const pgDB = process.env.POSTGRES_DB;
+  const pgDB = process.env.AMARATH_POSTGRES_DB;
   const pgPort = process.env.POSTGRES_PORT;
 
   const pg = new SQL(
