@@ -20,11 +20,20 @@ export async function Run() {
         httpOnly: true,
       },
     });
-    const redisClient = await NewRedisClient();
+    const redisClient = await NewRedisClient(
+      process.env.AMARATH_REDIS_PASSWORD,
+      process.env.AMARATH_REDIS_HOST,
+      process.env.REDIS_PORT,
+    );
+    const redisPubSub = await NewRedisClient(
+      process.env.AMAROLIO_REDIS_PASSWORD,
+      process.env.AMAROLIO_REDIS_HOST,
+      process.env.REDIS_PORT,
+    );
     const pgClient = await NewPostgresClient();
     await Migrate(pgClient);
 
-    Bootstrap(app, redisClient, pgClient, logger);
+    Bootstrap(app, redisClient, redisPubSub, pgClient, logger);
 
     app.listen({
       port: Number(process.env.SERVER_PORT),

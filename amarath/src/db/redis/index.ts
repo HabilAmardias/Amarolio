@@ -1,7 +1,11 @@
 import { RedisClient } from "bun";
 
-export async function NewRedisClient() {
-  const url = `redis://:${process.env.AMARATH_REDIS_PASSWORD}@${process.env.AMARATH_REDIS_HOST}:${process.env.REDIS_PORT}`;
+export async function NewRedisClient(
+  password?: string,
+  host?: string,
+  port?: string,
+) {
+  const url = `redis://:${password}@${host}:${port}`;
   const rc = new RedisClient(url);
   await rc.connect();
   return rc;

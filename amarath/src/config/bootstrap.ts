@@ -14,12 +14,13 @@ import { NewMessageCache } from "../repository/redis/MessageCache";
 export function Bootstrap(
   app: Elysia,
   redisClient: RedisClient,
+  redisPubSub: RedisClient,
   pgClient: SQL,
   logger: Logger,
 ) {
   const ollamaUtil = NewOllamaUtil();
 
-  const messagePublisherRepo = NewMessagePublisher(redisClient);
+  const messagePublisherRepo = NewMessagePublisher(redisPubSub);
   const chatroomCacheRepo = NewChatroomCache(redisClient);
   const messageCacheRepo = NewMessageCache(redisClient);
 

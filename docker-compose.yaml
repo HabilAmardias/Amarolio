@@ -1,4 +1,11 @@
 services:
+  redis_amarolio:
+    container_name: redis_amarolio
+    image: redis:latest
+    restart: unless-stopped
+    volumes:
+      - redis_amarolio_data:/data
+    command: redis-server --requirepass ${AMAROLIO_REDIS_PASSWORD}
   database_amarath:
     environment:
       - POSTGRES_USER=${AMARATH_POSTGRES_USER}
@@ -44,6 +51,8 @@ services:
         condition: service_healthy
       redis_amarath:
         condition: service_started
+      redis_amarolio:
+        condition: service_started
       ollama_amarath:
         condition: service_started
     restart: unless-stopped
@@ -84,9 +93,11 @@ services:
     restart: unless-stopped
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
+  
 volumes:
   ollama_amarath_data:
   database_amarath_data:
   redis_amarath_data:
   database_auth_data:
   redis_auth_data:
+  redis_amarolio_data:
