@@ -2,41 +2,28 @@ package messages
 
 import (
 	"amarolio-gateway/src/constants"
-	"amarolio-gateway/src/customerrors"
 	"amarolio-gateway/src/dto"
 	"amarolio-gateway/src/services"
-	"encoding/json"
+	"context"
 	"fmt"
 	"strconv"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/valyala/fasthttp"
 )
 
+type MessageChannelRepositoryItf interface {
+	Subscribe(ctx context.Context, chatroomID string) *redis.PubSub
+	PublishMessage(ctx context.Context, userID string, chatroomID string, message string)
+}
 type MessageServiceImpl struct {
-	hs string
-	pr string
+	hs  string
+	pr  string
+	mcr MessageChannelRepositoryItf
 }
 
-func NewMessageService(hs string, pr string) *MessageServiceImpl {
-	return &MessageServiceImpl{hs, pr}
-}
-
-func (ms *MessageServiceImpl) callSendMessage(userID string, chatroomID string, userMessage string) (*dto.ServerResponse[SendMessage], error) {
-	path := fmt.Sprintf("/api/v1/chatrooms/%s/messages", chatroomID)
-	reqBody, err := json.Marshal(SendMessageBody{
-		Message: userMessage,
-	})
-	if err != nil {
-		return nil, customerrors.NewError(
-			"something went wrong",
-			err,
-			customerrors.CommonErr,
-		)
-	}
-	headers := map[string]string{
-		constants.X_USER_ID: userID,
-	}
-	return services.Call[SendMessage](ms.hs, ms.pr, path, fasthttp.MethodPost, fasthttp.StatusCreated, reqBody, nil, headers)
+func NewMessageService(hs string, pr string, mcr MessageChannelRepositoryItf) *MessageServiceImpl {
+	return &MessageServiceImpl{hs, pr, mcr}
 }
 
 func (ms *MessageServiceImpl) callGetMessages(userID string, chatroomID string, limit *int, lastID *int) (*dto.ServerResponse[GetMessages], error) {
@@ -62,10 +49,15 @@ func (ms *MessageServiceImpl) GetMessages(userID string, chatroomID string, limi
 	return res.Data.Messages, nil
 }
 
-func (ms *MessageServiceImpl) SendMessage(userID string, chatroomID string, userMessage string) (string, error) {
-	res, err := ms.callSendMessage(userID, chatroomID, userMessage)
-	if err != nil {
-		return "", err
-	}
-	return res.Data.Message, nil
+func (ms *MessageServiceImpl) Subscribe(ctx context.Context, chatroomID string, cc *ChatClient) {
+	rps := ms.mcr.Subscribe(ctx, chatroomID)
+	cc.Subscribe(rps)
+}
+
+func (ms *MessageServiceImpl) Write(ctx context.Context, cc *ChatClient) {
+	cc.Write(ctx)
+}
+
+func (ms *MessageServiceImpl) Read(ctx context.Context, cc *ChatClient, userID string, chatroomID string) {
+	cc.Read(ctx, userID, chatroomID, ms.mcr.PublishMessage)
 }
