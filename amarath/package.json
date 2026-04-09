@@ -9,6 +9,7 @@
     "@elysiajs/cors": "^1.4.1",
     "@logtape/logtape": "^2.0.4",
     "elysia": "latest",
+    "ioredis": "^5.10.1",
     "ollama": "^0.6.3"
   },
   "devDependencies": {

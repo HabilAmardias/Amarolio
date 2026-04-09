@@ -1,14 +1,14 @@
-import { RedisClient } from "bun";
+import Redis from "ioredis";
 import { Message } from "../../entity/MessageEntity";
 
-export function NewMessageCache(redisClient: RedisClient) {
+export function NewMessageCache(redisClient: Redis) {
   return new MessageCacheRepository(redisClient);
 }
 
 class MessageCacheRepository {
-  redisClient: RedisClient;
+  redisClient: Redis;
 
-  constructor(redisClient: RedisClient) {
+  constructor(redisClient: Redis) {
     this.redisClient = redisClient;
   }
 

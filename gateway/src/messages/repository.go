@@ -8,18 +8,16 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type PubSubKey struct{}
-
 type MessageChannelRepositoryImpl struct {
 	rc *redis.Client
 }
 
 func (mcr *MessageChannelRepositoryImpl) PublishMessage(ctx context.Context, userID string, chatroomID string, message string) {
 	args := &redis.XAddArgs{
-		Stream: "event",
+		Stream: "streams:chatrooms",
 		Approx: true,
-		Values: map[string]any{
-			"action":   "send",
+		Values: map[string]string{
+			"action":   "send_message",
 			"user":     userID,
 			"chatroom": chatroomID,
 			"message":  message,

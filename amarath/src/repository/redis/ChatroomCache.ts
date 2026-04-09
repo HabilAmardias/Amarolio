@@ -1,13 +1,13 @@
-import { RedisClient } from "bun";
 import { Chatroom } from "../../entity/ChatroomEntity";
+import Redis from "ioredis";
 
-export function NewChatroomCache(redisClient: RedisClient) {
+export function NewChatroomCache(redisClient: Redis) {
   return new ChatroomCacheRepository(redisClient);
 }
 
 class ChatroomCacheRepository {
-  redisClient: RedisClient;
-  constructor(redisClient: RedisClient) {
+  redisClient: Redis;
+  constructor(redisClient: Redis) {
     this.redisClient = redisClient;
   }
   FindByID: (chatroomID: string) => Promise<Chatroom | null> = async (

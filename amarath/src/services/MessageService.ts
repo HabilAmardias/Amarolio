@@ -55,14 +55,14 @@ interface MessageCacheItf {
 
 export function NewMessageService(
   messagePublisher: MessagePublisherItf,
-  ollamaUtil: LLMProviderItf,
+  llmProvider: LLMProviderItf,
   chatroomCache: ChatroomCacheItf,
   messageCache: MessageCacheItf,
   db: SQL,
 ) {
   return new MessageService(
     messagePublisher,
-    ollamaUtil,
+    llmProvider,
     chatroomCache,
     messageCache,
     db,
@@ -71,28 +71,28 @@ export function NewMessageService(
 
 class MessageService {
   messagePublisher: MessagePublisherItf;
-  ollamaUtil: LLMProviderItf;
+  llmProvider: LLMProviderItf;
   chatroomCache: ChatroomCacheItf;
   messageCache: MessageCacheItf;
   db: SQL;
 
   constructor(
     messagePublisher: MessagePublisherItf,
-    ollamaUtil: LLMProviderItf,
+    llmProvider: LLMProviderItf,
     chatroomCache: ChatroomCacheItf,
     messageCache: MessageCacheItf,
     db: SQL,
   ) {
     this.db = db;
     this.messagePublisher = messagePublisher;
-    this.ollamaUtil = ollamaUtil;
+    this.llmProvider = llmProvider;
     this.chatroomCache = chatroomCache;
     this.messageCache = messageCache;
   }
 
   SendMessage = async (param: SendMessageParam) => {
     const controller = new AbortController();
-    const timeoutID = setTimeout(() => controller.abort(), 120_000);
+    const timeoutID = setTimeout(() => controller.abort(), 60_000);
 
     try {
       const channel = `chatrooms:${param.id}:messages`;
@@ -140,7 +140,7 @@ class MessageService {
           USER,
           param.userMessage,
         ),
-        this.ollamaUtil.WebSearch(param.userMessage),
+        this.llmProvider.WebSearch(param.userMessage),
       ]);
 
       const response = await this.StreamMessage(
@@ -263,7 +263,7 @@ class MessageService {
     const ASSISTANT = "assistant";
     let inThinking = false;
 
-    const stream = await this.ollamaUtil.SendMessage(
+    const stream = await this.llmProvider.SendMessage(
       userMessage,
       context,
       history,

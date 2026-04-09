@@ -1,16 +1,11 @@
 import { GetMessagesParam, SendMessageParam } from "../entity/MessageEntity";
 import { Message } from "../entity/MessageEntity";
 import { ServerResponse } from "../dto";
-import {
-  GetMessagesRes,
-  SendMessageReq,
-  SendMessageRes,
-} from "../dto/MessageDto";
+import { GetMessagesRes } from "../dto/MessageDto";
 import Elysia, { t } from "elysia";
 import { CustomError, UnauthorizedError } from "../customerror";
 
 interface MessageServiceItf {
-  SendMessage: (param: SendMessageParam) => Promise<string>;
   GetMessages: (param: GetMessagesParam) => Promise<Message[]>;
 }
 
@@ -58,30 +53,6 @@ export function NewMessageController(messageService: MessageServiceItf) {
             limit: t.Number({ minimum: 1, default: 15 }),
             last_id: t.Optional(t.Number({ minimum: 1 })),
           }),
-        },
-      )
-      .post(
-        "/chatrooms/:id/messages",
-        async ({ userID, body, params, status }) => {
-          const param = {
-            id: params.id,
-            userID,
-            userMessage: body.user_message,
-          };
-          const message = await messageService.SendMessage(param);
-          const res: ServerResponse<SendMessageRes> = {
-            success: true,
-            data: {
-              message,
-            },
-          };
-          return status(201, res);
-        },
-        {
-          params: t.Object({
-            id: t.String({ minLength: 1 }),
-          }),
-          body: SendMessageReq,
         },
       );
   });

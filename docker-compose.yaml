@@ -39,6 +39,7 @@ services:
         limits:
           cpus: '2'
           memory: '4096M'
+    command: ollama pull ${MODEL_VARIANT} && ollama pull ${TITLE_MODEL_VARIANT}
   amarath:
     env_file:
       - .env

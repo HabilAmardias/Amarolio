@@ -1,4 +1,4 @@
-import { RedisClient } from "bun";
+import Redis from "ioredis";
 
 export async function NewRedisClient(
   password?: string,
@@ -6,7 +6,7 @@ export async function NewRedisClient(
   port?: string,
 ) {
   const url = `redis://:${password}@${host}:${port}`;
-  const rc = new RedisClient(url);
+  const rc = new Redis(url);
   await rc.connect();
   return rc;
 }
