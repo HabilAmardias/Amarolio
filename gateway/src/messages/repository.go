@@ -8,11 +8,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type MessageChannelRepositoryImpl struct {
+type MessageBridgeRepository struct {
 	rc *redis.Client
 }
 
-func (mcr *MessageChannelRepositoryImpl) PublishMessage(ctx context.Context, userID string, chatroomID string, message string) {
+func NewMessageChannelRepository(rc *redis.Client) *MessageBridgeRepository {
+	return &MessageBridgeRepository{rc}
+}
+
+func (mcr *MessageBridgeRepository) PublishMessage(ctx context.Context, userID string, chatroomID string, message string) {
 	args := &redis.XAddArgs{
 		Stream: "streams:chatrooms",
 		Approx: true,
@@ -27,7 +31,7 @@ func (mcr *MessageChannelRepositoryImpl) PublishMessage(ctx context.Context, use
 	mcr.rc.XAdd(ctx, args)
 }
 
-func (mcr *MessageChannelRepositoryImpl) Subscribe(ctx context.Context, chatroomID string) *redis.PubSub {
+func (mcr *MessageBridgeRepository) Subscribe(ctx context.Context, chatroomID string) *redis.PubSub {
 	rps := mcr.rc.Subscribe(ctx, fmt.Sprintf("chatrooms:%s:messages", chatroomID))
 	return rps
 }

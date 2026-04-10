@@ -34,12 +34,22 @@ services:
     restart: unless-stopped
     volumes:
       - ollama_amarath_data:/root/.ollama
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: '4096M'
-    command: ollama pull ${MODEL_VARIANT} && ollama pull ${TITLE_MODEL_VARIANT}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        ollama serve &
+        echo 'Waiting for Ollama server...' &&
+        sleep 5 &&
+        ollama pull ${MODEL_VARIANT} &&
+        ollama pull ${TITLE_MODEL_VARIANT} &&
+        echo 'All models ready!' &&
+        wait
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list | grep -q '${MODEL_VARIANT}' && ollama list | grep -q '${TITLE_MODEL_VARIANT}'"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
   amarath:
     env_file:
       - .env
@@ -55,7 +65,7 @@ services:
       redis_amarolio:
         condition: service_started
       ollama_amarath:
-        condition: service_started
+        condition: service_healthy
     restart: unless-stopped
   database_auth:
     environment:

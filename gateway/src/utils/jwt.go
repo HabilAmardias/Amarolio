@@ -16,6 +16,10 @@ type CustomClaim struct {
 	For int
 }
 
+func NewJWTUtil() *JWTUtil {
+	return &JWTUtil{}
+}
+
 func (ju *JWTUtil) VerifyJWT(tokenStr string, usedFor int) (*CustomClaim, error) {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	custClaim := new(CustomClaim)
