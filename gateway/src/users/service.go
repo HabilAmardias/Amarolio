@@ -31,7 +31,9 @@ func (us *UserServiceImpl) callLoginCallback(code string, state string) (*dto.Se
 		"code":  code,
 		"state": state,
 	}
-	b := new(LoginCallbackBody)
+	b := LoginCallbackBody{
+		State: state,
+	}
 	reqBody, err := json.Marshal(b)
 	if err != nil {
 		return nil, customerrors.NewError(

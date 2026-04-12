@@ -28,15 +28,13 @@ func (ar *AppRouter) Setup() {
 func (ar *AppRouter) SetupPublicRoute() {
 	v1 := ar.App.Group("/api/v1")
 	v1.Post("/login", ar.UserHandler.Login)
-	v1.Post(
-		"/login/callback",
-		middlewares.NewAuthMiddleware(
-			ar.JWTUtil,
-			constants.REFRESH_TOKEN,
-			constants.ForRefresh,
-			constants.REFRESH_CLAIM_KEY,
-		),
-		ar.UserHandler.LoginCallback)
+	v1.Post("/login/callback", ar.UserHandler.LoginCallback)
+	v1.Post("/refresh", middlewares.NewAuthMiddleware(
+		ar.JWTUtil,
+		constants.REFRESH_TOKEN,
+		constants.ForRefresh,
+		constants.REFRESH_CLAIM_KEY,
+	), ar.UserHandler.RefreshAuth)
 }
 
 func (ar *AppRouter) SetupPrivateRoute() {
@@ -48,7 +46,6 @@ func (ar *AppRouter) SetupPrivateRoute() {
 		constants.AUTH_CLAIM_KEY,
 	))
 
-	v1.Post("/refresh", ar.UserHandler.RefreshAuth)
 	v1.Get("/chatrooms/me", ar.ChatroomHandler.GetChatrooms)
 	v1.Post("/chatrooms", ar.ChatroomHandler.CreateChatroom)
 	v1.Delete("/chatrooms/:id", ar.ChatroomHandler.DeleteChatroom)

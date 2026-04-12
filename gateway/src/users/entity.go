@@ -6,8 +6,7 @@ type (
 		RefreshToken string `json:"refresh_token"`
 	}
 	LoginCallbackBody struct {
-		AuthToken    string `json:"auth_token"`
-		RefreshToken string `json:"refresh_token"`
+		State string `json:"oauthstate"`
 	}
 	Login struct {
 		URL   string `json:"url"`
