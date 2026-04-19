@@ -8,16 +8,16 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o amarolio-auth main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o amarolio-amary main.go
 
 FROM alpine:latest AS release-stage
 
 WORKDIR /
 
 COPY --from=build-stage /usr/share/zoneinfo /usr/share/zoneinfo
-COPY --from=build-stage /app/amarolio-auth amarolio-auth
+COPY --from=build-stage /app/amarolio-amary amarolio-amary
 COPY --from=build-stage /app/db ./db
 
 EXPOSE 3000
 
-ENTRYPOINT [ "/bin/sh", "-c", "/amarolio-auth"]
+ENTRYPOINT [ "/bin/sh", "-c", "/amarolio-amary"]

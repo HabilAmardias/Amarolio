@@ -102,6 +102,52 @@ services:
       redis_auth:
         condition: service_started
     restart: unless-stopped
+  database_amary:
+    environment:
+      - POSTGRES_USER=${AMARY_POSTGRES_USER}
+      - POSTGRES_DB=${AMARY_POSTGRES_DB}
+      - POSTGRES_PASSWORD=${AMARY_POSTGRES_PASSWORD}
+    container_name: database_amary
+    image: postgres:16-alpine
+    volumes:
+      - database_amary_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AMARY_POSTGRES_USER} -d ${AMARY_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  redis_amary:
+    container_name: redis_amary
+    image: redis:latest
+    restart: unless-stopped
+    volumes:
+      - redis_amary_data:/data
+    command: redis-server --requirepass ${AMARY_REDIS_PASSWORD}
+  amary:
+    env_file:
+      - .env
+    container_name: amary
+    build:
+      context: ./amary
+      dockerfile: Dockerfile
+    depends_on:
+      database_amary:
+        condition: service_healthy
+      redis_amary:
+        condition: service_started
+    restart: unless-stopped
+  gateway:
+    env_file:
+      - .env
+    container_name: gateway
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    depends_on:
+      redis_amarolio:
+        condition: service_started
+    restart: unless-stopped
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
   
@@ -112,3 +158,5 @@ volumes:
   database_auth_data:
   redis_auth_data:
   redis_amarolio_data:
+  database_amary_data:
+  redis_amary_data:
