@@ -13,11 +13,13 @@ import (
 
 func Bootstrap(db *db.DBHandle, app *gin.Engine, rc *redis.Client, lg *zap.SugaredLogger) {
 	suc := shortenurl.NewShortenURLCache(rc)
-	vrs := visitrecords.NewVisitRecordStream(rc)
+	sur := shortenurl.NewShortenURLRepo(db)
+	vrr := visitrecords.NewVisitRecordRepo(db)
+
 	ue := shortenurl.NewURLEncryptor()
 	ide := shortenurl.NewIDEncoder()
 
-	sus := shortenurl.NewShortenURLServ(db, ue, ide, vrs, suc)
+	sus := shortenurl.NewShortenURLServ(ue, ide, suc, sur, vrr)
 
 	suh := shortenurl.NewShortenURLHandler(sus)
 

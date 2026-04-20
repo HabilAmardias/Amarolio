@@ -43,7 +43,7 @@ func (suh *ShortenURLHandlerImpl) NewShortURL(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, dto.ServerResponse[NewShortURLRes]{
 		Success: true,
 		Data: NewShortURLRes{
-			URL: fmt.Sprintf("%s/%s", os.Getenv("CLIENT_DOMAIN"), id),
+			URL: fmt.Sprintf("%s/%s", os.Getenv("AMARY_CLIENT_DOMAIN"), id),
 		},
 	})
 }

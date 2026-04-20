@@ -2,7 +2,6 @@ package shortenurl
 
 import (
 	"amary/src/customerror"
-	"amary/src/db"
 	"context"
 	"errors"
 	"time"
@@ -23,20 +22,36 @@ type ShortenURLCacheItf interface {
 	Get(ctx context.Context, encodedID string, url *ShortenURL) error
 }
 
-type VisitRecordStreamItf interface {
-	Send(ctx context.Context, userID string, urlID int64, device string) error
+type VisitRecordRepoItf interface {
+	InsertNewRecord(
+		ctx context.Context,
+		userID string,
+		id int64,
+		device string,
+	) error
+}
+
+type ShortenURLRepoItf interface {
+	InsertNewURL(
+		ctx context.Context,
+		userID *string,
+		encryptedLongURL string,
+		expiredAt *time.Time,
+		shortenURL *ShortenURL,
+	) error
+	FindByID(ctx context.Context, id int64, url *ShortenURL) error
 }
 
 type ShortenURLServiceImpl struct {
-	dbh *db.DBHandle
 	ue  URLEncryptorItf
 	ide IDEncoderItf
-	vrs VisitRecordStreamItf
 	suc ShortenURLCacheItf
+	sur ShortenURLRepoItf
+	vrr VisitRecordRepoItf
 }
 
-func NewShortenURLServ(dbh *db.DBHandle, ue URLEncryptorItf, ide IDEncoderItf, vrs VisitRecordStreamItf, suc ShortenURLCacheItf) *ShortenURLServiceImpl {
-	return &ShortenURLServiceImpl{dbh, ue, ide, vrs, suc}
+func NewShortenURLServ(ue URLEncryptorItf, ide IDEncoderItf, suc ShortenURLCacheItf, sur ShortenURLRepoItf, vrr VisitRecordRepoItf) *ShortenURLServiceImpl {
+	return &ShortenURLServiceImpl{ue, ide, suc, sur, vrr}
 }
 
 func (sus *ShortenURLServiceImpl) NewShortURL(ctx context.Context, userID *string, longURL string, duration *int) (string, error) {
@@ -59,10 +74,9 @@ func (sus *ShortenURLServiceImpl) NewShortURL(ctx context.Context, userID *strin
 	}
 
 	url := new(ShortenURL)
-	sur := NewShortenURLRepo(sus.dbh)
 
 	encryptedURL := sus.ue.EncryptURL(longURL)
-	if err := sur.InsertNewURL(ctx, userID, encryptedURL, eat, url); err != nil {
+	if err := sus.sur.InsertNewURL(ctx, userID, encryptedURL, eat, url); err != nil {
 		return "", err
 	}
 
@@ -87,7 +101,6 @@ func (sus *ShortenURLServiceImpl) NewShortURL(ctx context.Context, userID *strin
 
 func (sus *ShortenURLServiceImpl) FindLongURL(ctx context.Context, encodedID string, device string) (string, error) {
 	url := new(ShortenURL)
-	sur := NewShortenURLRepo(sus.dbh)
 	now := time.Now()
 
 	decodedID, err := sus.ide.Decode(encodedID)
@@ -108,7 +121,7 @@ func (sus *ShortenURLServiceImpl) FindLongURL(ctx context.Context, encodedID str
 			return "", err
 		}
 
-		if err := sur.FindByID(ctx, decodedID, url); err != nil {
+		if err := sus.sur.FindByID(ctx, decodedID, url); err != nil {
 			return "", err
 		}
 	}
@@ -133,9 +146,9 @@ func (sus *ShortenURLServiceImpl) FindLongURL(ctx context.Context, encodedID str
 
 			attemptCount := 0
 			maxRetry := 3
-			if err := sus.vrs.Send(ctx, *url.UserID, decodedID, device); err != nil {
+			if err := sus.vrr.InsertNewRecord(ctx, *url.UserID, decodedID, device); err != nil {
 				for err != nil && attemptCount <= maxRetry {
-					err = sus.vrs.Send(ctx, *url.UserID, decodedID, device)
+					err = sus.vrr.InsertNewRecord(ctx, *url.UserID, decodedID, device)
 					attemptCount += 1
 				}
 			}
