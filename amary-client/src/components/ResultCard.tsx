@@ -1,7 +1,7 @@
 import { Card, CardContent, Typography, Box, IconButton, Snackbar } from '@mui/material';
 import { ContentCopy } from '@mui/icons-material';
 import { useState } from 'react';
-import { ShortenResponse } from '../models/url.model';
+import type { ShortenResponse } from '../models/url.model';
 
 interface ResultCardProps {
   result: ShortenResponse;

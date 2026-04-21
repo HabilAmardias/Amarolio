@@ -1,5 +1,5 @@
 // MOCK — replace function bodies with real HTTP calls
-import { ShortenRequest, ShortenResponse } from "../models/url.model";
+import type { ShortenRequest, ShortenResponse } from "../models/url.model";
 
 export async function shortenUrl(
   req: ShortenRequest,

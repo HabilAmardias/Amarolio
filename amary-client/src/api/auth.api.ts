@@ -1,5 +1,5 @@
 // MOCK — replace function bodies with real HTTP calls
-import { User } from "../models/user.model";
+import type { User } from "../models/user.model";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function login(provider: string, _token: string): Promise<User> {

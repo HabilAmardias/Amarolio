@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useAtom } from "jotai";
 import { authAtom } from "../models/user.model";
-import { urlHistoryAtom, ShortenResponse } from "../models/url.model";
+import { urlHistoryAtom } from "../models/url.model";
+import type { ShortenResponse } from "../models/url.model";
 import { shortenUrl } from "../api/url.api";
 
 export function useShorten() {
