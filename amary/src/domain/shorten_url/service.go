@@ -2,6 +2,7 @@ package shortenurl
 
 import (
 	"amary/src/customerror"
+	"amary/src/services"
 	"context"
 	"errors"
 	"time"
@@ -18,8 +19,9 @@ type IDEncoderItf interface {
 }
 
 type ShortenURLCacheItf interface {
-	Set(ctx context.Context, encodedID string, ttl time.Duration, url *ShortenURL) error
+	Set(ctx context.Context, encodedID string, ttl time.Duration, url ShortenURL) error
 	Get(ctx context.Context, encodedID string, url *ShortenURL) error
+	AddToUserSet(ctx context.Context, userID string, cat time.Time, encodedID string) error
 }
 
 type VisitRecordRepoItf interface {
@@ -56,21 +58,19 @@ func NewShortenURLServ(ue URLEncryptorItf, ide IDEncoderItf, suc ShortenURLCache
 
 func (sus *ShortenURLServiceImpl) NewShortURL(ctx context.Context, userID *string, longURL string, duration *int) (string, error) {
 	// default using 24 hour duration
-	ttl := 24 * time.Hour
 	now := time.Now()
-	eatv := now.Add(ttl)
+	eatv := now.Add(24 * time.Hour)
 	eat := &eatv
 
 	// user logged-in and no expiration time
 	if userID != nil && duration == nil {
-		ttl = 0
 		eat = nil
 	}
 
 	// user logged-in and set expiration time
 	if userID != nil && duration != nil {
-		ttl = time.Duration(*duration) * 24 * time.Hour
-		*eat = now.Add(ttl)
+		expiration := now.Add(time.Duration(*duration) * 24 * time.Hour)
+		eat = &expiration
 	}
 
 	url := new(ShortenURL)
@@ -82,19 +82,27 @@ func (sus *ShortenURLServiceImpl) NewShortURL(ctx context.Context, userID *strin
 
 	encodedID := sus.ide.Encode(url.ID)
 
-	go func() {
+	go func(uid *string, eid string, u ShortenURL) {
+		ttl := 24 * time.Hour
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		attempt := 0
-		maxRetry := 3
-		if err := sus.suc.Set(ctx, encodedID, ttl, url); err != nil {
-			for err != nil && attempt <= maxRetry {
-				err = sus.suc.Set(ctx, encodedID, ttl, url)
-				attempt += 1
-			}
+		// add to cache
+		fun := func() error {
+			return sus.suc.Set(ctx, eid, ttl, u)
 		}
-	}()
+
+		services.WithErrorRetry(ctx, fun, 100*time.Millisecond)
+
+		// if user is logged-in then add the id to zset
+		if uid != nil {
+			fun := func() error {
+				return sus.suc.AddToUserSet(ctx, *uid, u.CreatedAt, eid)
+			}
+
+			services.WithErrorRetry(ctx, fun, 100*time.Millisecond)
+		}
+	}(userID, encodedID, *url)
 
 	return encodedID, nil
 }
@@ -124,6 +132,17 @@ func (sus *ShortenURLServiceImpl) FindLongURL(ctx context.Context, encodedID str
 		if err := sus.sur.FindByID(ctx, decodedID, url); err != nil {
 			return "", err
 		}
+		go func(eid string, u ShortenURL) {
+			ttl := 24 * time.Hour
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+
+			fun := func() error {
+				return sus.suc.Set(ctx, eid, ttl, u)
+			}
+
+			services.WithErrorRetry(ctx, fun, 100*time.Millisecond)
+		}(encodedID, *url)
 	}
 
 	if url.ExpiredAt != nil && now.After(*url.ExpiredAt) {
@@ -139,21 +158,18 @@ func (sus *ShortenURLServiceImpl) FindLongURL(ctx context.Context, encodedID str
 		return "", err
 	}
 
-	go func() {
-		if url.UserID != nil {
+	go func(u ShortenURL, did int64, dev string) {
+		if u.UserID != nil {
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
 
-			attemptCount := 0
-			maxRetry := 3
-			if err := sus.vrr.InsertNewRecord(ctx, *url.UserID, decodedID, device); err != nil {
-				for err != nil && attemptCount <= maxRetry {
-					err = sus.vrr.InsertNewRecord(ctx, *url.UserID, decodedID, device)
-					attemptCount += 1
-				}
+			fun := func() error {
+				return sus.vrr.InsertNewRecord(ctx, *u.UserID, did, dev)
 			}
+
+			services.WithErrorRetry(ctx, fun, 100*time.Millisecond)
 		}
-	}()
+	}(*url, decodedID, device)
 
 	return decryptedURL, nil
 }

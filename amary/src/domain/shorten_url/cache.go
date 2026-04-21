@@ -29,8 +29,24 @@ func NewShortenURLCache(rc *redis.Client) *ShortenURLCache {
 	return &ShortenURLCache{rc}
 }
 
-func (suc *ShortenURLCache) Set(ctx context.Context, encodedID string, ttl time.Duration, url *ShortenURL) error {
-	taggedUrl := TaggedShortenUrl(*url)
+func (suc *ShortenURLCache) AddToUserSet(ctx context.Context, userID string, cat time.Time, encodedID string) error {
+	key := fmt.Sprintf("user:%s:list:shorten_url", userID)
+	item := redis.Z{
+		Score:  float64(cat.Unix()),
+		Member: encodedID,
+	}
+	if err := suc.rc.ZAdd(ctx, key, item).Err(); err != nil {
+		return customerror.NewError(
+			"something went wrong",
+			err,
+			customerror.CommonErr,
+		)
+	}
+	return nil
+}
+
+func (suc *ShortenURLCache) Set(ctx context.Context, encodedID string, ttl time.Duration, url ShortenURL) error {
+	taggedUrl := TaggedShortenUrl(url)
 	b, err := json.Marshal(taggedUrl)
 	if err != nil {
 		return err
