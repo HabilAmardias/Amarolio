@@ -2,8 +2,8 @@ package config
 
 import (
 	"amarolio-auth/src/db"
+	"amarolio-auth/src/domain/users"
 	"amarolio-auth/src/routers"
-	"amarolio-auth/src/users"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/redis/go-redis/v9"

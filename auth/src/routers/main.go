@@ -1,8 +1,8 @@
 package routers
 
 import (
+	"amarolio-auth/src/domain/users"
 	"amarolio-auth/src/middlewares"
-	"amarolio-auth/src/users"
 
 	"github.com/gofiber/fiber/v3"
 )
