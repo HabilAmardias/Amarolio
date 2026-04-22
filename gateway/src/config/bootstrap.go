@@ -1,11 +1,12 @@
 package config
 
 import (
-	"amarolio-gateway/src/chatrooms"
+	"amarolio-gateway/src/domain/chatrooms"
+	"amarolio-gateway/src/domain/messages"
+	shortenurls "amarolio-gateway/src/domain/shorten_urls"
+	"amarolio-gateway/src/domain/users"
 	"amarolio-gateway/src/logger"
-	"amarolio-gateway/src/messages"
 	"amarolio-gateway/src/routers"
-	"amarolio-gateway/src/users"
 	"amarolio-gateway/src/utils"
 	"os"
 
@@ -18,20 +19,23 @@ func Bootstrap(rc *redis.Client, lg logger.Logger, app *fiber.App) {
 
 	mcr := messages.NewMessageChannelRepository(rc)
 
-	us := users.NewUserService(os.Getenv("USER_SERVICE_HOST"), os.Getenv("SERVER_PORT"))
-	ms := messages.NewMessageService(os.Getenv("MESSAGE_SERVICE_HOST"), os.Getenv("SERVER_PORT"), mcr)
-	cs := chatrooms.NewChatroomService(os.Getenv("CHATROOM_SERVICE_HOST"), os.Getenv("SERVER_PORT"))
+	sus := shortenurls.NewShortenURLService(os.Getenv("AMARY_SERVICE_HOST"), os.Getenv("SERVER_PORT"))
+	us := users.NewUserService(os.Getenv("AUTH_SERVICE_HOST"), os.Getenv("SERVER_PORT"))
+	ms := messages.NewMessageService(os.Getenv("AMARATH_SERVICE_HOST"), os.Getenv("SERVER_PORT"), mcr)
+	cs := chatrooms.NewChatroomService(os.Getenv("AMARATH_SERVICE_HOST"), os.Getenv("SERVER_PORT"))
 
 	ch := chatrooms.NewChatroomHandler(cs)
 	mh := messages.NewMessageHandler(ms, lg)
 	uh := users.NewUserHandler(us)
+	suh := shortenurls.NewShortenURLHandler(sus)
 
 	ar := &routers.AppRouter{
-		App:             app,
-		JWTUtil:         ju,
-		ChatroomHandler: ch,
-		MessageHandler:  mh,
-		UserHandler:     uh,
+		App:               app,
+		JWTUtil:           ju,
+		ChatroomHandler:   ch,
+		MessageHandler:    mh,
+		UserHandler:       uh,
+		ShortenURLHandler: suh,
 	}
 	ar.Setup()
 }

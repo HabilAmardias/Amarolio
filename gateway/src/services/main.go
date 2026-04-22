@@ -14,6 +14,10 @@ import (
 func Call[T any](host string, port string, path string, method string, successStatus int, body []byte, queries map[string]string, headers map[string]string) (*dto.ServerResponse[T], error) {
 	req := fasthttp.AcquireRequest()
 	req.Header.SetMethod(method)
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
 	queryString := []string{}
 	for k, v := range queries {
 		queryString = append(queryString, fmt.Sprintf("%s=%s", k, v))

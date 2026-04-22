@@ -25,12 +25,14 @@ func NewShortenURLHandler(sus ShortenURLServiceItf) *ShortenURLHandlerImpl {
 }
 
 func (suh *ShortenURLHandlerImpl) NewShortURL(ctx *gin.Context) {
-	userID := new(string)
-	req := new(NewShortURLReq)
+	var userID *string = nil
 	uid := handlers.GetAuthenticationPayload(ctx)
-	if len(uid) == 0 {
-		userID = nil
+	if len(uid) > 0 {
+		userID = &uid
 	}
+
+	req := new(NewShortURLReq)
+
 	if err := ctx.ShouldBindBodyWithJSON(req); err != nil {
 		ctx.Error(err)
 		return

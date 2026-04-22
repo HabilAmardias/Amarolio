@@ -6,6 +6,7 @@ import (
 	"amarolio-gateway/src/dto"
 	"amarolio-gateway/src/handlers"
 	"errors"
+	"net/http"
 	"os"
 	"time"
 
@@ -74,7 +75,7 @@ func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
 		HTTPOnly: true,
 		Secure:   isProd,
 	})
-	return ctx.Redirect().To(url)
+	return ctx.Status(http.StatusPermanentRedirect).Redirect().To(url)
 }
 
 func (uh *UserHandlerImpl) RefreshAuth(ctx fiber.Ctx) error {
