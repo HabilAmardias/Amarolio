@@ -1,7 +1,6 @@
 import { Box, Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination } from '@mui/material';
 import { useAtom } from 'jotai';
 import { urlHistoryAtom } from '../../models/url.model';
-import { ShortenForm } from '../../components/ShortenForm';
 import { useState } from 'react';
 
 export function DashboardPage() {
@@ -39,8 +38,6 @@ export function DashboardPage() {
           Dashboard
         </Typography>
 
-        <ShortenForm />
-
         <Typography 
           variant="h5" 
           sx={{ 
@@ -60,7 +57,7 @@ export function DashboardPage() {
               fontSize: '1.1rem',
             }}
           >
-            No URLs shortened yet. Start by shortening a URL above.
+            No URLs shortened yet.
           </Typography>
         ) : (
           <TableContainer component={Paper}>

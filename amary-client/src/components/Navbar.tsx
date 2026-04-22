@@ -12,7 +12,6 @@ export function Navbar() {
           variant="h6" 
           component="div" 
           sx={{ 
-            flexGrow: 1,
             color: '#c25e00',
             fontWeight: 700,
           }}
@@ -21,14 +20,32 @@ export function Navbar() {
             Amary
           </Link>
         </Typography>
-        <Box>
+        {user && (
+          <Button 
+            component={Link} 
+            to="/dashboard"
+            sx={{
+              color: '#c25e00',
+              fontWeight: 700,
+              ml: 3,
+              background: 'none',
+              boxShadow: 'none',
+              '&:hover': {
+                backgroundColor: 'none',
+                boxShadow: 'none',
+              },
+            }}
+          >
+            Dashboard
+          </Button>
+        )}
+        <Box sx={{ flexGrow: 1 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {user ? (
             <>
               <Typography 
                 variant="body2" 
                 sx={{ 
-                  mr: 2, 
-                  display: 'inline-block',
                   color: '#5d4037',
                 }}
               >
@@ -39,6 +56,10 @@ export function Navbar() {
                 onClick={logout}
                 sx={{
                   color: '#ffffff',
+                  fontWeight: 600,
+                  '&:hover': {
+                    backgroundColor: 'rgba(194, 94, 0, 0.08)',
+                  },
                 }}
               >
                 Logout
@@ -51,6 +72,10 @@ export function Navbar() {
               to="/login"
               sx={{
                 color: '#ffffff',
+                fontWeight: 600,
+                '&:hover': {
+                  backgroundColor: 'rgba(194, 94, 0, 0.08)',
+                },
               }}
             >
               Login

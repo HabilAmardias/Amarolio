@@ -1,12 +1,9 @@
-import { Box, Container, Typography, Link as MuiLink } from '@mui/material';
+import { Box, Container, Typography } from '@mui/material';
 import { ShortenForm } from '../../components/ShortenForm';
 import { ResultCard } from '../../components/ResultCard';
 import { useShorten } from '../../controllers/useShorten';
-import { useAuth } from '../../controllers/useAuth';
-import { Link } from 'react-router-dom';
 
 export function HomePage() {
-  const { user } = useAuth();
   const { result } = useShorten();
 
   return (
@@ -34,25 +31,6 @@ export function HomePage() {
         >
           Simplify your links with ease
         </Typography>
-
-        {user && (
-          <MuiLink 
-            component={Link} 
-            to="/dashboard" 
-            sx={{ 
-              mb: 4, 
-              display: 'block',
-              color: '#c25e00',
-              textDecoration: 'none',
-              fontWeight: 600,
-              '&:hover': {
-                textDecoration: 'underline',
-              },
-            }}
-          >
-            → Go to Dashboard
-          </MuiLink>
-        )}
 
         <ShortenForm />
 
