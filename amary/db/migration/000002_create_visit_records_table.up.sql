@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS visit_records (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
-    url_id BIGINT NOT NULL REFERENCES shorten_urls(id),
+    url_id BIGINT NOT NULL REFERENCES urls(id),
     device VARCHAR NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,

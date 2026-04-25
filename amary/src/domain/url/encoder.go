@@ -1,4 +1,4 @@
-package shortenurl
+package url
 
 import (
 	"amary/src/customerror"
@@ -29,4 +29,21 @@ func (ide *IDEncoder) Decode(encodedID string) (int64, error) {
 		)
 	}
 	return id, nil
+}
+
+func (ide *IDEncoder) DecodeMultipleIDs(ids []string) ([]int64, error) {
+	res := []int64{}
+	for _, eid := range ids {
+		idStr := encoding.FromString(eid).Base62Decode().ToString()
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			return nil, customerror.NewError(
+				"something went wrong",
+				err,
+				customerror.CommonErr,
+			)
+		}
+		res = append(res, id)
+	}
+	return res, nil
 }

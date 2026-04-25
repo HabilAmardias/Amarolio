@@ -1,7 +1,7 @@
 package routers
 
 import (
-	shortenurl "amary/src/domain/shorten_url"
+	"amary/src/domain/url"
 	"amary/src/middlewares"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +14,7 @@ type Logger interface {
 
 type AppRouter struct {
 	App               *gin.Engine
-	ShortenURLHandler *shortenurl.ShortenURLHandlerImpl
+	ShortenURLHandler *url.URLHandlerImpl
 	Logger            Logger
 }
 
@@ -35,5 +35,6 @@ func (ar *AppRouter) SetupPrivateRoute() {
 	v1 := ar.App.Group("/api/v1")
 	v1.Use(middlewares.NewAuthMiddleware())
 
+	v1.GET("/url/me", ar.ShortenURLHandler.GetUserLinks)
 	v1.POST("/url", ar.ShortenURLHandler.NewShortURL)
 }

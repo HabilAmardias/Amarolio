@@ -1,9 +1,9 @@
-package shortenurl
+package url
 
 import "time"
 
 type (
-	ShortenURL struct {
+	URL struct {
 		ID               int64
 		UserID           *string
 		EncryptedLongUrl string
@@ -11,5 +11,13 @@ type (
 		UpdatedAt        time.Time
 		DeletedAt        *time.Time
 		ExpiredAt        *time.Time
+	}
+	DecryptedURL struct {
+		ID        int64
+		UserID    *string
+		ShortURL  string
+		LongURL   string
+		CreatedAt time.Time
+		ExpiredAt *time.Time
 	}
 )

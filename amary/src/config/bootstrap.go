@@ -2,7 +2,7 @@ package config
 
 import (
 	"amary/src/db"
-	shortenurl "amary/src/domain/shorten_url"
+	"amary/src/domain/url"
 	visitrecords "amary/src/domain/visit_records"
 	"amary/src/routers"
 
@@ -12,16 +12,16 @@ import (
 )
 
 func Bootstrap(db *db.DBHandle, app *gin.Engine, rc *redis.Client, lg *zap.SugaredLogger) {
-	suc := shortenurl.NewShortenURLCache(rc)
-	sur := shortenurl.NewShortenURLRepo(db)
+	suc := url.NewShortenURLCache(rc)
+	sur := url.NewURLRepo(db)
 	vrr := visitrecords.NewVisitRecordRepo(db)
 
-	ue := shortenurl.NewURLEncryptor()
-	ide := shortenurl.NewIDEncoder()
+	ue := url.NewURLEncryptor()
+	ide := url.NewIDEncoder()
 
-	sus := shortenurl.NewShortenURLServ(ue, ide, suc, sur, vrr)
+	sus := url.NewURLService(ue, ide, suc, sur, vrr)
 
-	suh := shortenurl.NewShortenURLHandler(sus)
+	suh := url.NewURLHandler(sus)
 
 	router := &routers.AppRouter{
 		App:               app,

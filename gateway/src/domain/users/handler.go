@@ -30,7 +30,7 @@ func NewUserHandler(us UserServiceItf) *UserHandlerImpl {
 func (uh *UserHandlerImpl) LoginCallback(ctx fiber.Ctx) error {
 	state := ctx.Cookies("oauthstate")
 	code := ctx.Query("code")
-	clientDomain, exist := os.LookupEnv("CLIENT_DOMAIN")
+	clientDomain, exist := os.LookupEnv("AUTH_CLIENT_DOMAIN")
 	if !exist {
 		return customerrors.NewError(
 			"something went wrong",
@@ -58,7 +58,7 @@ func (uh *UserHandlerImpl) LoginCallback(ctx fiber.Ctx) error {
 		HTTPOnly: true,
 		Secure:   secure,
 	})
-	return ctx.Redirect().To(clientDomain + "/login-callback")
+	return ctx.Redirect().To(clientDomain + "/login/callback")
 }
 
 func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {

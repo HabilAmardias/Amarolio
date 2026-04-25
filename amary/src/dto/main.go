@@ -14,6 +14,10 @@ type (
 	ErrorResponse struct {
 		Detail string `json:"detail"`
 	}
+	PaginateOffsetReq struct {
+		Page  int64 `form:"page" binding:"required"`
+		Limit int64 `form:"limit" binding:"required,lte=25"`
+	}
 )
 
 func (de *DetailsError) ToString() string {

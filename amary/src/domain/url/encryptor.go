@@ -1,4 +1,4 @@
-package shortenurl
+package url
 
 import (
 	"crypto/aes"
