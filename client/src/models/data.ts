@@ -1,4 +1,5 @@
 import type { Profile, Experience, Project } from "./types";
+import AmaryHomepage from "../assets/Amary-Homepage.png";
 
 export const PROFILE: Profile = {
   name: "Amarolio", // {/* TODO: Replace with real content */}
@@ -47,9 +48,9 @@ export const PROJECTS: Project[] = [
     title: "Amary", // {/* TODO: Replace with real content */}
     description: "URL Shortener", // {/* TODO: Replace with real content */}
     tags: ["React", "Go", "PostgreSQL", "Redis"],
-    imageUrl: "/placeholder-project.jpg", // {/* TODO: Replace with real content */}
-    liveUrl: "#",
-    repoUrl: "#",
+    imageUrl: AmaryHomepage, // {/* TODO: Replace with real content */}
+    liveUrl: import.meta.env.AMARY_CLIENT_DOMAIN || "#",
+    repoUrl: "https://github.com/HabilAmardias/Amarolio",
     featured: true,
   },
 ];

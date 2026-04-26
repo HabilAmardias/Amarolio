@@ -6,12 +6,12 @@ export function useProjectController() {
   const [activeFilter, setActiveFilter] = useAtom(activeFilterAtom);
 
   const allTags = [
-    "all",
+    "All",
     ...Array.from(new Set(projects.flatMap((p) => p.tags))),
   ];
 
   const filtered =
-    activeFilter === "all"
+    activeFilter === "All"
       ? projects
       : projects.filter((p) => p.tags.includes(activeFilter));
 

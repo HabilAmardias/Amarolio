@@ -7,7 +7,7 @@ COPY package*.json ./
 RUN bun install
 
 COPY . .
-RUN bun build
+RUN bun run build
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine

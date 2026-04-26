@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Container, Typography, Button, Alert, Paper } from '@mui/material';
-import { Google as GoogleIcon } from '@mui/icons-material';
+import { Box, Container, Typography, Button,Alert, Paper } from '@mui/material';
 import { useAuth } from '../../controllers/useAuth';
+import { Google as GoogleIcon } from '@mui/icons-material';
+import { useGoogleLogin } from '@react-oauth/google';
 
 export function LoginPage() {
   const [error, setError] = useState('');
@@ -15,7 +16,6 @@ export function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Mock Google login - in production, this would use Google OAuth
       await login('google');
       navigate('/');
     } catch {
@@ -24,6 +24,15 @@ export function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  const googleHook = useGoogleLogin({
+    onSuccess: () => {
+      handleGoogleLogin()
+    },
+    onError: (err) => {
+      setError(err.error_description)
+    }
+  })
 
   return (
     <Container maxWidth="sm">
@@ -64,7 +73,7 @@ export function LoginPage() {
           <Button
             fullWidth
             variant="outlined"
-            onClick={handleGoogleLogin}
+            onClick={() => googleHook()}
             disabled={isLoading}
             startIcon={<GoogleIcon />}
             sx={{
@@ -82,7 +91,6 @@ export function LoginPage() {
           >
             {isLoading ? 'Signing in...' : 'Sign in with Google'}
           </Button>
-
           {error && (
             <Alert 
               severity="error" 
