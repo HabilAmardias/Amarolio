@@ -32,6 +32,11 @@ func (suh *ShortenURLHandlerImpl) RedirectToURL(ctx fiber.Ctx) error {
 		return err
 	}
 
+	// Set CORS headers to allow cross-origin redirects
+	ctx.Set("Access-Control-Allow-Origin", "*")
+	ctx.Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	ctx.Set("Access-Control-Allow-Headers", "Content-Type")
+
 	return ctx.Status(http.StatusFound).Redirect().To(url)
 }
 

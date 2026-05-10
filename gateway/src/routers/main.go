@@ -14,6 +14,11 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/cors"
 )
 
+type Logger interface {
+	Infoln(args ...interface{})
+	Errorln(args ...interface{})
+}
+
 type AppRouter struct {
 	App               *fiber.App
 	UserHandler       *users.UserHandlerImpl
@@ -21,10 +26,12 @@ type AppRouter struct {
 	ChatroomHandler   *chatrooms.ChatroomHandlerImpl
 	ShortenURLHandler *shortenurls.ShortenURLHandlerImpl
 	JWTUtil           *utils.JWTUtil
+	Logger            Logger
 }
 
 func (ar *AppRouter) Setup() {
 	ar.App.Use(cors.New())
+	ar.App.Use(middlewares.NewLoggerMiddleware(ar.Logger))
 	ar.SetupPublicRoute()
 	ar.SetupPrivateRoute()
 }

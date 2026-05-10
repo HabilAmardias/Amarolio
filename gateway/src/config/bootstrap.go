@@ -36,6 +36,7 @@ func Bootstrap(rc *redis.Client, lg logger.Logger, app *fiber.App) {
 		MessageHandler:    mh,
 		UserHandler:       uh,
 		ShortenURLHandler: suh,
+		Logger:            lg,
 	}
 	ar.Setup()
 }

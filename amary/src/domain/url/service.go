@@ -75,7 +75,7 @@ func (sus *URLServiceImpl) decryptAndFormatURL(ls []URL) ([]DecryptedURL, error)
 			ID:        l.ID,
 			UserID:    l.UserID,
 			LongURL:   du,
-			ShortURL:  fmt.Sprintf("%s/%s", os.Getenv("AMARY_CLIENT_DOMAIN"), eid),
+			ShortURL:  fmt.Sprintf("%s/%s", os.Getenv("AMARY_REDIRECT_DOMAIN"), eid),
 			CreatedAt: l.CreatedAt,
 			ExpiredAt: l.ExpiredAt,
 		})

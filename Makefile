@@ -1,5 +1,5 @@
 build-amary:
-	docker compose up amary redis_amary database_amary amary_client --build -d
+	docker compose up amary redis_amary database_amary amary_client amary_redirect --build -d
 build-auth:
 	docker compose up auth database_auth redis_auth --build -d
 build-amarolio:

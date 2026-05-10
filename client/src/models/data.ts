@@ -49,7 +49,7 @@ export const PROJECTS: Project[] = [
     description: "URL Shortener", // {/* TODO: Replace with real content */}
     tags: ["React", "Go", "PostgreSQL", "Redis"],
     imageUrl: AmaryHomepage, // {/* TODO: Replace with real content */}
-    liveUrl: import.meta.env.AMARY_CLIENT_DOMAIN || "#",
+    liveUrl: import.meta.env.VITE_AMARY_CLIENT_DOMAIN || "#",
     repoUrl: "https://github.com/HabilAmardias/Amarolio",
     featured: true,
   },
