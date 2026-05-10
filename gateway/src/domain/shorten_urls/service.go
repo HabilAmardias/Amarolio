@@ -18,14 +18,14 @@ func NewShortenURLService(hs string, pr string) *ShortenURLServiceImpl {
 	return &ShortenURLServiceImpl{hs, pr}
 }
 
-func (sus *ShortenURLServiceImpl) NewShortURL(userID *string, url string, duration *int) (string, error) {
+func (sus *ShortenURLServiceImpl) NewShortURL(userID *string, url string, duration *int) (NewShortenURL, error) {
 	b := NewShortenURLBody{
 		URL:      url,
 		Duration: duration,
 	}
 	reqBody, err := json.Marshal(b)
 	if err != nil {
-		return "", customerrors.NewError(
+		return NewShortenURL{}, customerrors.NewError(
 			"something went wrong",
 			err,
 			customerrors.CommonErr,
@@ -46,10 +46,10 @@ func (sus *ShortenURLServiceImpl) NewShortURL(userID *string, url string, durati
 		headers,
 	)
 	if err != nil {
-		return "", err
+		return NewShortenURL{}, err
 	}
 
-	return res.Data.URL, nil
+	return res.Data, nil
 }
 
 func (sus *ShortenURLServiceImpl) FindLongURL(id string, device string) (string, error) {

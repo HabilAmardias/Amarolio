@@ -12,7 +12,7 @@ import (
 
 type ShortenURLServiceItf interface {
 	FindLongURL(id string, device string) (string, error)
-	NewShortURL(userID *string, url string, duration *int) (string, error)
+	NewShortURL(userID *string, url string, duration *int) (NewShortenURL, error)
 }
 
 type ShortenURLHandlerImpl struct {
@@ -50,7 +50,7 @@ func (suh *ShortenURLHandlerImpl) NewShortURL(ctx fiber.Ctx) error {
 		userID = &claim.Subject
 	}
 
-	url, err := suh.sus.NewShortURL(userID, req.URL, req.Duration)
+	res, err := suh.sus.NewShortURL(userID, req.URL, req.Duration)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,9 @@ func (suh *ShortenURLHandlerImpl) NewShortURL(ctx fiber.Ctx) error {
 	return ctx.Status(http.StatusCreated).JSON(dto.ServerResponse[NewShortenURLRes]{
 		Success: true,
 		Data: NewShortenURLRes{
-			URL: url,
+			URL:         res.URL,
+			OriginalURL: res.OriginalURL,
+			ExpiredAt:   res.ExpiredAt,
 		},
 	})
 }

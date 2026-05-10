@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Container, Typography, Button,Alert, Paper } from '@mui/material';
+import { Box, Container, Typography, Button, Alert, Paper } from '@mui/material';
 import { useAuth } from '../../controllers/useAuth';
 import { Google as GoogleIcon } from '@mui/icons-material';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -30,16 +30,16 @@ export function LoginPage() {
       handleGoogleLogin()
     },
     onError: (err) => {
-      setError(err.error_description)
+      setError(err.error_description!)
     }
   })
 
   return (
     <Container maxWidth="sm">
       <Box sx={{ my: 8 }}>
-        <Typography 
-          variant="h3" 
-          component="h1" 
+        <Typography
+          variant="h3"
+          component="h1"
           gutterBottom
           sx={{
             color: '#c25e00',
@@ -50,10 +50,10 @@ export function LoginPage() {
         >
           Welcome Back
         </Typography>
-        
-        <Typography 
-          variant="body1" 
-          color="text.secondary" 
+
+        <Typography
+          variant="body1"
+          color="text.secondary"
           sx={{
             textAlign: 'center',
             mb: 4,
@@ -62,10 +62,10 @@ export function LoginPage() {
           Sign in with your Google account to continue
         </Typography>
 
-        <Paper 
+        <Paper
           elevation={0}
-          sx={{ 
-            p: 4, 
+          sx={{
+            p: 4,
             border: '1px solid #e8dcc8',
             borderRadius: 2,
           }}
@@ -92,9 +92,9 @@ export function LoginPage() {
             {isLoading ? 'Signing in...' : 'Sign in with Google'}
           </Button>
           {error && (
-            <Alert 
-              severity="error" 
-              sx={{ 
+            <Alert
+              severity="error"
+              sx={{
                 mt: 2,
               }}
             >
@@ -103,9 +103,9 @@ export function LoginPage() {
           )}
         </Paper>
 
-        <Typography 
-          variant="caption" 
-          color="text.secondary" 
+        <Typography
+          variant="caption"
+          color="text.secondary"
           sx={{
             display: 'block',
             textAlign: 'center',

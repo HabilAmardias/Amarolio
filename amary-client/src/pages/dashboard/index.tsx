@@ -12,6 +12,7 @@ export function DashboardPage() {
     event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number,
   ) => {
+    console.log(event?.currentTarget.value)
     setPage(newPage);
   };
 
@@ -25,9 +26,9 @@ export function DashboardPage() {
   return (
     <Container maxWidth="md">
       <Box sx={{ my: 4 }}>
-        <Typography 
-          variant="h3" 
-          component="h1" 
+        <Typography
+          variant="h3"
+          component="h1"
           gutterBottom
           sx={{
             color: '#c25e00',
@@ -38,10 +39,10 @@ export function DashboardPage() {
           Dashboard
         </Typography>
 
-        <Typography 
-          variant="h5" 
-          sx={{ 
-            mt: 4, 
+        <Typography
+          variant="h5"
+          sx={{
+            mt: 4,
             mb: 2,
             color: '#8b4513',
             fontWeight: 600,
@@ -51,8 +52,8 @@ export function DashboardPage() {
         </Typography>
 
         {urlHistory.length === 0 ? (
-          <Typography 
-            sx={{ 
+          <Typography
+            sx={{
               color: 'text.secondary',
               fontSize: '1.1rem',
             }}
@@ -74,43 +75,43 @@ export function DashboardPage() {
                 {urlHistory
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((url) => (
-                  <TableRow 
-                    key={url.shortUrl}
-                    sx={{
-                      '&:hover': {
-                        background: '#faf6f0',
-                      },
-                    }}
-                  >
-                    <TableCell>
-                      <a 
-                        href={url.shortUrl} 
-                        target="_blank" 
-                        rel="noopener"
-                        style={{
-                          color: '#c25e00',
-                          textDecoration: 'none',
-                          '&:hover': {
-                            textDecoration: 'underline',
-                          },
-                        }}
-                      >
-                        {url.shortUrl}
-                      </a>
-                    </TableCell>
-                    <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', color: 'text.secondary' }}>
-                      {url.originalUrl}
-                    </TableCell>
-                    <TableCell sx={{ color: '#8b4513' }}>
-                      {url.expiresAt
-                        ? new Date(url.expiresAt).toLocaleDateString()
-                        : 'Never'}
-                    </TableCell>
-                    <TableCell sx={{ color: 'text.secondary' }}>
-                      {new Date(url.createdAt).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                    <TableRow
+                      key={url.url}
+                      sx={{
+                        '&:hover': {
+                          background: '#faf6f0',
+                        },
+                      }}
+                    >
+                      <TableCell>
+                        <a
+                          href={url.url}
+                          target="_blank"
+                          rel="noopener"
+                          style={{
+                            color: '#c25e00',
+                            textDecoration: 'none',
+                            // '&:hover': {
+                            //   textDecoration: 'underline',
+                            // },
+                          }}
+                        >
+                          {url.url}
+                        </a>
+                      </TableCell>
+                      {/* <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', color: 'text.secondary' }}>
+                        {url.originalUrl}
+                      </TableCell>
+                      <TableCell sx={{ color: '#8b4513' }}>
+                        {url.expiresAt
+                          ? new Date(url.expiresAt).toLocaleDateString()
+                          : 'Never'}
+                      </TableCell>
+                      <TableCell sx={{ color: 'text.secondary' }}>
+                        {new Date(url.createdAt).toLocaleDateString()}
+                      </TableCell> */}
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
             <TablePagination

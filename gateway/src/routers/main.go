@@ -11,6 +11,7 @@ import (
 
 	"github.com/gofiber/contrib/v3/websocket"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 )
 
 type AppRouter struct {
@@ -23,6 +24,7 @@ type AppRouter struct {
 }
 
 func (ar *AppRouter) Setup() {
+	ar.App.Use(cors.New())
 	ar.SetupPublicRoute()
 	ar.SetupPrivateRoute()
 }

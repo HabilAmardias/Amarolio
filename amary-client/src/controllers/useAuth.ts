@@ -18,7 +18,7 @@ export function useAuth() {
   const login = useCallback(
     async (provider: string = "google") => {
       if (provider === "google") {
-        const userData = await loginApi("google", "");
+        const userData = await loginApi("");
         setUser(userData);
         // Store in localStorage for persistence
         localStorage.setItem("auth_user", JSON.stringify(userData));

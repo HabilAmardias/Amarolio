@@ -29,7 +29,7 @@ func (sur *URLRepoImpl) FindMultipleByIDs(ctx context.Context, ids []int64, link
 		updated_at,
 		deleted_at,
 		expired_at
-	FROM shorten_urls
+	FROM urls
 	WHERE id = ANY($1) AND deleted_at IS NULL
 	`
 
@@ -74,7 +74,7 @@ func (sur *URLRepoImpl) FindUserLinks(ctx context.Context, userID string, page, 
 		updated_at,
 		deleted_at,
 		expired_at
-	FROM shorten_urls
+	FROM urls
 	WHERE user_id = $1 AND deleted_at IS NULL
 	LIMIT $2
 	OFFSET $3
@@ -120,7 +120,7 @@ func (sur *URLRepoImpl) InsertNewURL(
 	shortenURL *URL,
 ) error {
 	query := `
-	INSERT INTO shorten_urls (user_id, encrypted_long_url, expired_at)
+	INSERT INTO urls (user_id, encrypted_long_url, expired_at)
 	VALUES ($1, $2, $3)
 	RETURNING id, user_id, encrypted_long_url, created_at, updated_at, deleted_at, expired_at
 	`
@@ -152,7 +152,7 @@ func (sur *URLRepoImpl) FindByID(ctx context.Context, id int64, url *URL) error 
 		updated_at,
 		deleted_at,
 		expired_at
-	FROM shorten_urls
+	FROM urls
 	WHERE id = $1 AND deleted_at IS NULL
 	`
 

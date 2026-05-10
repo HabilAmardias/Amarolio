@@ -28,8 +28,8 @@ export function ShortenForm() {
       />
 
       {user && (
-        <Box sx={{ 
-          mb: 2, 
+        <Box sx={{
+          mb: 2,
           p: 2,
           border: '1px solid #e8dcc8',
           borderRadius: 2,
@@ -41,7 +41,6 @@ export function ShortenForm() {
             value={expiresInDays || ''}
             onChange={(e) => setExpiresInDays(parseInt(e.target.value) || null)}
             disabled={noExpiry || isLoading}
-            inputProps={{ min: 1 }}
             sx={{ mr: 2 }}
           />
           <FormControlLabel
@@ -67,9 +66,9 @@ export function ShortenForm() {
       </Button>
 
       {error && (
-        <Alert 
-          severity="error" 
-          sx={{ 
+        <Alert
+          severity="error"
+          sx={{
             mt: 2,
           }}
         >

@@ -9,12 +9,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type URLServiceItf interface {
-	NewShortURL(ctx context.Context, userID *string, longURL string, duration *int) (string, error)
+	NewShortURL(ctx context.Context, userID *string, longURL string, duration *int) (string, *time.Time, error)
 	FindLongURL(ctx context.Context, encodedID string, device string) (string, error)
 	GetUserLinks(ctx context.Context, userID string, page int64, limit int64) ([]DecryptedURL, error)
 }
@@ -72,7 +73,7 @@ func (suh *URLHandlerImpl) NewShortURL(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	id, err := suh.sus.NewShortURL(ctx.Request.Context(), userID, req.URL, req.Duration)
+	id, eat, err := suh.sus.NewShortURL(ctx.Request.Context(), userID, req.URL, req.Duration)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -80,7 +81,9 @@ func (suh *URLHandlerImpl) NewShortURL(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, dto.ServerResponse[NewShortURLRes]{
 		Success: true,
 		Data: NewShortURLRes{
-			URL: fmt.Sprintf("%s/%s", os.Getenv("AMARY_CLIENT_DOMAIN"), id),
+			URL:         fmt.Sprintf("%s/%s", os.Getenv("AMARY_CLIENT_DOMAIN"), id),
+			OriginalURL: req.URL,
+			ExpiredAt:   eat,
 		},
 	})
 }

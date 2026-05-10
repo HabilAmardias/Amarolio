@@ -1,15 +1,17 @@
 import { atom } from "jotai";
 
 export interface ShortenRequest {
-  originalUrl: string;
-  expiresInDays: number | null; // null = no expiration (auth only)
+  url: string;
+  duration: number | null; // null = no expiration (auth only)
 }
 
 export interface ShortenResponse {
-  shortUrl: string;
-  originalUrl: string;
-  expiresAt: string | null; // ISO date string or null
-  createdAt: string;
+  url: string;
+  original_url: string;
+  expired_at: string | null;
 }
 
 export const urlHistoryAtom = atom<ShortenResponse[]>([]);
+
+const initialResult: ShortenResponse | null = null;
+export const shortenResultAtom = atom(initialResult);

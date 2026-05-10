@@ -1,18 +1,17 @@
 import { useState } from "react";
 import { useAtom } from "jotai";
 import { authAtom } from "../models/user.model";
-import { urlHistoryAtom } from "../models/url.model";
-import type { ShortenResponse } from "../models/url.model";
+import { urlHistoryAtom, shortenResultAtom } from "../models/url.model";
 import { shortenUrl } from "../api/url.api";
 
 export function useShorten() {
   const [user] = useAtom(authAtom);
   const [, setUrlHistory] = useAtom(urlHistoryAtom);
+  const [result, setResult] = useAtom(shortenResultAtom);
 
   const [url, setUrl] = useState("");
   const [expiresInDays, setExpiresInDays] = useState<number | null>(1);
   const [noExpiry, setNoExpiry] = useState(false);
-  const [result, setResult] = useState<ShortenResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,14 +33,14 @@ export function useShorten() {
     setIsLoading(true);
     try {
       const response = await shortenUrl({
-        originalUrl: url,
-        expiresInDays: finalExpiresInDays,
+        url: url,
+        duration: finalExpiresInDays,
       });
       setResult(response);
       setUrlHistory((prev) => [response, ...prev]);
       setUrl("");
-    } catch {
-      setError("Failed to shorten URL. Please try again.");
+    } catch (err) {
+      setError((err as Error).message);
     } finally {
       setIsLoading(false);
     }

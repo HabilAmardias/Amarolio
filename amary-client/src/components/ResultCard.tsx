@@ -11,7 +11,7 @@ export function ResultCard({ result }: ResultCardProps) {
   const [open, setOpen] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(result.shortUrl);
+    await navigator.clipboard.writeText(result.url);
     setOpen(true);
   };
 
@@ -20,18 +20,18 @@ export function ResultCard({ result }: ResultCardProps) {
       <Card variant="outlined">
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <Typography 
-              variant="h6" 
-              sx={{ 
+            <Typography
+              variant="h6"
+              sx={{
                 flexGrow: 1,
                 color: '#c25e00',
                 fontWeight: 600,
               }}
             >
-              {result.shortUrl}
+              {result.url}
             </Typography>
-            <IconButton 
-              onClick={handleCopy} 
+            <IconButton
+              onClick={handleCopy}
               size="small"
               sx={{
                 color: '#c25e00',
@@ -43,24 +43,24 @@ export function ResultCard({ result }: ResultCardProps) {
               <ContentCopy />
             </IconButton>
           </Box>
-          <Typography 
-            variant="body2" 
-            sx={{ 
+          <Typography
+            variant="body2"
+            sx={{
               mb: 1,
               color: 'text.secondary',
             }}
           >
-            Original: {result.originalUrl}
+            Original: {result.original_url}
           </Typography>
-          <Typography 
-            variant="caption" 
+          <Typography
+            variant="caption"
             sx={{
               color: '#8b4513',
               fontWeight: 600,
             }}
           >
-            {result.expiresAt
-              ? `Expires: ${new Date(result.expiresAt).toLocaleDateString()}`
+            {result.expired_at
+              ? `Expires: ${new Date(result.expired_at).toLocaleDateString()}`
               : 'No expiration'}
           </Typography>
         </CardContent>

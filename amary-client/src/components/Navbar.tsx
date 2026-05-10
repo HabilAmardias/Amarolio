@@ -1,9 +1,8 @@
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import { useAuth } from '../controllers/useAuth';
+import { AppBar, Toolbar, Typography, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 export function Navbar() {
-  const { user, logout } = useAuth();
+  // const { user, logout } = useAuth();
 
   return (
     <AppBar position="static" color="default">
@@ -20,7 +19,7 @@ export function Navbar() {
             Amary
           </Link>
         </Typography>
-        {user && (
+        {/* {user && (
           <Button 
             component={Link} 
             to="/dashboard"
@@ -38,9 +37,9 @@ export function Navbar() {
           >
             Dashboard
           </Button>
-        )}
+        )} */}
         <Box sx={{ flexGrow: 1 }} />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {user ? (
             <>
               <Typography 
@@ -81,7 +80,7 @@ export function Navbar() {
               Login
             </Button>
           )}
-        </Box>
+        </Box> */}
       </Toolbar>
     </AppBar>
   );

@@ -1,18 +1,17 @@
 // MOCK — replace function bodies with real HTTP calls
 import type { ShortenRequest, ShortenResponse } from "../models/url.model";
+import type { ServerResponse } from "../models/model";
 
 export async function shortenUrl(
   req: ShortenRequest,
 ): Promise<ShortenResponse> {
-  // MOCK: simulate shortening
-  return {
-    shortUrl: `https://short.ly/${Math.random().toString(36).slice(2, 8)}`,
-    originalUrl: req.originalUrl,
-    expiresAt: req.expiresInDays
-      ? new Date(Date.now() + req.expiresInDays * 86400000).toISOString()
-      : null,
-    createdAt: new Date().toISOString(),
-  };
+  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/url`;
+  const res = await fetch(url, {
+    method: "POST",
+    body: JSON.stringify(req),
+  });
+  const resBody: ServerResponse<ShortenResponse> = await res.json();
+  return resBody.data;
 }
 
 export async function getUserUrls(): Promise<ShortenResponse[]> {

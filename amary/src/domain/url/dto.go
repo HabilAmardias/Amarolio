@@ -11,7 +11,9 @@ type (
 		Duration *int   `json:"duration" binding:"omitempty,gt=0"`
 	}
 	NewShortURLRes struct {
-		URL string `json:"url"`
+		URL         string     `json:"url"`
+		OriginalURL string     `json:"original_url"`
+		ExpiredAt   *time.Time `json:"expired_at"`
 	}
 	FindLongUrlRes struct {
 		URL string `json:"url"`

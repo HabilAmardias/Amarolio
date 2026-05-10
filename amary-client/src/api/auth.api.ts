@@ -2,7 +2,7 @@
 import type { User } from "../models/user.model";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function login(provider: string, _token: string): Promise<User> {
+export async function login(_token: string): Promise<User> {
   // MOCK: simulate successful Google login
   const user: User = {
     id: "google-1",

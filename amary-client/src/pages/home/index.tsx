@@ -9,9 +9,9 @@ export function HomePage() {
   return (
     <Container maxWidth="sm">
       <Box sx={{ my: 8, textAlign: 'center' }}>
-        <Typography 
-          variant="h2" 
-          component="h1" 
+        <Typography
+          variant="h2"
+          component="h1"
           gutterBottom
           sx={{
             color: '#c25e00',
@@ -21,10 +21,10 @@ export function HomePage() {
         >
           Amary
         </Typography>
-        <Typography 
-          variant="body1" 
-          color="text.secondary" 
-          sx={{ 
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{
             mb: 4,
             fontSize: '1.1rem',
           }}

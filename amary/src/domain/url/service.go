@@ -12,7 +12,7 @@ import (
 
 type URLEncryptorItf interface {
 	DecryptURL(cipherURL string) (string, error)
-	EncryptURL(plainURL string) string
+	EncryptURL(plainURL string) (string, error)
 }
 
 type IDEncoderItf interface {
@@ -145,7 +145,7 @@ func (sus *URLServiceImpl) GetUserLinks(ctx context.Context, userID string, page
 	return sus.decryptAndFormatURL(*links)
 }
 
-func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, longURL string, duration *int) (string, error) {
+func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, longURL string, duration *int) (string, *time.Time, error) {
 	// default using 24 hour duration
 	now := time.Now()
 	eatv := now.Add(24 * time.Hour)
@@ -164,9 +164,12 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 
 	url := new(URL)
 
-	encryptedURL := sus.ue.EncryptURL(longURL)
+	encryptedURL, err := sus.ue.EncryptURL(longURL)
+	if err != nil {
+		return "", nil, err
+	}
 	if err := sus.sur.InsertNewURL(ctx, userID, encryptedURL, eat, url); err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	encodedID := sus.ide.Encode(url.ID)
@@ -193,7 +196,7 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 		}
 	}(userID, encodedID, *url)
 
-	return encodedID, nil
+	return encodedID, eat, nil
 }
 
 func (sus *URLServiceImpl) FindLongURL(ctx context.Context, encodedID string, device string) (string, error) {
