@@ -11,12 +11,14 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/valyala/fasthttp"
 )
 
 type UserServiceItf interface {
 	Login() (string, string, error)
 	RefreshAuth(userID string) (string, error)
 	LoginCallback(code string, state string) (string, string, error)
+	GetProfile(userID string) (string, error)
 }
 
 type UserHandlerImpl struct {
@@ -25,6 +27,23 @@ type UserHandlerImpl struct {
 
 func NewUserHandler(us UserServiceItf) *UserHandlerImpl {
 	return &UserHandlerImpl{us}
+}
+
+func (uh *UserHandlerImpl) GetProfile(ctx fiber.Ctx) error {
+	claim, err := handlers.GetAuthPayload(ctx, constants.AUTH_CLAIM_KEY)
+	if err != nil {
+		return err
+	}
+	email, err := uh.us.GetProfile(claim.Subject)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(fasthttp.StatusOK).JSON(dto.ServerResponse[GetProfileRes]{
+		Success: true,
+		Data: GetProfileRes{
+			Email: email,
+		},
+	})
 }
 
 func (uh *UserHandlerImpl) LoginCallback(ctx fiber.Ctx) error {
@@ -75,7 +94,7 @@ func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
 		HTTPOnly: true,
 		Secure:   isProd,
 	})
-	return ctx.Status(http.StatusPermanentRedirect).Redirect().To(url)
+	return ctx.Status(http.StatusTemporaryRedirect).Redirect().To(url)
 }
 
 func (uh *UserHandlerImpl) RefreshAuth(ctx fiber.Ctx) error {

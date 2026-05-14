@@ -1,6 +1,7 @@
 package users
 
 import (
+	"amarolio-gateway/src/constants"
 	"amarolio-gateway/src/customerrors"
 	"amarolio-gateway/src/dto"
 	"amarolio-gateway/src/services"
@@ -43,6 +44,21 @@ func (us *UserServiceImpl) callLoginCallback(code string, state string) (*dto.Se
 		)
 	}
 	return services.Call[LoginCallback](us.hs, us.pr, "/api/v1/login/callback", fasthttp.MethodPost, fasthttp.StatusOK, reqBody, queries, nil)
+}
+
+func (us *UserServiceImpl) callGetProfile(userID string) (*dto.ServerResponse[GetProfile], error) {
+	headers := map[string]string{
+		constants.X_USER_ID: userID,
+	}
+	return services.Call[GetProfile](us.hs, us.pr, "/api/v1/me", fasthttp.MethodGet, fasthttp.StatusOK, nil, nil, headers)
+}
+
+func (us *UserServiceImpl) GetProfile(userID string) (string, error) {
+	res, err := us.callGetProfile(userID)
+	if err != nil {
+		return "", err
+	}
+	return res.Data.Email, nil
 }
 
 func (us *UserServiceImpl) LoginCallback(code string, state string) (string, string, error) {

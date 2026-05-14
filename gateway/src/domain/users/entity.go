@@ -15,4 +15,7 @@ type (
 	RefreshAuth struct {
 		Token string `json:"auth_token"`
 	}
+	GetProfile struct {
+		Email string `json:"email"`
+	}
 )

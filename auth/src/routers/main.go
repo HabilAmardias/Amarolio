@@ -27,4 +27,5 @@ func (ar *AppRouter) privateSetup() {
 	v1 := ar.App.Group("/api/v1")
 	v1.Use(middlewares.NewAuthMiddleware())
 	v1.Post("/refresh", ar.Uh.RefreshAuth)
+	v1.Get("/me", ar.Uh.GetProfile)
 }

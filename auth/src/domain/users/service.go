@@ -47,6 +47,35 @@ func NewUserService(ou OauthUtilItf, ju JWTUtilItf, dbtx *db.DBHandle, uc UserCa
 	return &UserServiceImpl{ou, ju, dbtx, uc, lg}
 }
 
+func (us *UserServiceImpl) GetProfile(ctx context.Context, userID string) (string, error) {
+	user := new(User)
+	if err := us.uc.FindCacheByID(ctx, userID, user); err != nil {
+		var parsed *customerrors.CustomError
+		if !errors.As(err, &parsed) {
+			return "", customerrors.NewError(
+				"something went wrong",
+				errors.New("parse error failed"),
+				customerrors.CommonErr,
+			)
+		}
+		if parsed.ErrCode != customerrors.ItemNotFound {
+			return "", err
+		}
+		// if cache miss, fetch from db
+		ur := NewUserRepository(us.dbtx)
+		if err := ur.FindByID(ctx, userID, user); err != nil {
+			return "", err
+		}
+		// renew cache asynchronously
+		go func() {
+			if err := us.uc.SetCacheByID(ctx, user); err != nil {
+				us.lg.Errorln(err)
+			}
+		}()
+	}
+	return user.Email, nil
+}
+
 func (us *UserServiceImpl) Login() (string, string) {
 	b := make([]byte, 16)
 	rand.Read(b)
