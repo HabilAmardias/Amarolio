@@ -26,6 +26,7 @@ type AppRouter struct {
 	ChatroomHandler   *chatrooms.ChatroomHandlerImpl
 	ShortenURLHandler *shortenurls.ShortenURLHandlerImpl
 	JWTUtil           *utils.JWTUtil
+	TurnstileUtil     *utils.TurnstileUtil
 	Logger            Logger
 }
 
@@ -46,13 +47,13 @@ func (ar *AppRouter) SetupPublicRoute() {
 		constants.ForRefresh,
 		constants.REFRESH_CLAIM_KEY,
 	), ar.UserHandler.RefreshAuth)
-	v1.Post("/url", middlewares.NewOptionalAuthMiddleware(
+	v1.Post("/url", middlewares.NewTurnstileMiddleware(ar.TurnstileUtil), middlewares.NewOptionalAuthMiddleware(
 		ar.JWTUtil,
 		constants.AUTH_TOKEN,
 		constants.ForAuth,
 		constants.AUTH_CLAIM_KEY,
 	), ar.ShortenURLHandler.NewShortURL)
-	v1.Get("/url/:id", ar.ShortenURLHandler.RedirectToURL)
+	v1.Get("/url/:id", middlewares.NewTurnstileMiddleware(ar.TurnstileUtil), ar.ShortenURLHandler.RedirectToURL)
 }
 
 func (ar *AppRouter) SetupPrivateRoute() {

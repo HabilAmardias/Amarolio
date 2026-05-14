@@ -6,6 +6,7 @@ import { useShorten } from '../../controllers/useShorten';
 export function HomePage() {
   const { result } = useShorten();
 
+
   return (
     <Container maxWidth="sm">
       <Box sx={{ my: 8, textAlign: 'center' }}>

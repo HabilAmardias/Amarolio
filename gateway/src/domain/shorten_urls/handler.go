@@ -32,7 +32,7 @@ func (suh *ShortenURLHandlerImpl) RedirectToURL(ctx fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.Status(http.StatusFound).Redirect().To(url)
+	return ctx.Redirect().Status(http.StatusSeeOther).To(url)
 }
 
 func (suh *ShortenURLHandlerImpl) NewShortURL(ctx fiber.Ctx) error {

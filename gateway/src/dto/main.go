@@ -14,6 +14,9 @@ type (
 		Field   string `json:"field"`
 		Message string `json:"message"`
 	}
+	TurnstileReq struct {
+		Token string `query:"token" validate:"required"`
+	}
 )
 
 func (de *DetailsError) ToString() string {

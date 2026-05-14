@@ -1,13 +1,18 @@
 import { useState } from "react";
 import { useAtom } from "jotai";
 import { authAtom } from "../models/user.model";
-import { urlHistoryAtom, shortenResultAtom } from "../models/url.model";
+import {
+  tokenAtom,
+  resultAtom,
+  type ShortenResponse,
+} from "../models/url.model";
 import { shortenUrl } from "../api/url.api";
 
 export function useShorten() {
   const [user] = useAtom(authAtom);
-  const [, setUrlHistory] = useAtom(urlHistoryAtom);
-  const [result, setResult] = useAtom(shortenResultAtom);
+  const [, setUrlHistory] = useState<ShortenResponse[]>([]);
+  const [result, setResult] = useAtom(resultAtom);
+  const [token, setToken] = useAtom(tokenAtom);
 
   const [url, setUrl] = useState("");
   const [expiresInDays, setExpiresInDays] = useState<number | null>(1);
@@ -19,7 +24,6 @@ export function useShorten() {
     setError(null);
     setResult(null);
 
-    // Validate URL
     try {
       new URL(url);
     } catch {
@@ -27,12 +31,15 @@ export function useShorten() {
       return;
     }
 
-    // If unauthenticated, force 1 day expiration
     const finalExpiresInDays = user ? (noExpiry ? null : expiresInDays) : 1;
 
     setIsLoading(true);
+    if (!token) {
+      setError("invalid request");
+      return;
+    }
     try {
-      const response = await shortenUrl({
+      const response = await shortenUrl(token, {
         url: url,
         duration: finalExpiresInDays,
       });
@@ -43,6 +50,7 @@ export function useShorten() {
       setError((err as Error).message);
     } finally {
       setIsLoading(false);
+      setToken("");
     }
   };
 
@@ -53,6 +61,8 @@ export function useShorten() {
     setExpiresInDays,
     noExpiry,
     setNoExpiry,
+    token,
+    setToken,
     result,
     error,
     isLoading,

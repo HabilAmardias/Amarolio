@@ -1,8 +1,11 @@
 import { Box, TextField, Button, CircularProgress, Alert, Checkbox, FormControlLabel } from '@mui/material';
 import { useShorten } from '../controllers/useShorten';
 import { useAuth } from '../controllers/useAuth';
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
+import { useRef } from 'react';
 
 export function ShortenForm() {
+  const ref = useRef<TurnstileInstance | null>(null)
   const { user } = useAuth();
   const {
     url,
@@ -11,10 +14,17 @@ export function ShortenForm() {
     setExpiresInDays,
     noExpiry,
     setNoExpiry,
+    token,
+    setToken,
     error,
     isLoading,
     handleShorten,
   } = useShorten();
+
+  const handleSubmit = async () => {
+    await handleShorten()
+    ref.current.reset()
+  }
 
   return (
     <Box sx={{ mb: 3 }}>
@@ -55,15 +65,19 @@ export function ShortenForm() {
           />
         </Box>
       )}
-
       <Button
+        sx={{
+          mb: 2
+        }}
         fullWidth
         variant="contained"
-        onClick={handleShorten}
-        disabled={isLoading || !url}
+        onClick={handleSubmit}
+        disabled={isLoading || !url || !token}
       >
         {isLoading ? <CircularProgress size={24} /> : 'Shorten URL'}
       </Button>
+
+      <Turnstile ref={ref} onExpire={() => ref.current?.reset()} onSuccess={(tk) => setToken(tk)} siteKey={import.meta.env.VITE_CF_TURNSTILE_SITEKEY} />
 
       {error && (
         <Alert

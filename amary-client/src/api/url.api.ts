@@ -3,9 +3,10 @@ import type { ShortenRequest, ShortenResponse } from "../models/url.model";
 import type { ServerResponse } from "../models/model";
 
 export async function shortenUrl(
+  token: string,
   req: ShortenRequest,
 ): Promise<ShortenResponse> {
-  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/url`;
+  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/url?token=${encodeURIComponent(token)}`;
   const res = await fetch(url, {
     method: "POST",
     body: JSON.stringify(req),

@@ -16,6 +16,7 @@ import (
 
 func Bootstrap(rc *redis.Client, lg logger.Logger, app *fiber.App) {
 	ju := utils.NewJWTUtil()
+	tu := utils.NewTurnstileUtil()
 
 	mcr := messages.NewMessageChannelRepository(rc)
 
@@ -36,6 +37,7 @@ func Bootstrap(rc *redis.Client, lg logger.Logger, app *fiber.App) {
 		MessageHandler:    mh,
 		UserHandler:       uh,
 		ShortenURLHandler: suh,
+		TurnstileUtil:     tu,
 		Logger:            lg,
 	}
 	ar.Setup()

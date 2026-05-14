@@ -13,9 +13,18 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/valyala/fasthttp"
 )
+
+type structValidator struct {
+	validate *validator.Validate
+}
+
+func (v *structValidator) Validate(out any) error {
+	return v.validate.Struct(out)
+}
 
 func Run() {
 	isProd := os.Getenv("ENVIRONMENT") == constants.PRODUCTION
@@ -30,7 +39,8 @@ func Run() {
 	)
 
 	app := fiber.New(fiber.Config{
-		ErrorHandler: middlewares.NewErrorMiddleware(lg),
+		ErrorHandler:    middlewares.NewErrorMiddleware(lg),
+		StructValidator: &structValidator{validate: validator.New()},
 	})
 	Bootstrap(rc, lg, app)
 

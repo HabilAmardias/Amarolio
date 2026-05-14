@@ -11,7 +11,11 @@ export interface ShortenResponse {
   expired_at: string | null;
 }
 
-export const urlHistoryAtom = atom<ShortenResponse[]>([]);
+const initialHistory: ShortenResponse[] = [];
+export const urlHistoryAtom = atom<ShortenResponse[]>(initialHistory);
 
-const initialResult: ShortenResponse | null = null;
-export const shortenResultAtom = atom(initialResult);
+const initialToken: string = "";
+export const tokenAtom = atom<string>(initialToken);
+
+const initialResult = null;
+export const resultAtom = atom<ShortenResponse | null>(initialResult);
