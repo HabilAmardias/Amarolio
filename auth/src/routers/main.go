@@ -5,14 +5,17 @@ import (
 	"amarolio-auth/src/middlewares"
 
 	"github.com/gofiber/fiber/v3"
+	"go.uber.org/zap"
 )
 
 type AppRouter struct {
 	App *fiber.App
+	Lg  *zap.SugaredLogger
 	Uh  *users.UserHandlerImpl
 }
 
 func (ar *AppRouter) Setup() {
+	ar.App.Use(middlewares.NewLoggerMiddleware(ar.Lg))
 	ar.publicSetup()
 	ar.privateSetup()
 }

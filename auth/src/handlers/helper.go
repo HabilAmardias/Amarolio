@@ -9,13 +9,21 @@ import (
 )
 
 func GetAuth(ctx fiber.Ctx) (string, error) {
-	auth := ctx.Get(constants.AUTH_KEY)
-	if len(auth) == 0 {
+	auth := ctx.Locals(constants.AUTH_KEY)
+	if auth == nil {
 		return "", customerrors.NewError(
 			"no credential found",
 			errors.New("no credential found"),
 			customerrors.Unauthenticate,
 		)
 	}
-	return auth, nil
+	authStr, ok := auth.(string)
+	if !ok {
+		return "", customerrors.NewError(
+			"invalid credential",
+			errors.New("invalid credential type"),
+			customerrors.Unauthenticate,
+		)
+	}
+	return authStr, nil
 }

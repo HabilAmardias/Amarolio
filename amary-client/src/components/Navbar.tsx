@@ -1,16 +1,17 @@
-import { AppBar, Toolbar, Typography, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, Box, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../controllers/useAuth';
 
 export function Navbar() {
-  // const { user, logout } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <AppBar position="static" color="default">
       <Toolbar>
-        <Typography 
-          variant="h6" 
-          component="div" 
-          sx={{ 
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{
             color: '#c25e00',
             fontWeight: 700,
           }}
@@ -39,19 +40,19 @@ export function Navbar() {
           </Button>
         )} */}
         <Box sx={{ flexGrow: 1 }} />
-        {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {user ? (
             <>
-              <Typography 
-                variant="body2" 
-                sx={{ 
+              <Typography
+                variant="body2"
+                sx={{
                   color: '#5d4037',
                 }}
               >
                 {user.email}
               </Typography>
-              <Button 
-                color="inherit" 
+              <Button
+                color="inherit"
                 onClick={logout}
                 sx={{
                   color: '#ffffff',
@@ -65,9 +66,9 @@ export function Navbar() {
               </Button>
             </>
           ) : (
-            <Button 
-              color="inherit" 
-              component={Link} 
+            <Button
+              color="inherit"
+              component={Link}
               to="/login"
               sx={{
                 color: '#ffffff',
@@ -80,7 +81,7 @@ export function Navbar() {
               Login
             </Button>
           )}
-        </Box> */}
+        </Box>
       </Toolbar>
     </AppBar>
   );

@@ -1,33 +1,38 @@
-// MOCK — replace function bodies with real HTTP calls
+import type { ServerResponse } from "../models/model";
 import type { User } from "../models/user.model";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function login(_token: string): Promise<User> {
-  // MOCK: simulate successful Google login
-  const user: User = {
-    id: "google-1",
-    email: "user@gmail.com",
-    name: "Google User",
-  };
-  // Store in localStorage for persistence
-  localStorage.setItem("auth_user", JSON.stringify(user));
-  return user;
+export async function login(): Promise<void> {
+  const redirectURI = window.location.origin;
+  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/login?redirect_uri=${redirectURI}`;
+  window.location.href = url;
 }
 
 export async function logout(): Promise<void> {
-  // MOCK: clear session cookie/token
-  localStorage.removeItem("auth_user");
+  const redirectURI = window.location.origin;
+  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/logout?redirect_uri=${redirectURI}`;
+  window.location.href = url;
+}
+
+export async function refreshAuth() {
+  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/refresh`;
+  const res = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error("Auth Expired");
+  }
 }
 
 export async function getMe(): Promise<User | null> {
-  // MOCK: restore session from localStorage
-  const stored = localStorage.getItem("auth_user");
-  if (stored) {
-    try {
-      return JSON.parse(stored) as User;
-    } catch {
-      return null;
-    }
+  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/me`;
+  const res = await fetch(url, {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error("Cannot get user");
   }
-  return null;
+  const resBody: ServerResponse<User> = await res.json();
+  return resBody.data;
 }

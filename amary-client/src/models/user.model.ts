@@ -1,9 +1,7 @@
 import { atom } from "jotai";
 
 export interface User {
-  id: string;
   email: string;
-  name: string;
 }
 
 const initialUser: User | null = null;

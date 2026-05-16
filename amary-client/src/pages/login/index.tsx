@@ -1,23 +1,19 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Box, Container, Typography, Button, Alert, Paper } from '@mui/material';
 import { useAuth } from '../../controllers/useAuth';
 import { Google as GoogleIcon } from '@mui/icons-material';
-import { useGoogleLogin } from '@react-oauth/google';
 
 export function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
-  const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
     setError('');
     setIsLoading(true);
 
     try {
-      await login('google');
-      navigate('/');
+      await login();
     } catch {
       setError('Google login failed. Please try again.');
     } finally {
@@ -25,14 +21,7 @@ export function LoginPage() {
     }
   };
 
-  const googleHook = useGoogleLogin({
-    onSuccess: () => {
-      handleGoogleLogin()
-    },
-    onError: (err) => {
-      setError(err.error_description!)
-    }
-  })
+
 
   return (
     <Container maxWidth="sm">
@@ -73,7 +62,7 @@ export function LoginPage() {
           <Button
             fullWidth
             variant="outlined"
-            onClick={() => googleHook()}
+            onClick={() => handleGoogleLogin()}
             disabled={isLoading}
             startIcon={<GoogleIcon />}
             sx={{

@@ -23,6 +23,7 @@ func Bootstrap(db *db.DBHandle, rc *redis.Client, lg *zap.SugaredLogger, app *fi
 	r := &routers.AppRouter{
 		App: app,
 		Uh:  uh,
+		Lg:  lg,
 	}
 
 	r.Setup()

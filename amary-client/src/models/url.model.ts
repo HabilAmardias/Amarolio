@@ -17,5 +17,5 @@ export const urlHistoryAtom = atom<ShortenResponse[]>(initialHistory);
 const initialToken: string = "";
 export const tokenAtom = atom<string>(initialToken);
 
-const initialResult = null;
+const initialResult: ShortenResponse | null = null;
 export const resultAtom = atom<ShortenResponse | null>(initialResult);
