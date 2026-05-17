@@ -153,7 +153,7 @@ func (uh *UserHandlerImpl) RefreshAuth(ctx fiber.Ctx) error {
 		MaxAge:   int(constants.AUTH_AGE),
 		Secure:   os.Getenv("ENVIRONMENT") == constants.PRODUCTION,
 	})
-	return ctx.JSON(dto.ServerResponse[RefreshAuthRes]{
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[RefreshAuthRes]{
 		Success: true,
 		Data: RefreshAuthRes{
 			Message: "refresh token success",

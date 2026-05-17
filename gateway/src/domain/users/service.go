@@ -23,8 +23,11 @@ func (us *UserServiceImpl) callLogin() (*dto.ServerResponse[Login], error) {
 	return services.Call[Login](us.hs, us.pr, "/api/v1/login", fasthttp.MethodPost, fasthttp.StatusOK, nil, nil, nil)
 }
 
-func (us *UserServiceImpl) callRefreshAuth() (*dto.ServerResponse[RefreshAuth], error) {
-	return services.Call[RefreshAuth](us.hs, us.pr, "/api/v1/refresh", fasthttp.MethodPost, fasthttp.StatusOK, nil, nil, nil)
+func (us *UserServiceImpl) callRefreshAuth(userID string) (*dto.ServerResponse[RefreshAuth], error) {
+	headers := map[string]string{
+		constants.X_USER_ID: userID,
+	}
+	return services.Call[RefreshAuth](us.hs, us.pr, "/api/v1/refresh", fasthttp.MethodPost, fasthttp.StatusOK, nil, nil, headers)
 }
 
 func (us *UserServiceImpl) callLoginCallback(code string, state string) (*dto.ServerResponse[LoginCallback], error) {
@@ -78,7 +81,7 @@ func (us *UserServiceImpl) Login() (string, string, error) {
 }
 
 func (us *UserServiceImpl) RefreshAuth(userID string) (string, error) {
-	res, err := us.callRefreshAuth()
+	res, err := us.callRefreshAuth(userID)
 	if err != nil {
 		return "", err
 	}

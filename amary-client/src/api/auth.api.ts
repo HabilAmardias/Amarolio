@@ -1,5 +1,6 @@
 import type { ServerResponse } from "../models/model";
 import type { User } from "../models/user.model";
+import { apiFetch } from "./api";
 
 export async function login(): Promise<void> {
   const redirectURI = window.location.origin;
@@ -13,22 +14,10 @@ export async function logout(): Promise<void> {
   window.location.href = url;
 }
 
-export async function refreshAuth() {
-  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/refresh`;
-  const res = await fetch(url, {
-    method: "POST",
-    credentials: "include",
-  });
-  if (!res.ok) {
-    throw new Error("Auth Expired");
-  }
-}
-
 export async function getMe(): Promise<User | null> {
   const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/me`;
-  const res = await fetch(url, {
+  const res = await apiFetch(url, {
     method: "GET",
-    credentials: "include",
   });
   if (!res.ok) {
     throw new Error("Cannot get user");

@@ -4,6 +4,7 @@ import "fmt"
 
 const (
 	Unauthenticate       = 40101
+	Forbidden            = 40301
 	CommonErr            = 50001
 	ItemNotFound         = 40401
 	DatabaseExecutionErr = 50002

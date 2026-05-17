@@ -60,7 +60,7 @@ func (tu *TurnstileUtil) Validate(token string) error {
 		return customerrors.NewError(
 			"validation failed",
 			errors.New("failed to verify user"),
-			customerrors.Unauthenticate,
+			customerrors.Forbidden,
 		)
 	}
 

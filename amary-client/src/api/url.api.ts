@@ -1,16 +1,15 @@
-// MOCK — replace function bodies with real HTTP calls
 import type { ShortenRequest, ShortenResponse } from "../models/url.model";
 import type { ServerResponse } from "../models/model";
+import { apiFetch } from "./api";
 
 export async function shortenUrl(
   token: string,
   req: ShortenRequest,
 ): Promise<ShortenResponse> {
   const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/url?token=${encodeURIComponent(token)}`;
-  const res = await fetch(url, {
+  const res = await apiFetch(url, {
     method: "POST",
     body: JSON.stringify(req),
-    credentials: "include",
   });
   const resBody: ServerResponse<ShortenResponse> = await res.json();
   return resBody.data;
