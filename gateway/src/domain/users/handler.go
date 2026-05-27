@@ -80,14 +80,14 @@ func (uh *UserHandlerImpl) LoginCallback(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.AUTH_TOKEN,
 		Value:    authToken,
-		MaxAge:   int(constants.AUTH_AGE),
+		Expires:  time.Now().Add(constants.AUTH_AGE),
 		HTTPOnly: true,
 		Secure:   secure,
 	})
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.REFRESH_TOKEN,
 		Value:    refreshToken,
-		MaxAge:   int(constants.REFRESH_AGE),
+		Expires:  time.Now().Add(constants.REFRESH_AGE),
 		HTTPOnly: true,
 		Secure:   secure,
 	})
@@ -122,14 +122,14 @@ func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
 	}
 	ctx.Cookie(&fiber.Cookie{
 		Name:     "redirect_uri",
-		MaxAge:   int(constants.AUTH_AGE),
+		Expires:  time.Now().Add(constants.AUTH_AGE),
 		Value:    req.RedirectURI,
 		HTTPOnly: true,
 		Secure:   isProd,
 	})
 	ctx.Cookie(&fiber.Cookie{
 		Name:     "oauthstate",
-		MaxAge:   int(30 * time.Second),
+		Expires:  time.Now().Add(30 * time.Second),
 		Value:    state,
 		HTTPOnly: true,
 		Secure:   isProd,
@@ -150,7 +150,7 @@ func (uh *UserHandlerImpl) RefreshAuth(ctx fiber.Ctx) error {
 		Name:     constants.AUTH_TOKEN,
 		Value:    authToken,
 		HTTPOnly: true,
-		MaxAge:   int(constants.AUTH_AGE),
+		Expires:  time.Now().Add(constants.AUTH_AGE),
 		Secure:   os.Getenv("ENVIRONMENT") == constants.PRODUCTION,
 	})
 	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[RefreshAuthRes]{
