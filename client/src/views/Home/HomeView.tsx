@@ -1,9 +1,10 @@
-import { Container, Typography, Box, Button, Chip } from "@mui/material";
+import { Container, Typography, Box, Button, Chip, Avatar } from "@mui/material";
 import { useProfileController } from "../../controllers/useProfileController";
 import { useProjectController } from "../../controllers/useProjectController";
 import GlassBox from "../../components/common/GlassBox";
 import ProjectCard from "../../components/cards/ProjectCard";
 import SectionHeader from "../../components/common/SectionHeader";
+import ProfilePicture from "../../assets/profile-picture.jpg";
 
 export default function HomeView() {
   const { profile } = useProfileController();
@@ -12,18 +13,69 @@ export default function HomeView() {
 
   return (
     <Container maxWidth="lg">
-      <GlassBox sx={{ mb: 6, textAlign: "center" }}>
-        <Typography variant="h1" component="h1" gutterBottom>
-          {profile.name} {/* TODO: Replace with real content */}
-        </Typography>
-        <Typography variant="h4" color="primary" gutterBottom>
-          {profile.title} {/* TODO: Replace with real content */}
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 600, mx: "auto" }}>
-          {profile.bio} {/* TODO: Replace with real content */}
-        </Typography>
-        <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
-          <Button variant="contained" href="/projects" size="large">
+      {/* Profile Section */}
+      <GlassBox sx={{ mb: 6, textAlign: "center", py: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3, md: 4 } }}>
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          {/* Profile Picture */}
+          <Avatar
+            sx={{
+              width: { xs: 120, sm: 150, md: 180 },
+              height: { xs: 120, sm: 150, md: 180 },
+              mb: 3,
+              border: "3px solid",
+              borderColor: "primary.main",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.2)",
+            }}
+            alt={profile.name}
+            src={ProfilePicture}
+          >
+            {profile.name?.charAt(0).toUpperCase()}
+          </Avatar>
+
+          {/* Name */}
+          <Typography
+            variant="h2"
+            sx={{
+              fontSize: { xs: "1.75rem", sm: "2.25rem", md: "2.75rem" },
+              mb: 2,
+              color: "text.primary",
+              fontWeight: 600,
+            }}
+          >
+            {profile.name}
+          </Typography>
+
+          {/* Title */}
+          <Typography
+            variant="h5"
+            sx={{
+              fontSize: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
+              mb: 3,
+              color: "primary.main",
+              fontWeight: 500,
+            }}
+          >
+            {profile.title}
+          </Typography>
+
+          {/* Bio */}
+          <Typography
+            variant="body1"
+            sx={{
+              fontSize: { xs: "0.95rem", sm: "1rem", md: "1.1rem" },
+              lineHeight: { xs: 1.6, md: 1.8 },
+              maxWidth: 700,
+              mx: "auto",
+              color: "text.secondary",
+              whiteSpace: "pre-wrap",
+              mb: 4,
+            }}
+          >
+            {profile.bio}
+          </Typography>
+
+          {/* CTA Button */}
+          <Button variant="contained" href="/projects" size="large" sx={{ textTransform: "none", fontSize: "1rem" }}>
             View Projects
           </Button>
         </Box>
@@ -41,7 +93,7 @@ export default function HomeView() {
           Skills & Technologies
         </Typography>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-          {[ "TypeScript", "Go", "Python", "Docker", "Redis", "PostgreSQL"].map((skill) => (
+          {["TypeScript", "Go", "Python", "Docker", "Redis", "PostgreSQL"].map((skill) => (
             <Chip key={skill} label={skill} variant="outlined" />
           ))}
         </Box>

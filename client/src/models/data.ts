@@ -2,9 +2,9 @@ import type { Profile, Experience, Project } from "./types";
 import AmaryHomepage from "../assets/Amary-Homepage.png";
 
 export const PROFILE: Profile = {
-  name: "Amarolio", // {/* TODO: Replace with real content */}
-  title: "Portofolio of someone who aspired to be Software Engineer", // {/* TODO: Replace with real content */}
-  bio: "Someone who enjoys keeping up with technological advancements", // {/* TODO: Replace with real content */}
+  name: "Habil Amardias", // {/* TODO: Replace with real content */}
+  title: "Someone with several side quests", // {/* TODO: Replace with real content */}
+  bio: "I enjoy keeping up with technological advancements", // {/* TODO: Replace with real content */}
   avatarUrl: "/placeholder-avatar.jpg", // {/* TODO: Replace with real content */}
   socials: [
     {
@@ -23,21 +23,30 @@ export const PROFILE: Profile = {
 export const EXPERIENCES: Experience[] = [
   {
     id: "exp-1",
+    company: "PT Bank Rakyat Indonesia", // {/* TODO: Replace with real content */}
+    role: "BFLP IT Trainee", // {/* TODO: Replace with real content */}
+    period: "May 2026 – Now", // {/* TODO: Replace with real content */}
+    location: "Jakarta, Indonesia", // {/* TODO: Replace with real content */}
+    description: "IT Banking (Web/Mobile Developer)", // {/* TODO: Replace with real content */}
+    tags: [],
+  },
+  {
+    id: "exp-2",
     company: "PT Indomobil Finance", // {/* TODO: Replace with real content */}
     role: "Development System Staff", // {/* TODO: Replace with real content */}
     period: "July 2025 – May 2026", // {/* TODO: Replace with real content */}
-    location: "East Jakarta, Indonesia", // {/* TODO: Replace with real content */}
+    location: "Jakarta, Indonesia", // {/* TODO: Replace with real content */}
     description:
       "Mediate communication between users and IT team regarding feature development and conduct UAT to test the newly developed features", // {/* TODO: Replace with real content */}
     tags: [],
   },
   {
-    id: "exp-2",
+    id: "exp-3",
     company: "Sealabs", // {/* TODO: Replace with real content */}
-    role: "Software Engineer Trainee", // {/* TODO: Replace with real content */}
+    role: "Labs Bootcamp Trainee", // {/* TODO: Replace with real content */}
     period: "Feb 2025 – July 2025", // {/* TODO: Replace with real content */}
-    location: "South Jakarta, Indonesia", // {/* TODO: Replace with real content */}
-    description: "Full-stack web applications and Web applications deployment", // {/* TODO: Replace with real content */}
+    location: "Jakarta, Indonesia", // {/* TODO: Replace with real content */}
+    description: "Full-stack web applications development and deployment", // {/* TODO: Replace with real content */}
     tags: ["React", "Go", "Javascript", "Full-Stack"],
   },
 ];
