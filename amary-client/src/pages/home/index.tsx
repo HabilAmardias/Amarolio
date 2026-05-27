@@ -9,7 +9,7 @@ export function HomePage() {
 
   return (
     <Container maxWidth="sm">
-      <Box sx={{ my: 8, textAlign: 'center' }}>
+      <Box sx={{ py: 8, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', minHeight: 'calc(100vh - 64px)' }}>
         <Typography
           variant="h2"
           component="h1"

@@ -20,33 +20,30 @@ export function Navbar() {
             Amary
           </Link>
         </Typography>
-        {/* {user && (
-          <Button 
-            component={Link} 
-            to="/dashboard"
-            sx={{
-              color: '#c25e00',
-              fontWeight: 700,
-              ml: 3,
-              background: 'none',
-              boxShadow: 'none',
-              '&:hover': {
-                backgroundColor: 'none',
-                boxShadow: 'none',
-              },
-            }}
-          >
-            Dashboard
-          </Button>
-        )} */}
+        <Button
+          href={import.meta.env.VITE_DONATION_URI}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{
+            ml: 3,
+            color: '#ffffff',
+            fontWeight: 600,
+            '&:hover': {
+              backgroundColor: 'rgba(194, 94, 0, 0.08)',
+            },
+          }}
+        >
+          ☕ Donate
+        </Button>
         <Box sx={{ flexGrow: 1 }} />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
           {user ? (
             <>
               <Typography
                 variant="body2"
                 sx={{
                   color: '#5d4037',
+                  display: { xs: 'none', sm: 'block' },
                 }}
               >
                 {user.email}
@@ -57,6 +54,8 @@ export function Navbar() {
                 sx={{
                   color: '#ffffff',
                   fontWeight: 600,
+                  fontSize: { xs: '0.75rem', sm: '1rem' },
+                  px: { xs: 1, sm: 2 },
                   '&:hover': {
                     backgroundColor: 'rgba(194, 94, 0, 0.08)',
                   },

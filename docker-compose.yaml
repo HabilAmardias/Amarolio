@@ -144,9 +144,9 @@ services:
     build:
       context: ./gateway
       dockerfile: Dockerfile
-    depends_on:
-      redis_amarolio:
-        condition: service_started
+    # depends_on:
+    #   redis_amarolio:
+    #     condition: service_started
     restart: unless-stopped
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}

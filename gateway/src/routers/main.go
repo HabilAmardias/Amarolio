@@ -45,6 +45,7 @@ func (ar *AppRouter) Setup() {
 
 func (ar *AppRouter) SetupPublicRoute() {
 	v1 := ar.App.Group("/api/v1")
+	v1.Use(middlewares.NewRateLimiterMiddleware(constants.AUTH_CLAIM_KEY))
 	v1.Get("/login", ar.UserHandler.Login)
 	v1.Get("/login/callback", ar.UserHandler.LoginCallback)
 	v1.Get("/logout", ar.UserHandler.LogOut)
@@ -74,6 +75,7 @@ func (ar *AppRouter) SetupPrivateRoute() {
 		constants.AUTH_CLAIM_KEY,
 		false,
 	))
+	v1.Use(middlewares.NewRateLimiterMiddleware(constants.AUTH_CLAIM_KEY))
 	v1.Get("/me", ar.UserHandler.GetProfile)
 	// v1.Get("/chatrooms/me", ar.ChatroomHandler.GetChatrooms)
 	// v1.Post("/chatrooms", ar.ChatroomHandler.CreateChatroom)

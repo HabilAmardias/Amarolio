@@ -25,7 +25,7 @@ export function LoginPage() {
 
   return (
     <Container maxWidth="sm">
-      <Box sx={{ my: 8 }}>
+      <Box sx={{ py: 8, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 'calc(100vh - 64px)' }}>
         <Typography
           variant="h3"
           component="h1"

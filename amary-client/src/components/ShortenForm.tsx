@@ -23,7 +23,6 @@ export function ShortenForm() {
 
   const handleSubmit = async () => {
     await handleShorten()
-    ref.current.reset()
   }
 
   return (
