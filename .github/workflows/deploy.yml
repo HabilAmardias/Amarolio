@@ -56,21 +56,22 @@ jobs:
           username: root
           password: ${{ secrets.VPS_PASSWORD }}
           envs: GITHUB_TOKEN,GITHUB_ACTOR
+          script: |
+            echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+            docker pull ghcr.io/HabilAmardias/amarolio-client:latest
+            
+            docker stop amarolio-client-container || true
+            docker rm amarolio-client-container || true
+            
+            docker run -d \
+              --name amarolio-client-container \
+              -p 5173:80 \
+              --restart unless-stopped \
+              ghcr.io/HabilAmardias/amarolio-client:latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
-        script: |
-          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          docker pull ghcr.io/HabilAmardias/amarolio-client:latest
           
-          docker stop amarolio-client-container || true
-          docker rm amarolio-client-container || true
-          
-          docker run -d \
-            --name amarolio-client-container \
-            -p 5173:80 \
-            --restart unless-stopped \
-            ghcr.io/HabilAmardias/amarolio-client:latest
 
   # ==========================================
   # JOB 2: AMARY CLIENT (Port 4173)
@@ -116,22 +117,23 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: root
           password: ${{ secrets.VPS_PASSWORD }}
-          envs: GITHUB_TOKEN,GITHUB_ACTOR # 👈 Added missing environment bridge
+          envs: GITHUB_TOKEN,GITHUB_ACTOR
+          script: |
+            echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+            docker pull ghcr.io/HabilAmardias/amary-client:latest # 👈 Added username namespace
+            
+            docker stop amary-client-container || true # 👈 Unique container name
+            docker rm amary-client-container || true
+            
+            docker run -d \
+              --name amary-client-container \
+              -p 4173:80 \
+              --restart unless-stopped \
+              ghcr.io/HabilAmardias/amary-client:latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
-        script: |
-          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          docker pull ghcr.io/HabilAmardias/amary-client:latest # 👈 Added username namespace
-          
-          docker stop amary-client-container || true # 👈 Unique container name
-          docker rm amary-client-container || true
-          
-          docker run -d \
-            --name amary-client-container \
-            -p 4173:80 \
-            --restart unless-stopped \
-            ghcr.io/HabilAmardias/amary-client:latest
+        
 
   # ==========================================
   # JOB 3: AMARY REDIRECT (Port 8000)
@@ -178,18 +180,18 @@ jobs:
           username: root
           password: ${{ secrets.VPS_PASSWORD }}
           envs: GITHUB_TOKEN,GITHUB_ACTOR # 👈 Added missing environment bridge
+          script: |
+            echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+            docker pull ghcr.io/HabilAmardias/amary-redirect:latest # 👈 Added username namespace
+            
+            docker stop amary-redirect-container || true
+            docker rm amary-redirect-container || true
+            
+            docker run -d \
+              --name amary-redirect-container \
+              -p 8000:80 \
+              --restart unless-stopped \
+              ghcr.io/HabilAmardias/amary-redirect:latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
-        script: |
-          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          docker pull ghcr.io/HabilAmardias/amary-redirect:latest # 👈 Added username namespace
-          
-          docker stop amary-redirect-container || true
-          docker rm amary-redirect-container || true
-          
-          docker run -d \
-            --name amary-redirect-container \
-            -p 8000:80 \
-            --restart unless-stopped \
-            ghcr.io/HabilAmardias/amary-redirect:latest
