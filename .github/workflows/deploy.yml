@@ -47,7 +47,7 @@ jobs:
           context: ./client
           file: ./client/Dockerfile
           push: true
-          tags: ghcr.io/HabilAmardias/amarolio-client:latest 
+          tags: ghcr.io/habilamardias/amarolio-client:latest 
 
       - name: Deploy Amarolio Client
         uses: appleboy/ssh-action@v1.0.3
@@ -58,7 +58,7 @@ jobs:
           envs: GITHUB_TOKEN,GITHUB_ACTOR
           script: |
             echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-            docker pull ghcr.io/HabilAmardias/amarolio-client:latest
+            docker pull ghcr.io/habilamardias/amarolio-client:latest
             
             docker stop amarolio-client-container || true
             docker rm amarolio-client-container || true
@@ -67,7 +67,7 @@ jobs:
               --name amarolio-client-container \
               -p 5173:80 \
               --restart unless-stopped \
-              ghcr.io/HabilAmardias/amarolio-client:latest
+              ghcr.io/habilamardias/amarolio-client:latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
@@ -109,7 +109,7 @@ jobs:
           context: ./amary-client
           file: ./amary-client/Dockerfile
           push: true
-          tags: ghcr.io/HabilAmardias/amary-client:latest 
+          tags: ghcr.io/habilamardias/amary-client:latest 
 
       - name: Deploy Amary Client
         uses: appleboy/ssh-action@v1.0.3
@@ -120,7 +120,7 @@ jobs:
           envs: GITHUB_TOKEN,GITHUB_ACTOR
           script: |
             echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-            docker pull ghcr.io/HabilAmardias/amary-client:latest # 👈 Added username namespace
+            docker pull ghcr.io/habilamardias/amary-client:latest # 👈 Added username namespace
             
             docker stop amary-client-container || true # 👈 Unique container name
             docker rm amary-client-container || true
@@ -129,7 +129,7 @@ jobs:
               --name amary-client-container \
               -p 4173:80 \
               --restart unless-stopped \
-              ghcr.io/HabilAmardias/amary-client:latest
+              ghcr.io/habilamardias/amary-client:latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
@@ -171,7 +171,7 @@ jobs:
           context: ./amary-redirect
           file: ./amary-redirect/Dockerfile
           push: true
-          tags: ghcr.io/HabilAmardias/amary-redirect:latest 
+          tags: ghcr.io/habilamardias/amary-redirect:latest 
 
       - name: Deploy Amary Redirect
         uses: appleboy/ssh-action@v1.0.3
@@ -182,7 +182,7 @@ jobs:
           envs: GITHUB_TOKEN,GITHUB_ACTOR # 👈 Added missing environment bridge
           script: |
             echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-            docker pull ghcr.io/HabilAmardias/amary-redirect:latest # 👈 Added username namespace
+            docker pull ghcr.io/habilamardias/amary-redirect:latest # 👈 Added username namespace
             
             docker stop amary-redirect-container || true
             docker rm amary-redirect-container || true
@@ -191,7 +191,7 @@ jobs:
               --name amary-redirect-container \
               -p 8000:80 \
               --restart unless-stopped \
-              ghcr.io/HabilAmardias/amary-redirect:latest
+              ghcr.io/habilamardias/amary-redirect:latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
