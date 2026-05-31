@@ -7,7 +7,7 @@ COPY package*.json ./
 RUN bun install
 
 COPY . .
-RUN bun run build
+RUN V8_FLAGS="--max-old-space-size=1024" bun run build
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
