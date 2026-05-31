@@ -2,7 +2,7 @@ FROM golang:1.25 AS build-stage
 
 WORKDIR /app
 
-COPY go.mod ./
+COPY go.mod go.sum ./
 ENV GOPROXY=https://goproxy.io,direct
 RUN go mod download
 
