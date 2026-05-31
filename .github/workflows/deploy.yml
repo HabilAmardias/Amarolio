@@ -22,6 +22,7 @@ jobs:
 
       # 3. Install dependencies and build the app (using GitHub's free RAM)
       - name: Build Frontend Assets
+        working-directory: ./client
         run: |
           bun install
           bun run build
@@ -37,8 +38,8 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./client/Dockerfile
+          context: ./client
+          file: Dockerfile
           push: true
           # Replace 'amarolio-frontend' with whatever you want to name your image
           tags: ${{ secrets.DOCKER_USERNAME }}/amarolio-client:latest 
@@ -49,7 +50,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: root # Change to your VPS username if it's not root
-          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_SSH_KEY }}
           script: |
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
             
