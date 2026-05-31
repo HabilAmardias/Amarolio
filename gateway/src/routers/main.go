@@ -34,7 +34,16 @@ type AppRouter struct {
 
 func (ar *AppRouter) Setup() {
 	ar.App.Use(cors.New(cors.Config{
-		AllowOriginsFunc: func(origin string) bool { return strings.Contains(origin, os.Getenv("ALLOWED_ORIGIN")) },
+		AllowOriginsFunc: func(origin string) bool {
+			allowed := os.Getenv("ALLOWED_ORIGIN")
+			origins := strings.Split(allowed, ";")
+			for _, o := range origins {
+				if origin == o {
+					return true
+				}
+			}
+			return false
+		},
 		AllowCredentials: true,
 		AllowMethods:     []string{fasthttp.MethodGet, fasthttp.MethodPost, fasthttp.MethodDelete, fasthttp.MethodPatch, fasthttp.MethodPut},
 	}))
