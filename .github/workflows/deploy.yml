@@ -34,7 +34,7 @@ jobs:
           bun install
           bun run build
 
-       Marian- name: Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -55,7 +55,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: root
           password: ${{ secrets.VPS_PASSWORD }}
-          envs: GITHUB_TOKEN,GITHUB_ACTOR # 👈 Keeps authentication working
+          envs: GITHUB_TOKEN,GITHUB_ACTOR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
@@ -90,7 +90,7 @@ jobs:
         working-directory: ./amary-client
         run: |
           cat << 'EOF' > .env
-          ${{ secrets.PROD_CLIENT_ENV }} # Change secret name here if Amary Client uses different variables
+          ${{ secrets.PROD_CLIENT_ENV }}
           EOF
           bun install
           bun run build
