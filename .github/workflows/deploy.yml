@@ -206,16 +206,17 @@ jobs:
           username: root
           password: ${{ secrets.VPS_PASSWORD }}
           envs: GITHUB_TOKEN,GITHUB_ACTOR
+          script: |
+            echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+            cd /root/apps/amarolio
+
+            cat << 'EOF' > .env
+            ${{ secrets.PROD_SERVER_ENV }}
+            EOF
+
+            docker compose pull
+            docker compose up -d
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
-        script: |
-          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          cd /root/apps/amarolio
-
-          cat << 'EOF' > .env
-          ${{ secrets.PROD_SERVER_ENV }}
-          EOF
-
-          docker compose pull
-          docker compose up -d
+        
