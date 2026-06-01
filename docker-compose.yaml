@@ -1,72 +1,4 @@
 services:
-  redis_amarolio:
-    container_name: redis_amarolio
-    image: redis:latest
-    restart: unless-stopped
-    volumes:
-      - redis_amarolio_data:/data
-    command: redis-server --requirepass ${AMAROLIO_REDIS_PASSWORD}
-  database_amarath:
-    environment:
-      - POSTGRES_USER=${AMARATH_POSTGRES_USER}
-      - POSTGRES_DB=${AMARATH_POSTGRES_DB}
-      - POSTGRES_PASSWORD=${AMARATH_POSTGRES_PASSWORD}
-    container_name: database_amarath
-    image: postgres:16-alpine
-    volumes:
-      - database_amarath_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${AMARATH_POSTGRES_USER} -d ${AMARATH_POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-  redis_amarath:
-    container_name: redis_amarath
-    image: redis:latest
-    restart: unless-stopped
-    volumes:
-      - redis_amarath_data:/data
-    command: redis-server --requirepass ${AMARATH_REDIS_PASSWORD}
-  ollama_amarath:
-    container_name: ollama_amarath
-    image: alpine/ollama:latest
-    restart: unless-stopped
-    volumes:
-      - ollama_amarath_data:/root/.ollama
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        ollama serve &
-        echo 'Waiting for Ollama server...' &&
-        sleep 5 &&
-        ollama pull ${MODEL_VARIANT} &&
-        ollama pull ${TITLE_MODEL_VARIANT} &&
-        echo 'All models ready!' &&
-        wait
-    healthcheck:
-      test: ["CMD-SHELL", "ollama list | grep -q '${MODEL_VARIANT}' && ollama list | grep -q '${TITLE_MODEL_VARIANT}'"]
-      interval: 1m30s
-      timeout: 30s
-      retries: 5
-      start_period: 30s
-  amarath:
-    env_file:
-      - .env
-    container_name: amarath
-    build:
-      context: ./amarath
-      dockerfile: Dockerfile
-    depends_on:
-      database_amarath:
-        condition: service_healthy
-      redis_amarath:
-        condition: service_started
-      redis_amarolio:
-        condition: service_started
-      ollama_amarath:
-        condition: service_healthy
-    restart: unless-stopped
   database_auth:
     environment:
       - POSTGRES_USER=${AUTH_POSTGRES_USER}
@@ -92,10 +24,8 @@ services:
   auth:
     env_file:
       - .env
-    container_name: auth
-    build:
-      context: ./auth
-      dockerfile: Dockerfile
+    container_name: auth-amarolio-container
+    image: ghcr.io/habilamardias/auth-amarolio:latest
     depends_on:
       database_auth:
         condition: service_healthy
@@ -127,10 +57,8 @@ services:
   amary:
     env_file:
       - .env
-    container_name: amary
-    build:
-      context: ./amary
-      dockerfile: Dockerfile
+    container_name: amary-amarolio-container
+    image: ghcr.io/habilamardias/amary-amarolio:latest
     depends_on:
       database_amary:
         condition: service_healthy
@@ -140,48 +68,32 @@ services:
   gateway:
     env_file:
       - .env
-    container_name: gateway
-    build:
-      context: ./gateway
-      dockerfile: Dockerfile
-    # depends_on:
-    #   redis_amarolio:
-    #     condition: service_started
+    container_name: gateway-container
+    image: ghcr.io/habilamardias/gateway-amarolio:latest
     restart: unless-stopped
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
   amarolio_client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
+    container_name: amarolio-client-container
+    image: ghcr.io/habilamardias/amarolio-client:latest
     ports:
       - ${AMAROLIO_CLIENT_PORT}:80
     restart: unless-stopped
   amary_client:
-    build:
-      context: ./amary-client
-      dockerfile: Dockerfile
+    container_name: amary-client-container
+    image: ghcr.io/habilamardias/amary-client:latest
     ports:
       - ${AMARY_CLIENT_PORT}:80
     restart: unless-stopped
-    depends_on:
-      - amary
   amary_redirect:
-    build:
-      context: ./amary-redirect
-      dockerfile: Dockerfile
+    container_name: amary-redirect-container
+    image: ghcr.io/habilamardias/amary-redirect:latest
     ports:
       - ${AMARY_REDIRECT_PORT}:80
     restart: unless-stopped
-    depends_on:
-      - amary_client
   
 volumes:
-  ollama_amarath_data:
-  database_amarath_data:
-  redis_amarath_data:
   database_auth_data:
   redis_auth_data:
-  redis_amarolio_data:
   database_amary_data:
   redis_amary_data:

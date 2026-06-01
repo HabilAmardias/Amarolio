@@ -40,30 +40,7 @@ jobs:
           context: ./client
           file: ./client/Dockerfile
           push: true
-          tags: ghcr.io/habilamardias/amarolio-client:latest 
-
-      - name: Deploy Amarolio Client
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: root
-          password: ${{ secrets.VPS_PASSWORD }}
-          envs: GITHUB_TOKEN,GITHUB_ACTOR
-          script: |
-            echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-            docker pull ghcr.io/habilamardias/amarolio-client:latest
-            
-            docker stop amarolio-client-container || true
-            docker rm amarolio-client-container || true
-            
-            docker run -d \
-              --name amarolio-client-container \
-              -p 5173:80 \
-              --restart unless-stopped \
-              ghcr.io/habilamardias/amarolio-client:latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
+          tags: ghcr.io/habilamardias/amarolio-client:latest
           
 
   # ==========================================
@@ -95,30 +72,7 @@ jobs:
           context: ./amary-client
           file: ./amary-client/Dockerfile
           push: true
-          tags: ghcr.io/habilamardias/amary-client:latest 
-
-      - name: Deploy Amary Client
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: root
-          password: ${{ secrets.VPS_PASSWORD }}
-          envs: GITHUB_TOKEN,GITHUB_ACTOR
-          script: |
-            echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-            docker pull ghcr.io/habilamardias/amary-client:latest # 👈 Added username namespace
-            
-            docker stop amary-client-container || true # 👈 Unique container name
-            docker rm amary-client-container || true
-            
-            docker run -d \
-              --name amary-client-container \
-              -p 4173:80 \
-              --restart unless-stopped \
-              ghcr.io/habilamardias/amary-client:latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
+          tags: ghcr.io/habilamardias/amary-client:latest
         
 
   # ==========================================
@@ -150,27 +104,118 @@ jobs:
           context: ./amary-redirect
           file: ./amary-redirect/Dockerfile
           push: true
-          tags: ghcr.io/habilamardias/amary-redirect:latest 
+          tags: ghcr.io/habilamardias/amary-redirect:latest
 
-      - name: Deploy Amary Redirect
+  # ==========================================
+  # JOB 4: Amary
+  # ==========================================
+  amary-amarolio:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./amary
+          file: ./amary/Dockerfile
+          push: true
+          tags: ghcr.io/habilamardias/amary-amarolio:latest
+
+  # ==========================================
+  # JOB 5: Auth
+  # ==========================================
+
+  auth-amarolio:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./auth
+          file: ./auth/Dockerfile
+          push: true
+          tags: ghcr.io/habilamardias/auth-amarolio:latest
+  
+  # ==========================================
+  # JOB 6: Gateway
+  # ==========================================
+
+  gateway-amarolio:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./gateway
+          file: ./gateway/Dockerfile
+          push: true
+          tags: ghcr.io/habilamardias/gateway-amarolio:latest
+
+  # ==========================================
+  # JOB 7: Deploy All
+  # ==========================================
+  deploy-all:
+    runs-on: ubuntu-latest
+    needs: [amarolio-client, amary-client, amary-redirect, amary-amarolio, auth-amarolio, gateway-amarolio]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Copy docker-compose.yaml
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          source: "docker-compose.yaml"
+          target: "/root/apps/amarolio"
+
+      - name: Trigger Remote Docker Compose Up
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: root
           password: ${{ secrets.VPS_PASSWORD }}
-          envs: GITHUB_TOKEN,GITHUB_ACTOR # 👈 Added missing environment bridge
-          script: |
-            echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-            docker pull ghcr.io/habilamardias/amary-redirect:latest # 👈 Added username namespace
-            
-            docker stop amary-redirect-container || true
-            docker rm amary-redirect-container || true
-            
-            docker run -d \
-              --name amary-redirect-container \
-              -p 8000:80 \
-              --restart unless-stopped \
-              ghcr.io/habilamardias/amary-redirect:latest
+          envs: GITHUB_TOKEN,GITHUB_ACTOR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
+        script: |
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          cd /root/apps/amarolio
+
+          cat << 'EOF' > .env
+          ${{ secrets.PROD_SERVER_ENV }}
+          EOF
+
+          docker compose pull
+          docker compose up -d
