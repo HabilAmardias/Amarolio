@@ -21,8 +21,10 @@ export function ShortenForm() {
     handleShorten,
   } = useShorten();
 
-  const handleSubmit = async () => {
-    await handleShorten()
+
+  const turnstileOnExpire = () => {
+    ref.current.reset()
+    setToken("")
   }
 
   return (
@@ -70,13 +72,13 @@ export function ShortenForm() {
         }}
         fullWidth
         variant="contained"
-        onClick={handleSubmit}
+        onClick={handleShorten}
         disabled={isLoading || !url || !token}
       >
         {isLoading ? <CircularProgress size={24} /> : 'Shorten URL'}
       </Button>
 
-      <Turnstile ref={ref} onExpire={() => ref.current?.reset()} onSuccess={(tk) => setToken(tk)} siteKey={import.meta.env.VITE_CF_TURNSTILE_SITEKEY} />
+      <Turnstile ref={ref} onExpire={turnstileOnExpire} onSuccess={(tk) => setToken(tk)} siteKey={import.meta.env.VITE_CF_TURNSTILE_SITEKEY} />
 
       {error && (
         <Alert

@@ -50,7 +50,6 @@ export function useShorten() {
       setError((err as Error).message);
     } finally {
       setIsLoading(false);
-      setToken("");
     }
   };
 
