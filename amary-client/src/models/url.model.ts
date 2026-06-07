@@ -11,8 +11,14 @@ export interface ShortenResponse {
   expired_at: string | null;
 }
 
-const initialHistory: ShortenResponse[] = [];
-export const urlHistoryAtom = atom<ShortenResponse[]>(initialHistory);
+export interface UserLink {
+  id: number;
+  user_id: string | null;
+  short_url: string;
+  url: string;
+  created_at: string;
+  expired_at: string | null;
+}
 
 const initialToken: string = "";
 export const tokenAtom = atom<string>(initialToken);

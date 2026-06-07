@@ -1,27 +1,8 @@
 import { Box, Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination } from '@mui/material';
-import { useAtom } from 'jotai';
-import { urlHistoryAtom } from '../../models/url.model';
-import { useState } from 'react';
+import { useURL } from '../../controllers/useURL';
 
 export function DashboardPage() {
-  const [urlHistory] = useAtom(urlHistoryAtom);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const handleChangePage = (
-    event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number,
-  ) => {
-    console.log(event?.currentTarget.value)
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  const { userURL, page, limit, totalRow, handleChangePage, handleChangeLimit } = useURL()
 
   return (
     <Container maxWidth="md">
@@ -51,7 +32,7 @@ export function DashboardPage() {
           Your Shortened URLs
         </Typography>
 
-        {urlHistory.length === 0 ? (
+        {userURL.length === 0 ? (
           <Typography
             sx={{
               color: 'text.secondary',
@@ -72,8 +53,7 @@ export function DashboardPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {urlHistory
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                {userURL
                   .map((url) => (
                     <TableRow
                       key={url.url}
@@ -85,7 +65,7 @@ export function DashboardPage() {
                     >
                       <TableCell>
                         <a
-                          href={url.url}
+                          href={url.short_url}
                           target="_blank"
                           rel="noopener"
                           style={{
@@ -96,20 +76,20 @@ export function DashboardPage() {
                             // },
                           }}
                         >
-                          {url.url}
+                          {url.short_url}
                         </a>
                       </TableCell>
-                      {/* <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', color: 'text.secondary' }}>
-                        {url.originalUrl}
+                      <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', color: 'text.secondary' }}>
+                        {url.url}
                       </TableCell>
                       <TableCell sx={{ color: '#8b4513' }}>
-                        {url.expiresAt
-                          ? new Date(url.expiresAt).toLocaleDateString()
+                        {url.expired_at
+                          ? new Date(url.expired_at).toLocaleDateString()
                           : 'Never'}
                       </TableCell>
                       <TableCell sx={{ color: 'text.secondary' }}>
-                        {new Date(url.createdAt).toLocaleDateString()}
-                      </TableCell> */}
+                        {new Date(url.created_at).toLocaleDateString()}
+                      </TableCell>
                     </TableRow>
                   ))}
               </TableBody>
@@ -117,11 +97,11 @@ export function DashboardPage() {
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
-              count={urlHistory.length}
-              rowsPerPage={rowsPerPage}
+              count={totalRow}
+              rowsPerPage={limit}
               page={page}
               onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
+              onRowsPerPageChange={handleChangeLimit}
               sx={{
                 borderTop: '1px solid #e8dcc8',
                 color: '#5d4037',

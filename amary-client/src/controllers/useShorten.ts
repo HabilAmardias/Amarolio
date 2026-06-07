@@ -1,16 +1,11 @@
 import { useState } from "react";
 import { useAtom } from "jotai";
 import { authAtom } from "../models/user.model";
-import {
-  tokenAtom,
-  resultAtom,
-  type ShortenResponse,
-} from "../models/url.model";
+import { tokenAtom, resultAtom } from "../models/url.model";
 import { shortenUrl } from "../api/url.api";
 
 export function useShorten() {
   const [user] = useAtom(authAtom);
-  const [, setUrlHistory] = useState<ShortenResponse[]>([]);
   const [result, setResult] = useAtom(resultAtom);
   const [token, setToken] = useAtom(tokenAtom);
 
@@ -44,7 +39,6 @@ export function useShorten() {
         duration: finalExpiresInDays,
       });
       setResult(response);
-      setUrlHistory((prev) => [response, ...prev]);
       setUrl("");
     } catch (err) {
       setError((err as Error).message);

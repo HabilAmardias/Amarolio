@@ -86,6 +86,8 @@ func (ar *AppRouter) SetupPrivateRoute() {
 	))
 	v1.Use(middlewares.NewRateLimiterMiddleware(constants.AUTH_CLAIM_KEY))
 	v1.Get("/me", ar.UserHandler.GetProfile)
+	v1.Get("/me/url", ar.ShortenURLHandler.GetUserLinks)
+
 	// v1.Get("/chatrooms/me", ar.ChatroomHandler.GetChatrooms)
 	// v1.Post("/chatrooms", ar.ChatroomHandler.CreateChatroom)
 	// v1.Delete("/chatrooms/:id", ar.ChatroomHandler.DeleteChatroom)

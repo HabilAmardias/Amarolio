@@ -24,9 +24,6 @@ type IDEncoderItf interface {
 type URLCacheItf interface {
 	Set(ctx context.Context, encodedID string, ttl time.Duration, url URL) error
 	Get(ctx context.Context, encodedID string, url *URL) error
-	AddToUserSet(ctx context.Context, userID string, cat time.Time, encodedID string) error
-	GetUserLinks(ctx context.Context, ids *[]string, links *[]URL, missingIDs *[]string) error
-	GetIDFromUserSet(ctx context.Context, userID string, page int64, limit int64, ids *[]string) error
 }
 
 type VisitRecordRepoItf interface {
@@ -47,8 +44,8 @@ type URLRepoItf interface {
 		shortenURL *URL,
 	) error
 	FindByID(ctx context.Context, id int64, url *URL) error
-	FindUserLinks(ctx context.Context, userID string, page, limit int64, links *[]URL) error
-	FindMultipleByIDs(ctx context.Context, ids []int64, links *[]URL) error
+	FindUserLinks(ctx context.Context, userID string, lastID *int64, limit int64, links *[]URL) error
+	GetUserLinkCount(ctx context.Context, userID string, count *int64) error
 }
 
 type URLServiceImpl struct {
@@ -83,66 +80,21 @@ func (sus *URLServiceImpl) decryptAndFormatURL(ls []URL) ([]DecryptedURL, error)
 	return decryptedLinks, nil
 }
 
-func (sus *URLServiceImpl) GetUserLinks(ctx context.Context, userID string, page int64, limit int64) ([]DecryptedURL, error) {
-	warmUpCache := func(ls []URL, warmID bool) {
-		cacheCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-
-		ttl := 24 * time.Hour
-
-		for _, l := range ls {
-			eid := sus.ide.Encode(l.ID)
-			if warmID {
-				sus.suc.AddToUserSet(cacheCtx, userID, l.CreatedAt, eid)
-			}
-			sus.suc.Set(cacheCtx, eid, ttl, l)
-		}
-	}
-
+func (sus *URLServiceImpl) GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, int64, error) {
 	links := new([]URL)
-	missingIDs := new([]string)
-	ids := new([]string)
-
-	if err := sus.suc.GetIDFromUserSet(ctx, userID, page, limit, ids); err != nil {
-		var dbLinks []URL
-		if err := sus.sur.FindUserLinks(ctx, userID, page, limit, &dbLinks); err != nil {
-			return nil, err
-		}
-
-		// warmup ids and metadata
-		go warmUpCache(dbLinks, true)
-
-		return sus.decryptAndFormatURL(dbLinks)
+	count := new(int64)
+	if err := sus.sur.FindUserLinks(ctx, userID, lastID, limit, links); err != nil {
+		return nil, 0, err
 	}
-
-	if err := sus.suc.GetUserLinks(ctx, ids, links, missingIDs); err != nil {
-		var dbLinks []URL
-		if err := sus.sur.FindUserLinks(ctx, userID, page, limit, &dbLinks); err != nil {
-			return nil, err
-		}
-		// warmup metadata
-		go warmUpCache(dbLinks, false)
-		return sus.decryptAndFormatURL(dbLinks)
+	if err := sus.sur.GetUserLinkCount(ctx, userID, count); err != nil {
+		return nil, 0, err
 	}
-
-	// if there are some missing urls from cache, fetch it from db and refill the cache
-	if len(*missingIDs) > 0 {
-		missingLinks := new([]URL)
-		decodedIDs, err := sus.ide.DecodeMultipleIDs(*missingIDs)
-		if err != nil {
-			return nil, err
-		}
-		if err := sus.sur.FindMultipleByIDs(ctx, decodedIDs, missingLinks); err != nil {
-			return nil, err
-		}
-		*links = append(*links, *missingLinks...)
-
-		// warmup metadata
-		go warmUpCache(*missingLinks, false)
-	}
-
 	// decrypt real url
-	return sus.decryptAndFormatURL(*links)
+	decrypted, err := sus.decryptAndFormatURL(*links)
+	if err != nil {
+		return nil, 0, err
+	}
+	return decrypted, *count, nil
 }
 
 func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, longURL string, duration *int) (string, *time.Time, error) {
@@ -185,15 +137,6 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 		}
 
 		services.WithErrorRetry(ctx, fun, 100*time.Millisecond)
-
-		// if user is logged-in then add the id to zset
-		if uid != nil {
-			fun := func() error {
-				return sus.suc.AddToUserSet(ctx, *uid, u.CreatedAt, eid)
-			}
-
-			services.WithErrorRetry(ctx, fun, 100*time.Millisecond)
-		}
 	}(userID, encodedID, *url)
 
 	return encodedID, eat, nil

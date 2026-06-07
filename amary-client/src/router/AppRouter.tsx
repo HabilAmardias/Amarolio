@@ -4,6 +4,8 @@ import { Navbar } from '../components/Navbar';
 import { Box } from '@mui/material';
 import { LoginPage } from '../pages/login';
 import { LoginCallbackPage } from '../pages/login/callback'
+import { DashboardPage } from '../pages/dashboard';
+import { ProtectedRoute } from '../components/ProtectedRoute';
 
 export function AppRouter() {
   return (
@@ -15,14 +17,14 @@ export function AppRouter() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/login/callback" element={<LoginCallbackPage />} />
-            {/* <Route
+            <Route
               path="/dashboard"
               element={
                 <ProtectedRoute>
                   <DashboardPage />
                 </ProtectedRoute>
               }
-            /> */}
+            />
           </Routes>
         </Box>
       </Box>
