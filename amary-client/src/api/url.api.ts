@@ -20,6 +20,9 @@ export async function getUserURLs(limit?: number, lastID?: number) {
   const res = await apiFetch(url, {
     method: "GET",
   });
+  if (!res.ok) {
+    throw new Error("something went wrong");
+  }
 
   const resBody: ServerResponse<PaginateResponse<UserLink>> = await res.json();
   return resBody.data;

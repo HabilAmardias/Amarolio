@@ -18,7 +18,7 @@ import (
 type URLServiceItf interface {
 	NewShortURL(ctx context.Context, userID *string, longURL string, duration *int) (string, *time.Time, error)
 	FindLongURL(ctx context.Context, encodedID string, device string) (string, error)
-	GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, int64, error)
+	GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, error)
 }
 
 type URLHandlerImpl struct {
@@ -48,7 +48,7 @@ func (suh *URLHandlerImpl) GetUserLinks(ctx *gin.Context) {
 	if req.Limit != nil {
 		reqLimit = *req.Limit
 	}
-	urls, count, err := suh.sus.GetUserLinks(ctx.Request.Context(), uid, req.LastID, reqLimit)
+	urls, err := suh.sus.GetUserLinks(ctx.Request.Context(), uid, req.LastID, reqLimit)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -68,7 +68,6 @@ func (suh *URLHandlerImpl) GetUserLinks(ctx *gin.Context) {
 		Data: dto.PaginateRes[UserLinkRes]{
 			Entries: res,
 			PageInfo: struct {
-				TotalRow int64  "json:\"total_row\""
 				LastID   *int64 "json:\"last_id,omitempty\""
 				Page     *int64 "json:\"page,omitempty\""
 				Limit    int64  "json:\"limit\""
@@ -81,9 +80,8 @@ func (suh *URLHandlerImpl) GetUserLinks(ctx *gin.Context) {
 					Ascend bool   "json:\"ascend\""
 				} "json:\"sort_by,omitempty\""
 			}{
-				TotalRow: count,
-				LastID:   lastID,
-				Limit:    reqLimit,
+				LastID: lastID,
+				Limit:  reqLimit,
 			},
 		},
 	})

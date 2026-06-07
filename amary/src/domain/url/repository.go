@@ -17,23 +17,6 @@ func NewURLRepo(handle db.DBTX) *URLRepoImpl {
 	return &URLRepoImpl{handle}
 }
 
-func (sur *URLRepoImpl) GetUserLinkCount(ctx context.Context, userID string, count *int64) error {
-	query := `
-	SELECT
-		COUNT(id)
-	FROM urls
-	WHERE user_id = $1 AND deleted_at IS NULL
-	`
-	if err := sur.handle.QueryRowContext(ctx, query, userID).Scan(count); err != nil {
-		return customerror.NewError(
-			"something went wrong",
-			err,
-			customerror.DatabaseExecutionErr,
-		)
-	}
-	return nil
-}
-
 func (sur *URLRepoImpl) FindUserLinks(ctx context.Context, userID string, lastID *int64, limit int64, links *[]URL) error {
 	query := `
 	SELECT

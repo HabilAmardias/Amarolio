@@ -1,8 +1,8 @@
-import { Box, Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination } from '@mui/material';
+import { Box, Alert, Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination } from '@mui/material';
 import { useURL } from '../../controllers/useURL';
 
 export function DashboardPage() {
-  const { userURL, page, limit, totalRow, handleChangePage, handleChangeLimit } = useURL()
+  const { userURL, page, limit, hasNextPage, error, handleChangePage, handleChangeLimit } = useURL()
 
   return (
     <Container maxWidth="md">
@@ -32,92 +32,109 @@ export function DashboardPage() {
           Your Shortened URLs
         </Typography>
 
-        {userURL.length === 0 ? (
-          <Typography
+        {error ?
+          <Alert
+            severity="error"
             sx={{
-              color: 'text.secondary',
-              fontSize: '1.1rem',
+              mt: 2,
             }}
           >
-            No URLs shortened yet.
-          </Typography>
-        ) : (
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Short URL</TableCell>
-                  <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Original URL</TableCell>
-                  <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Expires At</TableCell>
-                  <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Created At</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {userURL
-                  .map((url) => (
-                    <TableRow
-                      key={url.url}
-                      sx={{
-                        '&:hover': {
-                          background: '#faf6f0',
-                        },
-                      }}
-                    >
-                      <TableCell>
-                        <a
-                          href={url.short_url}
-                          target="_blank"
-                          rel="noopener"
-                          style={{
-                            color: '#c25e00',
-                            textDecoration: 'none',
-                            // '&:hover': {
-                            //   textDecoration: 'underline',
-                            // },
-                          }}
-                        >
-                          {url.short_url}
-                        </a>
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', color: 'text.secondary' }}>
-                        {url.url}
-                      </TableCell>
-                      <TableCell sx={{ color: '#8b4513' }}>
-                        {url.expired_at
-                          ? new Date(url.expired_at).toLocaleDateString()
-                          : 'Never'}
-                      </TableCell>
-                      <TableCell sx={{ color: 'text.secondary' }}>
-                        {new Date(url.created_at).toLocaleDateString()}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
-              component="div"
-              count={totalRow}
-              rowsPerPage={limit}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeLimit}
+            {error.message}
+          </Alert>
+          : userURL.length === 0 ? (
+            <Typography
               sx={{
-                borderTop: '1px solid #e8dcc8',
-                color: '#5d4037',
-                '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                  color: '#5d4037',
-                },
-                '& .MuiIconButton-root': {
-                  color: '#c25e00',
-                  '&:hover': {
-                    backgroundColor: 'rgba(194, 94, 0, 0.08)',
-                  },
-                },
+                color: 'text.secondary',
+                fontSize: '1.1rem',
               }}
-            />
-          </TableContainer>
-        )}
+            >
+              No URLs shortened yet.
+            </Typography>
+          ) : (
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Short URL</TableCell>
+                    <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Original URL</TableCell>
+                    <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Expires At</TableCell>
+                    <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Created At</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {userURL
+                    .map((url) => (
+                      <TableRow
+                        key={url.url}
+                        sx={{
+                          '&:hover': {
+                            background: '#faf6f0',
+                          },
+                        }}
+                      >
+                        <TableCell>
+                          <a
+                            href={url.short_url}
+                            target="_blank"
+                            rel="noopener"
+                            style={{
+                              color: '#c25e00',
+                              textDecoration: 'none',
+                              // '&:hover': {
+                              //   textDecoration: 'underline',
+                              // },
+                            }}
+                          >
+                            {url.short_url}
+                          </a>
+                        </TableCell>
+                        <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', color: 'text.secondary' }}>
+                          {url.url}
+                        </TableCell>
+                        <TableCell sx={{ color: '#8b4513' }}>
+                          {url.expired_at
+                            ? new Date(url.expired_at).toLocaleDateString()
+                            : 'Never'}
+                        </TableCell>
+                        <TableCell sx={{ color: 'text.secondary' }}>
+                          {new Date(url.created_at).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={-1}
+                rowsPerPage={limit}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeLimit}
+                labelDisplayedRows={({ from, to }) => {
+                  return hasNextPage ? `${from}–${to} of more than ${to}` : `${from}–${to} of ${to}`
+                }}
+                slotProps={{
+                  actions: {
+                    nextButton: { disabled: !hasNextPage },
+                  },
+                }}
+                sx={{
+                  borderTop: '1px solid #e8dcc8',
+                  color: '#5d4037',
+                  '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                    color: '#5d4037',
+                  },
+                  '& .MuiIconButton-root': {
+                    color: '#c25e00',
+                    '&:hover': {
+                      backgroundColor: 'rgba(194, 94, 0, 0.08)',
+                    },
+                  },
+                }}
+              />
+            </TableContainer>
+          )}
       </Box>
     </Container>
   );

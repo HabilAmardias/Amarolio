@@ -4,7 +4,6 @@ type (
 	Paginate[T any] struct {
 		Entries  []T `json:"entries"`
 		PageInfo struct {
-			TotalRow int64  `json:"total_row"`
 			LastID   *int64 `json:"last_id"`
 			Page     *int64 `json:"page"`
 			Limit    int64  `json:"limit"`

@@ -21,12 +21,12 @@ func NewShortenURLService(hs string, pr string) *ShortenURLServiceImpl {
 	return &ShortenURLServiceImpl{hs, pr}
 }
 
-func (sus *ShortenURLServiceImpl) GetUserLinks(userID string, lastID *int64, limit int64) ([]UserLink, int64, int64, int64, error) {
+func (sus *ShortenURLServiceImpl) GetUserLinks(userID string, lastID *int64, limit int64) ([]UserLink, int64, int64, error) {
 	res, err := sus.callGetUserLinks(userID, lastID, limit)
 	if err != nil {
-		return nil, 0, 0, 0, err
+		return nil, 0, 0, err
 	}
-	return res.Data.Entries, res.Data.PageInfo.TotalRow, *res.Data.PageInfo.LastID, res.Data.PageInfo.Limit, nil
+	return res.Data.Entries, *res.Data.PageInfo.LastID, res.Data.PageInfo.Limit, nil
 }
 
 func (sus *ShortenURLServiceImpl) NewShortURL(userID *string, url string, duration *int) (NewShortenURL, error) {

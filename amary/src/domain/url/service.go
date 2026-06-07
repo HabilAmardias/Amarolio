@@ -45,7 +45,6 @@ type URLRepoItf interface {
 	) error
 	FindByID(ctx context.Context, id int64, url *URL) error
 	FindUserLinks(ctx context.Context, userID string, lastID *int64, limit int64, links *[]URL) error
-	GetUserLinkCount(ctx context.Context, userID string, count *int64) error
 }
 
 type URLServiceImpl struct {
@@ -80,21 +79,13 @@ func (sus *URLServiceImpl) decryptAndFormatURL(ls []URL) ([]DecryptedURL, error)
 	return decryptedLinks, nil
 }
 
-func (sus *URLServiceImpl) GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, int64, error) {
+func (sus *URLServiceImpl) GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, error) {
 	links := new([]URL)
-	count := new(int64)
 	if err := sus.sur.FindUserLinks(ctx, userID, lastID, limit, links); err != nil {
-		return nil, 0, err
-	}
-	if err := sus.sur.GetUserLinkCount(ctx, userID, count); err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 	// decrypt real url
-	decrypted, err := sus.decryptAndFormatURL(*links)
-	if err != nil {
-		return nil, 0, err
-	}
-	return decrypted, *count, nil
+	return sus.decryptAndFormatURL(*links)
 }
 
 func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, longURL string, duration *int) (string, *time.Time, error) {

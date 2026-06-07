@@ -20,7 +20,7 @@ export async function getMe(): Promise<User | null> {
     method: "GET",
   });
   if (!res.ok) {
-    throw new Error("Cannot get user");
+    throw new Error("Cannot get user info");
   }
   const resBody: ServerResponse<User> = await res.json();
   return resBody.data;
