@@ -35,6 +35,6 @@ func (ar *AppRouter) SetupPrivateRoute() {
 	v1 := ar.App.Group("/api/v1")
 	v1.Use(middlewares.NewAuthMiddleware())
 
-	v1.GET("/url/me", ar.ShortenURLHandler.GetUserLinks)
+	v1.GET("/me/url", ar.ShortenURLHandler.GetUserLinks)
 	v1.POST("/url", ar.ShortenURLHandler.NewShortURL)
 }

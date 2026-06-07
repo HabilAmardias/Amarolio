@@ -3,10 +3,13 @@ package shortenurls
 import (
 	"amarolio-gateway/src/constants"
 	"amarolio-gateway/src/customerrors"
+	"amarolio-gateway/src/dto"
+	"amarolio-gateway/src/entity"
 	"amarolio-gateway/src/services"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 type ShortenURLServiceImpl struct {
@@ -18,14 +21,53 @@ func NewShortenURLService(hs string, pr string) *ShortenURLServiceImpl {
 	return &ShortenURLServiceImpl{hs, pr}
 }
 
+func (sus *ShortenURLServiceImpl) GetUserLinks(userID string, lastID *int64, limit int64) ([]UserLink, int64, int64, int64, error) {
+	res, err := sus.callGetUserLinks(userID, lastID, limit)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+	return res.Data.Entries, res.Data.PageInfo.TotalRow, *res.Data.PageInfo.LastID, res.Data.PageInfo.Limit, nil
+}
+
 func (sus *ShortenURLServiceImpl) NewShortURL(userID *string, url string, duration *int) (NewShortenURL, error) {
+	res, err := sus.callNewShortURL(userID, url, duration)
+	if err != nil {
+		return NewShortenURL{}, err
+	}
+
+	return res.Data, nil
+}
+
+func (sus *ShortenURLServiceImpl) FindLongURL(id string, device string) (string, error) {
+	res, err := sus.callFindLongURL(id, device)
+	if err != nil {
+		return "", err
+	}
+
+	return res.Data.URL, err
+}
+
+func (sus *ShortenURLServiceImpl) callGetUserLinks(userID string, lastID *int64, limit int64) (*dto.ServerResponse[entity.Paginate[UserLink]], error) {
+	headers := map[string]string{
+		constants.X_USER_ID: userID,
+	}
+	queries := map[string]string{
+		"limit": strconv.FormatInt(limit, 10),
+	}
+	if lastID != nil {
+		queries["last_id"] = strconv.FormatInt(*lastID, 10)
+	}
+	return services.Call[entity.Paginate[UserLink]](sus.hs, sus.pr, "/api/v1/me/url", http.MethodGet, http.StatusOK, nil, queries, headers)
+}
+
+func (sus *ShortenURLServiceImpl) callNewShortURL(userID *string, url string, duration *int) (*dto.ServerResponse[NewShortenURL], error) {
 	b := NewShortenURLBody{
 		URL:      url,
 		Duration: duration,
 	}
 	reqBody, err := json.Marshal(b)
 	if err != nil {
-		return NewShortenURL{}, customerrors.NewError(
+		return nil, customerrors.NewError(
 			"something went wrong",
 			err,
 			customerrors.CommonErr,
@@ -35,7 +77,7 @@ func (sus *ShortenURLServiceImpl) NewShortURL(userID *string, url string, durati
 	if userID != nil {
 		headers[constants.X_USER_ID] = *userID
 	}
-	res, err := services.Call[NewShortenURL](
+	return services.Call[NewShortenURL](
 		sus.hs,
 		sus.pr,
 		"/api/v1/url",
@@ -45,18 +87,13 @@ func (sus *ShortenURLServiceImpl) NewShortURL(userID *string, url string, durati
 		nil,
 		headers,
 	)
-	if err != nil {
-		return NewShortenURL{}, err
-	}
-
-	return res.Data, nil
 }
 
-func (sus *ShortenURLServiceImpl) FindLongURL(id string, device string) (string, error) {
+func (sus *ShortenURLServiceImpl) callFindLongURL(id string, device string) (*dto.ServerResponse[FindLongURL], error) {
 	headers := map[string]string{
 		"User-Agent": device,
 	}
-	res, err := services.Call[FindLongURL](
+	return services.Call[FindLongURL](
 		sus.hs,
 		sus.pr,
 		fmt.Sprintf("/api/v1/url/%s", id),
@@ -66,9 +103,4 @@ func (sus *ShortenURLServiceImpl) FindLongURL(id string, device string) (string,
 		nil,
 		headers,
 	)
-	if err != nil {
-		return "", err
-	}
-
-	return res.Data.URL, err
 }

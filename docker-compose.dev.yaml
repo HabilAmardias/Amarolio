@@ -1,0 +1,111 @@
+services:
+  database_auth:
+    environment:
+      - POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+    container_name: database_auth
+    image: postgres:16-alpine
+    volumes:
+      - database_auth_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AUTH_POSTGRES_USER} -d ${AUTH_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  redis_auth:
+    container_name: redis_auth
+    image: redis:latest
+    restart: unless-stopped
+    volumes:
+      - redis_auth_data:/data
+    command: redis-server --requirepass ${AUTH_REDIS_PASSWORD}
+  auth:
+    env_file:
+      - .env
+    container_name: auth-amarolio-container
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    depends_on:
+      database_auth:
+        condition: service_healthy
+      redis_auth:
+        condition: service_started
+    restart: unless-stopped
+  database_amary:
+    environment:
+      - POSTGRES_USER=${AMARY_POSTGRES_USER}
+      - POSTGRES_DB=${AMARY_POSTGRES_DB}
+      - POSTGRES_PASSWORD=${AMARY_POSTGRES_PASSWORD}
+    container_name: database_amary
+    image: postgres:16-alpine
+    volumes:
+      - database_amary_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AMARY_POSTGRES_USER} -d ${AMARY_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  redis_amary:
+    container_name: redis_amary
+    image: redis:latest
+    restart: unless-stopped
+    volumes:
+      - redis_amary_data:/data
+    command: redis-server --requirepass ${AMARY_REDIS_PASSWORD}
+  amary:
+    env_file:
+      - .env
+    container_name: amary-amarolio-container
+    build:
+      context: ./amary
+      dockerfile: Dockerfile
+    depends_on:
+      database_amary:
+        condition: service_healthy
+      redis_amary:
+        condition: service_started
+    restart: unless-stopped
+  gateway:
+    env_file:
+      - .env
+    container_name: gateway-container
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+  amarolio_client:
+    container_name: amarolio-client-container
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - ${AMAROLIO_CLIENT_PORT}:80
+    restart: unless-stopped
+  amary_client:
+    container_name: amary-client-container
+    build:
+      context: ./amary-client
+      dockerfile: Dockerfile
+    ports:
+      - ${AMARY_CLIENT_PORT}:80
+    restart: unless-stopped
+  amary_redirect:
+    container_name: amary-redirect-container
+    build:
+      context: ./amary-redirect
+      dockerfile: Dockerfile
+    ports:
+      - ${AMARY_REDIRECT_PORT}:80
+    restart: unless-stopped
+  
+volumes:
+  database_auth_data:
+  redis_auth_data:
+  database_amary_data:
+  redis_amary_data:

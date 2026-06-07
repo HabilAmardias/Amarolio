@@ -9,13 +9,14 @@ import { useEffect, useCallback } from "react";
 
 export function useAuth() {
   const [user, setUser] = useAtom(authAtom);
-  const [isLoading] = useAtom(authLoadingAtom);
+  const [isLoading, setIsLoading] = useAtom(authLoadingAtom);
 
   useEffect(() => {
     getMeApi()
       .then((userData) => setUser(userData))
-      .catch(() => setUser(null));
-  }, [setUser]);
+      .catch(() => setUser(null))
+      .finally(() => setIsLoading(false));
+  }, [setUser, setIsLoading]);
 
   const login = useCallback(async () => {
     await loginApi();

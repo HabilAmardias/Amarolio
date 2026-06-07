@@ -19,7 +19,7 @@ type (
 		URL string `json:"url"`
 	}
 	GetUserLinksReq struct {
-		dto.PaginateOffsetReq
+		dto.SeekPaginateReq
 	}
 	UserLinkRes struct {
 		ID        int64      `json:"id"`

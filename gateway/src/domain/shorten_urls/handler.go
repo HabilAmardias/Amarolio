@@ -13,6 +13,7 @@ import (
 type ShortenURLServiceItf interface {
 	FindLongURL(id string, device string) (string, error)
 	NewShortURL(userID *string, url string, duration *int) (NewShortenURL, error)
+	GetUserLinks(userID string, lastID *int64, limit int64) ([]UserLink, int64, int64, int64, error)
 }
 
 type ShortenURLHandlerImpl struct {
@@ -21,6 +22,57 @@ type ShortenURLHandlerImpl struct {
 
 func NewShortenURLHandler(sus ShortenURLServiceItf) *ShortenURLHandlerImpl {
 	return &ShortenURLHandlerImpl{sus}
+}
+
+func (suh *ShortenURLHandlerImpl) GetUserLinks(ctx fiber.Ctx) error {
+	req := new(GetUserLinksReq)
+	if err := ctx.Bind().Query(req); err != nil {
+		return customerrors.NewError(
+			"invalid input",
+			err,
+			customerrors.InvalidAction,
+		)
+	}
+	claim, err := handlers.GetAuthPayload(ctx, constants.AUTH_CLAIM_KEY)
+	if err != nil {
+		return err
+	}
+	var reqLimit int64 = constants.DEFAULT_LIMIT_PAGINATION
+	if req.Limit != nil {
+		reqLimit = *req.Limit
+	}
+	entries, totalRow, lastID, limit, err := suh.sus.GetUserLinks(claim.Subject, req.LastID, reqLimit)
+	if err != nil {
+		return err
+	}
+	res := []GetUserLinkRes{}
+	for _, e := range entries {
+		res = append(res, GetUserLinkRes(e))
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.PaginateRes[GetUserLinkRes]]{
+		Success: true,
+		Data: dto.PaginateRes[GetUserLinkRes]{
+			Entries: res,
+			PageInfo: struct {
+				TotalRow int64  "json:\"total_row\""
+				LastID   *int64 "json:\"last_id,omitempty\""
+				Page     *int64 "json:\"page,omitempty\""
+				Limit    int64  "json:\"limit\""
+				FilterBy []struct {
+					Name  string "json:\"name\""
+					Value any    "json:\"value\""
+				} "json:\"filter_by,omitempty\""
+				SortBy []struct {
+					Name   string "json:\"name\""
+					Ascend bool   "json:\"ascend\""
+				} "json:\"sort_by,omitempty\""
+			}{
+				TotalRow: totalRow,
+				LastID:   &lastID,
+				Limit:    limit,
+			},
+		},
+	})
 }
 
 func (suh *ShortenURLHandlerImpl) RedirectToURL(ctx fiber.Ctx) error {
