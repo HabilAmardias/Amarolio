@@ -4,66 +4,73 @@ import type { UserLink } from "../models/url.model";
 
 export function useURL() {
   const [userURL, setUserURL] = useState<UserLink[]>([]);
-  const [limit, setLimit] = useState<number>(25);
-  const [totalRow, setTotalRow] = useState<number | undefined>(undefined);
-  const [lastID, setLastID] = useState<number | undefined>(undefined);
+  const [limit, setLimit] = useState<number>(5);
   const [page, setPage] = useState<number>(0);
+  const [hasNextPage, setHasNextPage] = useState<boolean>(false);
   const [cursors, setCursors] = useState<Record<number, number | undefined>>({
     0: undefined,
   });
+  const [activeCursor, setActiveCursor] = useState<number | undefined>(
+    undefined,
+  );
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    apiGetUserURLs().then((val) => {
-      setUserURL(val.entries);
-      setLimit(val.page_info.limit);
-      setTotalRow(val.page_info.total_row);
-      setLastID(val.page_info.last_id);
-    });
-  }, []);
+    let isMounted = true;
+
+    apiGetUserURLs(limit + 1, activeCursor)
+      .then((val) => {
+        if (!isMounted) return;
+        if (val.entries.length > limit) {
+          setHasNextPage(true);
+          setUserURL(val.entries.slice(0, limit));
+        } else {
+          setHasNextPage(false);
+          setUserURL(val.entries);
+        }
+        if (val.page_info?.last_id) {
+          setCursors((prev) => ({
+            ...prev,
+            [page + 1]: val.page_info.last_id,
+          }));
+        }
+      })
+      .catch((err) => {
+        setError(err as Error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [limit, activeCursor, page]);
 
   async function handleChangePage(
     _: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number,
   ) {
-    let targetCursorId: number | undefined;
+    const nextCursor = cursors[newPage];
 
-    if (newPage > page) {
-      targetCursorId = lastID;
-      setCursors((prev) => ({ ...prev, [newPage]: lastID }));
-    } else {
-      targetCursorId = cursors[newPage];
-    }
-
-    const val = await apiGetUserURLs(limit, targetCursorId);
-
-    setUserURL(val.entries);
-    setTotalRow(val.page_info.total_row);
-    setLastID(val.page_info.last_id);
+    setActiveCursor(nextCursor);
     setPage(newPage);
   }
 
-  async function handleChangeLimit(
+  function handleChangeLimit(
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) {
     const newLimit = parseInt(event.target.value);
 
     setLimit(newLimit);
     setPage(0);
-    setLastID(undefined);
+    setActiveCursor(undefined);
     setCursors({ 0: undefined });
-
-    const val = await apiGetUserURLs(newLimit, undefined);
-
-    setUserURL(val.entries);
-    setTotalRow(val.page_info.total_row);
-    setLastID(val.page_info.last_id);
   }
 
   return {
     userURL,
     limit,
     page,
-    totalRow,
+    hasNextPage,
+    error,
     handleChangePage,
     handleChangeLimit,
   };

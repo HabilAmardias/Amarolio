@@ -13,7 +13,7 @@ import (
 type ShortenURLServiceItf interface {
 	FindLongURL(id string, device string) (string, error)
 	NewShortURL(userID *string, url string, duration *int) (NewShortenURL, error)
-	GetUserLinks(userID string, lastID *int64, limit int64) ([]UserLink, int64, int64, int64, error)
+	GetUserLinks(userID string, lastID *int64, limit int64) ([]UserLink, int64, int64, error)
 }
 
 type ShortenURLHandlerImpl struct {
@@ -41,7 +41,7 @@ func (suh *ShortenURLHandlerImpl) GetUserLinks(ctx fiber.Ctx) error {
 	if req.Limit != nil {
 		reqLimit = *req.Limit
 	}
-	entries, totalRow, lastID, limit, err := suh.sus.GetUserLinks(claim.Subject, req.LastID, reqLimit)
+	entries, lastID, limit, err := suh.sus.GetUserLinks(claim.Subject, req.LastID, reqLimit)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,6 @@ func (suh *ShortenURLHandlerImpl) GetUserLinks(ctx fiber.Ctx) error {
 		Data: dto.PaginateRes[GetUserLinkRes]{
 			Entries: res,
 			PageInfo: struct {
-				TotalRow int64  "json:\"total_row\""
 				LastID   *int64 "json:\"last_id,omitempty\""
 				Page     *int64 "json:\"page,omitempty\""
 				Limit    int64  "json:\"limit\""
@@ -67,9 +66,8 @@ func (suh *ShortenURLHandlerImpl) GetUserLinks(ctx fiber.Ctx) error {
 					Ascend bool   "json:\"ascend\""
 				} "json:\"sort_by,omitempty\""
 			}{
-				TotalRow: totalRow,
-				LastID:   &lastID,
-				Limit:    limit,
+				LastID: &lastID,
+				Limit:  limit,
 			},
 		},
 	})

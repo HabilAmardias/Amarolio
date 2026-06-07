@@ -6,7 +6,6 @@ export interface ServerResponse<T> {
 export interface PaginateResponse<T> {
   entries: T[];
   page_info: {
-    total_row: number;
     last_id?: number;
     page?: number;
     limit: number;

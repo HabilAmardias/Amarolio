@@ -16,16 +16,15 @@ type (
 	}
 	PaginateOffsetReq struct {
 		Page  int64 `form:"page" binding:"required"`
-		Limit int64 `form:"limit" binding:"required,lte=25"`
+		Limit int64 `form:"limit" binding:"required,lte=26"`
 	}
 	SeekPaginateReq struct {
 		LastID *int64 `form:"last_id"`
-		Limit  *int64 `form:"limit" binding:"omitempty,lte=25"`
+		Limit  *int64 `form:"limit" binding:"omitempty,lte=26"`
 	}
 	PaginateRes[T any] struct {
 		Entries  []T `json:"entries"`
 		PageInfo struct {
-			TotalRow int64  `json:"total_row"`
 			LastID   *int64 `json:"last_id,omitempty"`
 			Page     *int64 `json:"page,omitempty"`
 			Limit    int64  `json:"limit"`
