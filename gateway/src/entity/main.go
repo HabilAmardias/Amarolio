@@ -17,4 +17,7 @@ type (
 			} `json:"sort_by"`
 		} `json:"page_info"`
 	}
+	PlainMessageResponse struct {
+		Message string `json:"message"`
+	}
 )

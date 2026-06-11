@@ -37,4 +37,5 @@ func (ar *AppRouter) SetupPrivateRoute() {
 
 	v1.GET("/me/url", ar.ShortenURLHandler.GetUserLinks)
 	v1.POST("/url", ar.ShortenURLHandler.NewShortURL)
+	v1.POST("/url/find", ar.ShortenURLHandler.IsCustomURLExist)
 }

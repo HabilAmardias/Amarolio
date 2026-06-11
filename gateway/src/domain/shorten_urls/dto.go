@@ -6,9 +6,13 @@ import (
 )
 
 type (
+	IsCustomURLAvailableReq struct {
+		CustomCode string `json:"custom_code"`
+	}
 	NewShortenURLReq struct {
-		URL      string `json:"url"`
-		Duration *int   `json:"duration"`
+		URL        string  `json:"url"`
+		Duration   *int    `json:"duration"`
+		CustomCode *string `json:"custom_code"`
 	}
 	NewShortenURLRes struct {
 		URL         string     `json:"url"`

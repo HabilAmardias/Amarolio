@@ -19,8 +19,10 @@ export function ShortenForm() {
     error,
     isLoading,
     handleShorten,
+    rawCustom,
+    onCustomChange,
+    isCheckingSlug,
   } = useShorten();
-
 
   const turnstileOnExpire = () => {
     ref.current.reset()
@@ -64,6 +66,37 @@ export function ShortenForm() {
             }
             label="No expiration"
           />
+          <Box sx={{ position: 'relative', mt: 2, overflow: 'visible' }}>
+            <TextField
+              fullWidth
+              label="Custom slug (optional)"
+              placeholder="e.g. my-special-link"
+              value={rawCustom}
+              onChange={(e) => onCustomChange(e.target.value)}
+              disabled={isLoading}
+              helperText={isCheckingSlug ? 'Checking availability...' : 'Leave empty to generate automatically'}
+              sx={{
+                // ensure there's room for the spinner inside the input
+                '& .MuiInputBase-input': {
+                  paddingRight: '2.5rem',
+                },
+              }}
+            />
+
+            {/* desktop: small spinner inside the input on the right, vertically centered */}
+            {isCheckingSlug && (
+              <Box sx={{ position: 'absolute', right: 12, top: 50, bottom: 0, display: { xs: 'none', sm: 'flex' }, alignItems: 'center', pointerEvents: 'none' }}>
+                <CircularProgress size={16} sx={{ color: '#C87137' }} />
+              </Box>
+            )}
+
+            {/* mobile: show a smaller spinner under the field */}
+            {isCheckingSlug && (
+              <Box sx={{ display: { xs: 'block', sm: 'none' }, mt: 1, textAlign: 'center' }}>
+                <CircularProgress size={12} sx={{ color: '#C87137' }} />
+              </Box>
+            )}
+          </Box>
         </Box>
       )}
       <Button
@@ -73,7 +106,7 @@ export function ShortenForm() {
         fullWidth
         variant="contained"
         onClick={handleShorten}
-        disabled={isLoading || !url || !token}
+        disabled={isLoading || !url || !token || isCheckingSlug}
       >
         {isLoading ? <CircularProgress size={24} /> : 'Shorten URL'}
       </Button>

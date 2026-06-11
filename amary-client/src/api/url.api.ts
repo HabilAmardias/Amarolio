@@ -2,9 +2,25 @@ import type {
   ShortenRequest,
   ShortenResponse,
   UserLink,
+  FindCustomURLRequest,
 } from "../models/url.model";
 import type { ServerResponse, PaginateResponse } from "../models/model";
 import { apiFetch } from "./api";
+
+export async function findCustomURLs(customCode: string) {
+  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/url/find`;
+  const body: FindCustomURLRequest = {
+    custom_code: customCode,
+  };
+  const res = await apiFetch(url, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error("url already exist");
+  }
+  return true;
+}
 
 export async function getUserURLs(limit?: number, lastID?: number) {
   let url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/me/url?`;

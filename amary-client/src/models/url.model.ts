@@ -1,8 +1,13 @@
 import { atom } from "jotai";
 
+export interface FindCustomURLRequest {
+  custom_code: string;
+}
+
 export interface ShortenRequest {
   url: string;
   duration: number | null; // null = no expiration (auth only)
+  custom_code: string | null;
 }
 
 export interface ShortenResponse {

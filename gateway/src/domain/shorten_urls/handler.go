@@ -5,6 +5,7 @@ import (
 	"amarolio-gateway/src/customerrors"
 	"amarolio-gateway/src/dto"
 	"amarolio-gateway/src/handlers"
+	"errors"
 	"net/http"
 
 	"github.com/gofiber/fiber/v3"
@@ -12,8 +13,9 @@ import (
 
 type ShortenURLServiceItf interface {
 	FindLongURL(id string, device string) (string, error)
-	NewShortURL(userID *string, url string, duration *int) (NewShortenURL, error)
+	NewShortURL(userID *string, url string, duration *int, customCode *string) (NewShortenURL, error)
 	GetUserLinks(userID string, lastID *int64, limit int64) ([]UserLink, int64, int64, error)
+	IsCustomURLAvailable(userID, customCode string) (bool, error)
 }
 
 type ShortenURLHandlerImpl struct {
@@ -22,6 +24,34 @@ type ShortenURLHandlerImpl struct {
 
 func NewShortenURLHandler(sus ShortenURLServiceItf) *ShortenURLHandlerImpl {
 	return &ShortenURLHandlerImpl{sus}
+}
+
+func (suh *ShortenURLHandlerImpl) IsCustomURLAvailable(ctx fiber.Ctx) error {
+	req := new(IsCustomURLAvailableReq)
+	if err := ctx.Bind().JSON(req); err != nil {
+		return err
+	}
+	claim, err := handlers.GetAuthPayload(ctx, constants.AUTH_CLAIM_KEY)
+	if err != nil {
+		return err
+	}
+	available, err := suh.sus.IsCustomURLAvailable(claim.Subject, req.CustomCode)
+	if err != nil {
+		return err
+	}
+	if !available {
+		return customerrors.NewError(
+			"url is not available",
+			errors.New("url is not available"),
+			customerrors.InvalidAction,
+		)
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.PlainMessageRes]{
+		Success: true,
+		Data: dto.PlainMessageRes{
+			Message: "URL available",
+		},
+	})
 }
 
 func (suh *ShortenURLHandlerImpl) GetUserLinks(ctx fiber.Ctx) error {
@@ -100,7 +130,7 @@ func (suh *ShortenURLHandlerImpl) NewShortURL(ctx fiber.Ctx) error {
 		userID = &claim.Subject
 	}
 
-	res, err := suh.sus.NewShortURL(userID, req.URL, req.Duration)
+	res, err := suh.sus.NewShortURL(userID, req.URL, req.Duration, req.CustomCode)
 	if err != nil {
 		return err
 	}

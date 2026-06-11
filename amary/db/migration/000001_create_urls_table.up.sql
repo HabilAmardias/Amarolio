@@ -7,3 +7,6 @@ CREATE TABLE IF NOT EXISTS urls (
     deleted_at TIMESTAMPTZ,
     expired_at TIMESTAMPTZ
 );
+
+ALTER TABLE urls ADD COLUMN IF NOT EXISTS short_code VARCHAR;
+CREATE INDEX IF NOT EXISTS idx_urls_short_code ON urls(short_code);

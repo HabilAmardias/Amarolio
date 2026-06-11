@@ -41,6 +41,9 @@ type (
 			} `json:"sort_by,omitempty"`
 		} `json:"page_info"`
 	}
+	PlainMessageRes struct {
+		Message string `json:"message"`
+	}
 )
 
 func (de *DetailsError) ToString() string {
