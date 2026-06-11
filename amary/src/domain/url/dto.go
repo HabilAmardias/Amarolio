@@ -6,6 +6,9 @@ import (
 )
 
 type (
+	FindCustomURLReq struct {
+		CustomCode string `json:"custom_code" binding:"required"`
+	}
 	NewShortURLReq struct {
 		URL        string  `json:"url" binding:"required,url"`
 		Duration   *int    `json:"duration" binding:"omitempty,gt=0"`

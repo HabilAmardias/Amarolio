@@ -19,6 +19,7 @@ type URLServiceItf interface {
 	NewShortURL(ctx context.Context, userID *string, longURL string, duration *int, customCode *string) (string, *time.Time, error)
 	FindLongURL(ctx context.Context, encodedID string, device string) (string, error)
 	GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, error)
+	IsCustomURLAvailable(ctx context.Context, customCode string) (bool, error)
 }
 
 type URLHandlerImpl struct {
@@ -27,6 +28,42 @@ type URLHandlerImpl struct {
 
 func NewURLHandler(sus URLServiceItf) *URLHandlerImpl {
 	return &URLHandlerImpl{sus}
+}
+
+func (suh *URLHandlerImpl) IsCustomURLExist(ctx *gin.Context) {
+	uid := handlers.GetAuthenticationPayload(ctx)
+	if len(uid) == 0 {
+		ctx.Error(customerror.NewError(
+			"unauthorized",
+			errors.New("user id does not provided"),
+			customerror.Unauthenticate,
+		))
+		return
+	}
+	req := new(FindCustomURLReq)
+	if err := ctx.ShouldBindBodyWithJSON(req); err != nil {
+		ctx.Error(err)
+		return
+	}
+	available, err := suh.sus.IsCustomURLAvailable(ctx.Request.Context(), req.CustomCode)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	if !available {
+		ctx.Error(customerror.NewError(
+			"url already exist",
+			errors.New("custom code already exist"),
+			customerror.InvalidAction,
+		))
+		return
+	}
+	ctx.JSON(http.StatusOK, dto.ServerResponse[dto.PlainMessageResponse]{
+		Success: true,
+		Data: dto.PlainMessageResponse{
+			Message: "URL available",
+		},
+	})
 }
 
 func (suh *URLHandlerImpl) GetUserLinks(ctx *gin.Context) {

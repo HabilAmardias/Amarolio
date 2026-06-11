@@ -68,6 +68,30 @@ func NewURLService(ue URLEncryptorItf, ide IDEncoderItf, suc URLCacheItf, sur UR
 	return &URLServiceImpl{ue, ide, suc, sur, vrr, trm}
 }
 
+func (sus *URLServiceImpl) IsCustomURLAvailable(ctx context.Context, customCode string) (bool, error) {
+	url := new(URL)
+	// find on cache
+	if err := sus.suc.Get(ctx, customCode, url); err != nil {
+		// if failed, fallback to database
+		if err := sus.sur.FindByCode(ctx, customCode, url); err != nil {
+			var cErr *customerror.CustomError
+			if !errors.As(err, &cErr) {
+				return false, customerror.NewError(
+					"something went wrong",
+					errors.New("parse error failed"),
+					customerror.CommonErr,
+				)
+			}
+			// if database error, return the error
+			if cErr.ErrCode != customerror.ItemNotFound {
+				return false, err
+			}
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (sus *URLServiceImpl) GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, error) {
 	links := new([]URL)
 	if err := sus.sur.FindUserLinks(ctx, userID, lastID, limit, links); err != nil {

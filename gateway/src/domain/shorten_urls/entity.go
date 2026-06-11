@@ -3,6 +3,9 @@ package shortenurls
 import "time"
 
 type (
+	IsCustomURLAvailableBody struct {
+		CustomCode string `json:"custom_code"`
+	}
 	NewShortenURLBody struct {
 		URL        string  `json:"url"`
 		Duration   *int    `json:"duration"`

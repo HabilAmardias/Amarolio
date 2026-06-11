@@ -31,7 +31,6 @@ export function useShorten() {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
-    // debounce 500ms
     timerRef.current = window.setTimeout(async () => {
       const trimmed = value.trim();
       setCustomSlug(trimmed);

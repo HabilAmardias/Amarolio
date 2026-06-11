@@ -21,6 +21,10 @@ func NewShortenURLService(hs string, pr string) *ShortenURLServiceImpl {
 	return &ShortenURLServiceImpl{hs, pr}
 }
 
+func (sus *ShortenURLServiceImpl) IsCustomURLAvailable(userID, customCode string) (bool, error) {
+	return sus.callIsCustomURLAvailable(userID, customCode)
+}
+
 func (sus *ShortenURLServiceImpl) GetUserLinks(userID string, lastID *int64, limit int64) ([]UserLink, int64, int64, error) {
 	res, err := sus.callGetUserLinks(userID, lastID, limit)
 	if err != nil {
@@ -45,6 +49,28 @@ func (sus *ShortenURLServiceImpl) FindLongURL(id string, device string) (string,
 	}
 
 	return res.Data.URL, err
+}
+
+func (sus *ShortenURLServiceImpl) callIsCustomURLAvailable(userID string, customCode string) (bool, error) {
+	headers := map[string]string{
+		constants.X_USER_ID: userID,
+	}
+	body := IsCustomURLAvailableBody{
+		CustomCode: customCode,
+	}
+	b, err := json.Marshal(body)
+	if err != nil {
+		return false, customerrors.NewError(
+			"something went wrong",
+			err,
+			customerrors.CommonErr,
+		)
+	}
+	_, err = services.Call[entity.PlainMessageResponse](sus.hs, sus.pr, "/api/v1/url/find", http.MethodPost, http.StatusOK, b, nil, headers)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (sus *ShortenURLServiceImpl) callGetUserLinks(userID string, lastID *int64, limit int64) (*dto.ServerResponse[entity.Paginate[UserLink]], error) {

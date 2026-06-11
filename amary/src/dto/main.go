@@ -14,6 +14,9 @@ type (
 	ErrorResponse struct {
 		Detail string `json:"detail"`
 	}
+	PlainMessageResponse struct {
+		Message string `json:"message"`
+	}
 	PaginateOffsetReq struct {
 		Page  int64 `form:"page" binding:"required"`
 		Limit int64 `form:"limit" binding:"required,lte=26"`
