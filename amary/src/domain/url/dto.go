@@ -7,8 +7,9 @@ import (
 
 type (
 	NewShortURLReq struct {
-		URL      string `json:"url" binding:"required,url"`
-		Duration *int   `json:"duration" binding:"omitempty,gt=0"`
+		URL        string  `json:"url" binding:"required,url"`
+		Duration   *int    `json:"duration" binding:"omitempty,gt=0"`
+		CustomCode *string `json:"custom_code" binding:"omitempty,min=1"`
 	}
 	NewShortURLRes struct {
 		URL         string     `json:"url"`

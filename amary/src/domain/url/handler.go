@@ -16,7 +16,7 @@ import (
 )
 
 type URLServiceItf interface {
-	NewShortURL(ctx context.Context, userID *string, longURL string, duration *int) (string, *time.Time, error)
+	NewShortURL(ctx context.Context, userID *string, longURL string, duration *int, customCode *string) (string, *time.Time, error)
 	FindLongURL(ctx context.Context, encodedID string, device string) (string, error)
 	GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, error)
 }
@@ -100,11 +100,12 @@ func (suh *URLHandlerImpl) NewShortURL(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	id, eat, err := suh.sus.NewShortURL(ctx.Request.Context(), userID, req.URL, req.Duration)
+	id, eat, err := suh.sus.NewShortURL(ctx.Request.Context(), userID, req.URL, req.Duration, req.CustomCode)
 	if err != nil {
 		ctx.Error(err)
 		return
 	}
+
 	ctx.JSON(http.StatusCreated, dto.ServerResponse[NewShortURLRes]{
 		Success: true,
 		Data: NewShortURLRes{

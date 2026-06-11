@@ -7,6 +7,7 @@ type (
 		ID               int64
 		UserID           *string
 		EncryptedLongUrl string
+		ShortCode        *string
 		CreatedAt        time.Time
 		UpdatedAt        time.Time
 		DeletedAt        *time.Time

@@ -4,8 +4,9 @@ import "time"
 
 type (
 	NewShortenURLBody struct {
-		URL      string `json:"url"`
-		Duration *int   `json:"duration"`
+		URL        string  `json:"url"`
+		Duration   *int    `json:"duration"`
+		CustomCode *string `json:"custom_code"`
 	}
 	NewShortenURL struct {
 		URL         string     `json:"url"`

@@ -29,8 +29,8 @@ func (sus *ShortenURLServiceImpl) GetUserLinks(userID string, lastID *int64, lim
 	return res.Data.Entries, *res.Data.PageInfo.LastID, res.Data.PageInfo.Limit, nil
 }
 
-func (sus *ShortenURLServiceImpl) NewShortURL(userID *string, url string, duration *int) (NewShortenURL, error) {
-	res, err := sus.callNewShortURL(userID, url, duration)
+func (sus *ShortenURLServiceImpl) NewShortURL(userID *string, url string, duration *int, customCode *string) (NewShortenURL, error) {
+	res, err := sus.callNewShortURL(userID, url, duration, customCode)
 	if err != nil {
 		return NewShortenURL{}, err
 	}
@@ -60,10 +60,11 @@ func (sus *ShortenURLServiceImpl) callGetUserLinks(userID string, lastID *int64,
 	return services.Call[entity.Paginate[UserLink]](sus.hs, sus.pr, "/api/v1/me/url", http.MethodGet, http.StatusOK, nil, queries, headers)
 }
 
-func (sus *ShortenURLServiceImpl) callNewShortURL(userID *string, url string, duration *int) (*dto.ServerResponse[NewShortenURL], error) {
+func (sus *ShortenURLServiceImpl) callNewShortURL(userID *string, url string, duration *int, customCode *string) (*dto.ServerResponse[NewShortenURL], error) {
 	b := NewShortenURLBody{
-		URL:      url,
-		Duration: duration,
+		URL:        url,
+		Duration:   duration,
+		CustomCode: customCode,
 	}
 	reqBody, err := json.Marshal(b)
 	if err != nil {

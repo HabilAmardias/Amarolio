@@ -25,6 +25,13 @@ type DBHandle struct {
 	isProd bool
 }
 
+func (cdb *DBHandle) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	if !cdb.isProd {
+		cdb.logger.Infoln(query)
+	}
+	return cdb.db.PrepareContext(ctx, query)
+}
+
 func (cdb *DBHandle) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
 	if !cdb.isProd {
 		cdb.logger.Infoln(query)

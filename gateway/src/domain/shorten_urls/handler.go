@@ -12,7 +12,7 @@ import (
 
 type ShortenURLServiceItf interface {
 	FindLongURL(id string, device string) (string, error)
-	NewShortURL(userID *string, url string, duration *int) (NewShortenURL, error)
+	NewShortURL(userID *string, url string, duration *int, customCode *string) (NewShortenURL, error)
 	GetUserLinks(userID string, lastID *int64, limit int64) ([]UserLink, int64, int64, error)
 }
 
@@ -100,7 +100,7 @@ func (suh *ShortenURLHandlerImpl) NewShortURL(ctx fiber.Ctx) error {
 		userID = &claim.Subject
 	}
 
-	res, err := suh.sus.NewShortURL(userID, req.URL, req.Duration)
+	res, err := suh.sus.NewShortURL(userID, req.URL, req.Duration, req.CustomCode)
 	if err != nil {
 		return err
 	}
