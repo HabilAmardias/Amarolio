@@ -19,8 +19,9 @@ export function ShortenForm() {
     error,
     isLoading,
     handleShorten,
+    rawCustom,
+    onCustomChange
   } = useShorten();
-
 
   const turnstileOnExpire = () => {
     ref.current.reset()
@@ -63,6 +64,16 @@ export function ShortenForm() {
               />
             }
             label="No expiration"
+          />
+          <TextField
+            fullWidth
+            label="Custom slug (optional)"
+            placeholder="e.g. my-special-link"
+            value={rawCustom}
+            onChange={(e) => onCustomChange(e.target.value)}
+            disabled={isLoading}
+            sx={{ mt: 2 }}
+            helperText="Leave empty to generate automatically"
           />
         </Box>
       )}

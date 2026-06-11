@@ -1,19 +1,51 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAtom } from "jotai";
 import { authAtom } from "../models/user.model";
 import { tokenAtom, resultAtom } from "../models/url.model";
-import { shortenUrl } from "../api/url.api";
+import { shortenUrl, findCustomURLs } from "../api/url.api";
 
 export function useShorten() {
   const [user] = useAtom(authAtom);
   const [result, setResult] = useAtom(resultAtom);
   const [token, setToken] = useAtom(tokenAtom);
+  const [rawCustom, setRawCustom] = useState<string>("");
+  const [customSlug, setCustomSlug] = useState<string>("");
+  const timerRef = useRef<number | null>(null);
 
   const [url, setUrl] = useState("");
   const [expiresInDays, setExpiresInDays] = useState<number | null>(1);
   const [noExpiry, setNoExpiry] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  const onCustomChange = (value: string) => {
+    setRawCustom(value);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    // debounce 500ms
+    timerRef.current = window.setTimeout(async () => {
+      const trimmed = value.trim();
+      setCustomSlug(trimmed);
+      timerRef.current = null;
+      setError(null);
+      if (!trimmed) return;
+
+      try {
+        await findCustomURLs(trimmed);
+      } catch (e) {
+        setError((e as Error).message);
+      }
+    }, 500);
+  };
 
   const handleShorten = async () => {
     setError(null);
@@ -34,12 +66,17 @@ export function useShorten() {
       return;
     }
     try {
+      const customCode = customSlug || (rawCustom ? rawCustom.trim() : null);
       const response = await shortenUrl(token, {
         url: url,
         duration: finalExpiresInDays,
+        custom_code: customCode,
       });
+
       setResult(response);
       setUrl("");
+      setRawCustom("");
+      setCustomSlug("");
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -57,6 +94,8 @@ export function useShorten() {
     token,
     setToken,
     result,
+    rawCustom,
+    onCustomChange,
     error,
     isLoading,
     handleShorten,
