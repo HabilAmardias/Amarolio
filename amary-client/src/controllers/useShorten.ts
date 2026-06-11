@@ -17,6 +17,7 @@ export function useShorten() {
   const [noExpiry, setNoExpiry] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingSlug, setIsCheckingSlug] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -31,17 +32,25 @@ export function useShorten() {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
+    // start debounce
     timerRef.current = window.setTimeout(async () => {
       const trimmed = value.trim();
       setCustomSlug(trimmed);
       timerRef.current = null;
       setError(null);
-      if (!trimmed) return;
 
+      if (!trimmed) {
+        setIsCheckingSlug(false);
+        return;
+      }
+
+      setIsCheckingSlug(true);
       try {
         await findCustomURLs(trimmed);
       } catch (e) {
         setError((e as Error).message);
+      } finally {
+        setIsCheckingSlug(false);
       }
     }, 500);
   };
@@ -59,11 +68,12 @@ export function useShorten() {
 
     const finalExpiresInDays = user ? (noExpiry ? null : expiresInDays) : 1;
 
-    setIsLoading(true);
     if (!token) {
       setError("invalid request");
       return;
     }
+
+    setIsLoading(true);
     try {
       const customCode = customSlug || (rawCustom ? rawCustom.trim() : null);
       const response = await shortenUrl(token, {
@@ -97,6 +107,7 @@ export function useShorten() {
     onCustomChange,
     error,
     isLoading,
+    isCheckingSlug,
     handleShorten,
   };
 }

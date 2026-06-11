@@ -143,26 +143,25 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 		}
 
 		// if not exist on cache, check dupe on db, if exist return error
-		if err := sus.sur.FindByCode(ctx, *customCode, dupe); err == nil {
+		if err := sus.sur.FindByCode(ctx, *customCode, dupe); err != nil {
+			var cErr *customerror.CustomError
+			if !errors.As(err, &cErr) {
+				return "", nil, customerror.NewError(
+					"something went wrong",
+					errors.New("failed to parse error"),
+					customerror.CommonErr,
+				)
+			}
+
+			if cErr.ErrCode != customerror.ItemNotFound {
+				return "", nil, err
+			}
+		} else {
 			return "", nil, customerror.NewError(
 				"url already exist",
 				errors.New("code already exist"),
 				customerror.InvalidAction,
 			)
-
-		}
-
-		var cErr *customerror.CustomError
-		if !errors.As(err, &cErr) {
-			return "", nil, customerror.NewError(
-				"something went wrong",
-				errors.New("failed to parse error"),
-				customerror.CommonErr,
-			)
-		}
-
-		if cErr.ErrCode != customerror.ItemNotFound {
-			return "", nil, err
 		}
 
 		shortCode = *customCode

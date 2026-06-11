@@ -20,7 +20,8 @@ export function ShortenForm() {
     isLoading,
     handleShorten,
     rawCustom,
-    onCustomChange
+    onCustomChange,
+    isCheckingSlug,
   } = useShorten();
 
   const turnstileOnExpire = () => {
@@ -65,16 +66,31 @@ export function ShortenForm() {
             }
             label="No expiration"
           />
-          <TextField
-            fullWidth
-            label="Custom slug (optional)"
-            placeholder="e.g. my-special-link"
-            value={rawCustom}
-            onChange={(e) => onCustomChange(e.target.value)}
-            disabled={isLoading}
-            sx={{ mt: 2 }}
-            helperText="Leave empty to generate automatically"
-          />
+          <Box sx={{ position: 'relative', mt: 2 }}>
+            <TextField
+              fullWidth
+              label="Custom slug (optional)"
+              placeholder="e.g. my-special-link"
+              value={rawCustom}
+              onChange={(e) => onCustomChange(e.target.value)}
+              disabled={isLoading}
+              helperText={isCheckingSlug ? 'Checking availability...' : 'Leave empty to generate automatically'}
+            />
+
+            {/* desktop: small spinner inside the input on the right */}
+            {isCheckingSlug && (
+              <Box sx={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', display: { xs: 'none', sm: 'flex' }, alignItems: 'center' }}>
+                <CircularProgress size={16} />
+              </Box>
+            )}
+
+            {/* mobile: show a smaller spinner under the field */}
+            {isCheckingSlug && (
+              <Box sx={{ display: { xs: 'block', sm: 'none' }, mt: 1 }}>
+                <CircularProgress size={12} />
+              </Box>
+            )}
+          </Box>
         </Box>
       )}
       <Button
@@ -84,7 +100,7 @@ export function ShortenForm() {
         fullWidth
         variant="contained"
         onClick={handleShorten}
-        disabled={isLoading || !url || !token}
+        disabled={isLoading || !url || !token || isCheckingSlug}
       >
         {isLoading ? <CircularProgress size={24} /> : 'Shorten URL'}
       </Button>
