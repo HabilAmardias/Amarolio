@@ -69,6 +69,10 @@ func NewURLService(ue URLEncryptorItf, ide IDEncoderItf, suc URLCacheItf, sur UR
 }
 
 func (sus *URLServiceImpl) IsCustomURLAvailable(ctx context.Context, customCode string) (bool, error) {
+	if err := sus.validateCustomCode(customCode); err != nil {
+		return false, err
+	}
+
 	url := new(URL)
 	// find on cache
 	if err := sus.suc.Get(ctx, customCode, url); err != nil {
