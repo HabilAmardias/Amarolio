@@ -122,14 +122,13 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 		eat = &expiration
 	}
 
-	url := new(URL)
-
+	// encrypt original url
 	encryptedURL, err := sus.ue.EncryptURL(longURL)
 	if err != nil {
 		return "", nil, err
 	}
 
-	var shortCode string = sus.ide.Encode(url.ID)
+	// if user is authenticated and provide custom code
 	if customCode != nil && userID != nil {
 		// basic validation
 		if err := sus.validateCustomCode(*customCode); err != nil {
@@ -167,15 +166,24 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 				customerror.InvalidAction,
 			)
 		}
-
-		shortCode = *customCode
 	}
 
+	url := new(URL)
+	var shortCode string
 	if err := sus.trm.WithTransaction(ctx, func(c context.Context) error {
-		if err := sus.sur.InsertNewURL(ctx, userID, encryptedURL, eat, url); err != nil {
+
+		if err := sus.sur.InsertNewURL(c, userID, encryptedURL, eat, url); err != nil {
 			return err
 		}
-		return sus.sur.UpdateShortCode(ctx, url.ID, shortCode, url)
+
+		if customCode != nil && userID != nil {
+			shortCode = *customCode
+		} else {
+			shortCode = sus.ide.Encode(url.ID)
+		}
+
+		return sus.sur.UpdateShortCode(c, url.ID, shortCode, url)
+
 	}); err != nil {
 		return "", nil, err
 	}
@@ -191,7 +199,6 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 		}
 
 		services.WithErrorRetry(ctx, fun, 100*time.Millisecond)
-
 	}(userID, shortCode, *url)
 
 	return shortCode, eat, nil
