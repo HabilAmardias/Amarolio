@@ -12,10 +12,11 @@ import (
 )
 
 type ShortenURLServiceItf interface {
-	FindLongURL(id string, device string) (string, error)
+	VisitOriginalURL(id string, device string) (string, error)
 	NewShortURL(userID *string, url string, duration *int, customCode *string) (NewShortenURL, error)
-	GetUserLinks(userID string, lastID *int64, limit int64) ([]UserLink, int64, int64, error)
+	GetUserLinks(userID string, lastID *int64, limit int64) ([]URL, int64, int64, error)
 	IsCustomURLAvailable(userID, customCode string) (bool, error)
+	FindOriginalURL(id string) (FindOriginalURL, error)
 }
 
 type ShortenURLHandlerImpl struct {
@@ -24,6 +25,20 @@ type ShortenURLHandlerImpl struct {
 
 func NewShortenURLHandler(sus ShortenURLServiceItf) *ShortenURLHandlerImpl {
 	return &ShortenURLHandlerImpl{sus}
+}
+
+func (suh *ShortenURLHandlerImpl) FindOriginalURL(ctx fiber.Ctx) error {
+	id := ctx.Params("id")
+	res, err := suh.sus.FindOriginalURL(id)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[FindOriginalURLRes]{
+		Success: true,
+		Data: FindOriginalURLRes{
+			URL: URLRes(res.URL),
+		},
+	})
 }
 
 func (suh *ShortenURLHandlerImpl) IsCustomURLAvailable(ctx fiber.Ctx) error {
@@ -75,13 +90,13 @@ func (suh *ShortenURLHandlerImpl) GetUserLinks(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	res := []GetUserLinkRes{}
+	res := []URLRes{}
 	for _, e := range entries {
-		res = append(res, GetUserLinkRes(e))
+		res = append(res, URLRes(e))
 	}
-	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.PaginateRes[GetUserLinkRes]]{
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.PaginateRes[URLRes]]{
 		Success: true,
-		Data: dto.PaginateRes[GetUserLinkRes]{
+		Data: dto.PaginateRes[URLRes]{
 			Entries: res,
 			PageInfo: struct {
 				LastID   *int64 "json:\"last_id,omitempty\""
@@ -107,7 +122,7 @@ func (suh *ShortenURLHandlerImpl) RedirectToURL(ctx fiber.Ctx) error {
 	device := ctx.Request().Header.UserAgent()
 	id := ctx.Params("id")
 
-	url, err := suh.sus.FindLongURL(id, string(device))
+	url, err := suh.sus.VisitOriginalURL(id, string(device))
 	if err != nil {
 		return err
 	}

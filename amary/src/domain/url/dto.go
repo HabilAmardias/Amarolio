@@ -19,13 +19,16 @@ type (
 		OriginalURL string     `json:"original_url"`
 		ExpiredAt   *time.Time `json:"expired_at"`
 	}
-	FindLongUrlRes struct {
+	VisitOriginalUrlRes struct {
 		URL string `json:"url"`
 	}
 	GetUserLinksReq struct {
 		dto.SeekPaginateReq
 	}
-	UserLinkRes struct {
+	FindOriginalUrlRes struct {
+		URL URLRes `json:"url"`
+	}
+	URLRes struct {
 		ID        int64      `json:"id"`
 		UserID    *string    `json:"user_id"`
 		ShortURL  string     `json:"short_url"`
