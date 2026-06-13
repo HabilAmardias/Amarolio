@@ -12,13 +12,10 @@ export async function findCustomURLs(customCode: string) {
   const body: FindCustomURLRequest = {
     custom_code: customCode,
   };
-  const res = await apiFetch(url, {
+  await apiFetch(url, 200, {
     method: "POST",
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
-    throw new Error("url already exist");
-  }
   return true;
 }
 
@@ -33,12 +30,10 @@ export async function getUserURLs(limit?: number, lastID?: number) {
     args.push(`last_id=${lastID}`);
   }
   url += args.join("&");
-  const res = await apiFetch(url, {
+
+  const res = await apiFetch(url, 200, {
     method: "GET",
   });
-  if (!res.ok) {
-    throw new Error("something went wrong");
-  }
 
   const resBody: ServerResponse<PaginateResponse<UserLink>> = await res.json();
   return resBody.data;
@@ -49,7 +44,7 @@ export async function shortenUrl(
   req: ShortenRequest,
 ): Promise<ShortenResponse> {
   const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/url?token=${encodeURIComponent(token)}`;
-  const res = await apiFetch(url, {
+  const res = await apiFetch(url, 201, {
     method: "POST",
     body: JSON.stringify(req),
   });

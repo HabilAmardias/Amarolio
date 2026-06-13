@@ -13,3 +13,7 @@ export interface PaginateResponse<T> {
     sort_by?: { name: string; ascend: boolean }[];
   };
 }
+
+export interface ErrorResponse {
+  detail: string;
+}

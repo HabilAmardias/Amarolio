@@ -284,9 +284,17 @@ func (sus *URLServiceImpl) validateCustomCode(code string) error {
 		)
 	}
 
+	if len(code) > 50 {
+		return customerror.NewError(
+			"custom url is too long",
+			errors.New("custom code is too long"),
+			customerror.InvalidAction,
+		)
+	}
+
 	if !alphaNumericRegex.MatchString(code) {
 		return customerror.NewError(
-			"invalid code",
+			"invalid url",
 			errors.New("custom code does not comply to requirement"),
 			customerror.InvalidAction,
 		)
@@ -294,7 +302,7 @@ func (sus *URLServiceImpl) validateCustomCode(code string) error {
 
 	if ok := !strings.ContainsAny(code, "-_"); ok {
 		return customerror.NewError(
-			"invalid code",
+			"invalid url",
 			errors.New("collision risk"),
 			customerror.InvalidAction,
 		)

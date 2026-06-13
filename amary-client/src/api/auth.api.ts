@@ -16,12 +16,9 @@ export async function logout(): Promise<void> {
 
 export async function getMe(): Promise<User | null> {
   const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/me`;
-  const res = await apiFetch(url, {
+  const res = await apiFetch(url, 200, {
     method: "GET",
   });
-  if (!res.ok) {
-    throw new Error("Cannot get user info");
-  }
   const resBody: ServerResponse<User> = await res.json();
   return resBody.data;
 }
