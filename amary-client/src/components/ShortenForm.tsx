@@ -111,8 +111,6 @@ export function ShortenForm() {
         {isLoading ? <CircularProgress size={24} /> : 'Shorten URL'}
       </Button>
 
-      <Turnstile ref={ref} onExpire={turnstileOnExpire} onSuccess={(tk) => setToken(tk)} siteKey={import.meta.env.VITE_CF_TURNSTILE_SITEKEY} />
-
       {error && (
         <Alert
           severity="error"
@@ -123,6 +121,8 @@ export function ShortenForm() {
           {error}
         </Alert>
       )}
+
+      <Turnstile ref={ref} onExpire={turnstileOnExpire} onSuccess={(tk) => setToken(tk)} siteKey={import.meta.env.VITE_CF_TURNSTILE_SITEKEY} />
     </Box>
   );
 }
