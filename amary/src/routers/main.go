@@ -28,7 +28,8 @@ func (ar *AppRouter) Setup() {
 func (ar *AppRouter) SetupPublicRoute() {
 	v1 := ar.App.Group("/api/v1")
 
-	v1.GET("/url/:id", ar.ShortenURLHandler.FindLongURL)
+	v1.GET("/url/:id/redirect", ar.ShortenURLHandler.VisitOriginalURL)
+	v1.GET("/url/:id/metadata", ar.ShortenURLHandler.FindOriginalURL)
 }
 
 func (ar *AppRouter) SetupPrivateRoute() {
@@ -37,5 +38,5 @@ func (ar *AppRouter) SetupPrivateRoute() {
 
 	v1.GET("/me/url", ar.ShortenURLHandler.GetUserLinks)
 	v1.POST("/url", ar.ShortenURLHandler.NewShortURL)
-	v1.POST("/url/find", ar.ShortenURLHandler.IsCustomURLExist)
+	v1.POST("/url/custom-code", ar.ShortenURLHandler.IsCustomURLExist)
 }

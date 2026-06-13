@@ -14,6 +14,12 @@ export function HomePage() {
         <meta name="description" content="Amary helps you simplify and shorten long URLs into manageable links. Free, fast, and easy to use for all your sharing needs." />
         <meta name="keywords" content="URL shortener, link shortener, Amary, simplify links, marketing tools" />
         <link rel="canonical" href={window.location.origin} />
+        <meta property="og:title" content="Amary | Fast & Simple URL Shortener" />
+        <meta property="og:description" content="Simplify your links with ease using Amary. Create short, manageable links in seconds." />
+        <meta property="og:url" content={window.location.origin} />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Amary | URL Shortener" />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",

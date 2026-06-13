@@ -8,7 +8,7 @@ import type { ServerResponse, PaginateResponse } from "../models/model";
 import { apiFetch } from "./api";
 
 export async function findCustomURLs(customCode: string) {
-  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/url/find`;
+  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/url/custom-code`;
   const body: FindCustomURLRequest = {
     custom_code: customCode,
   };

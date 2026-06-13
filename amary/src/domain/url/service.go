@@ -68,6 +68,50 @@ func NewURLService(ue URLEncryptorItf, ide IDEncoderItf, suc URLCacheItf, sur UR
 	return &URLServiceImpl{ue, ide, suc, sur, vrr, trm}
 }
 
+func (sus *URLServiceImpl) FindOriginalURL(ctx context.Context, shortCode string) (*DecryptedURL, error) {
+	url := new(URL)
+	now := time.Now()
+
+	if err := sus.suc.Get(ctx, shortCode, url); err != nil {
+		if err := sus.sur.FindByCode(ctx, shortCode, url); err != nil {
+			return nil, err
+		}
+		go func(eid string, u URL) {
+			ttl := 24 * time.Hour
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+
+			fun := func() error {
+				return sus.suc.Set(ctx, eid, ttl, u)
+			}
+
+			services.WithErrorRetry(ctx, fun, 100*time.Millisecond)
+		}(shortCode, *url)
+	}
+
+	if url.ExpiredAt != nil && now.After(*url.ExpiredAt) {
+		return nil, customerror.NewError(
+			"expired url",
+			errors.New("expired url"),
+			customerror.InvalidAction,
+		)
+	}
+
+	decryptedURL, err := sus.ue.DecryptURL(url.EncryptedLongUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	return &DecryptedURL{
+		ID:        url.ID,
+		UserID:    url.UserID,
+		LongURL:   decryptedURL,
+		ShortURL:  fmt.Sprintf("%s/%s", os.Getenv("AMARY_REDIRECT_DOMAIN"), *url.ShortCode),
+		CreatedAt: url.CreatedAt,
+		ExpiredAt: url.ExpiredAt,
+	}, nil
+}
+
 func (sus *URLServiceImpl) IsCustomURLAvailable(ctx context.Context, customCode string) (bool, error) {
 	if err := sus.validateCustomCode(customCode); err != nil {
 		return false, err
@@ -204,7 +248,7 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 	return shortCode, eat, nil
 }
 
-func (sus *URLServiceImpl) FindLongURL(ctx context.Context, shortCode string, device string) (string, error) {
+func (sus *URLServiceImpl) VisitOriginalURL(ctx context.Context, shortCode string, device string) (string, error) {
 	url := new(URL)
 	now := time.Now()
 

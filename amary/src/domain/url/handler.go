@@ -17,9 +17,10 @@ import (
 
 type URLServiceItf interface {
 	NewShortURL(ctx context.Context, userID *string, longURL string, duration *int, customCode *string) (string, *time.Time, error)
-	FindLongURL(ctx context.Context, encodedID string, device string) (string, error)
+	VisitOriginalURL(ctx context.Context, encodedID string, device string) (string, error)
 	GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, error)
 	IsCustomURLAvailable(ctx context.Context, customCode string) (bool, error)
+	FindOriginalURL(ctx context.Context, shortCode string) (*DecryptedURL, error)
 }
 
 type URLHandlerImpl struct {
@@ -28,6 +29,21 @@ type URLHandlerImpl struct {
 
 func NewURLHandler(sus URLServiceItf) *URLHandlerImpl {
 	return &URLHandlerImpl{sus}
+}
+
+func (suh *URLHandlerImpl) FindOriginalURL(ctx *gin.Context) {
+	id := ctx.Param("id")
+	url, err := suh.sus.FindOriginalURL(ctx.Request.Context(), id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, dto.ServerResponse[FindOriginalUrlRes]{
+		Success: true,
+		Data: FindOriginalUrlRes{
+			URL: URLRes(*url),
+		},
+	})
 }
 
 func (suh *URLHandlerImpl) IsCustomURLExist(ctx *gin.Context) {
@@ -90,9 +106,9 @@ func (suh *URLHandlerImpl) GetUserLinks(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	res := []UserLinkRes{}
+	res := []URLRes{}
 	for _, u := range urls {
-		res = append(res, UserLinkRes(u))
+		res = append(res, URLRes(u))
 	}
 	var lastID *int64 = nil
 
@@ -100,9 +116,9 @@ func (suh *URLHandlerImpl) GetUserLinks(ctx *gin.Context) {
 		lastID = &res[len(res)-1].ID
 	}
 
-	ctx.JSON(http.StatusOK, dto.ServerResponse[dto.PaginateRes[UserLinkRes]]{
+	ctx.JSON(http.StatusOK, dto.ServerResponse[dto.PaginateRes[URLRes]]{
 		Success: true,
-		Data: dto.PaginateRes[UserLinkRes]{
+		Data: dto.PaginateRes[URLRes]{
 			Entries: res,
 			PageInfo: struct {
 				LastID   *int64 "json:\"last_id,omitempty\""
@@ -153,19 +169,19 @@ func (suh *URLHandlerImpl) NewShortURL(ctx *gin.Context) {
 	})
 }
 
-func (suh *URLHandlerImpl) FindLongURL(ctx *gin.Context) {
+func (suh *URLHandlerImpl) VisitOriginalURL(ctx *gin.Context) {
 	device := ctx.Request.UserAgent()
 	id := ctx.Param("id")
 
-	url, err := suh.sus.FindLongURL(ctx.Request.Context(), id, device)
+	url, err := suh.sus.VisitOriginalURL(ctx.Request.Context(), id, device)
 	if err != nil {
 		ctx.Error(err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, dto.ServerResponse[FindLongUrlRes]{
+	ctx.JSON(http.StatusOK, dto.ServerResponse[VisitOriginalUrlRes]{
 		Success: true,
-		Data: FindLongUrlRes{
+		Data: VisitOriginalUrlRes{
 			URL: url,
 		},
 	})

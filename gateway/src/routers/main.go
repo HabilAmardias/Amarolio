@@ -72,7 +72,8 @@ func (ar *AppRouter) SetupPublicRoute() {
 		constants.AUTH_CLAIM_KEY,
 		true,
 	), ar.ShortenURLHandler.NewShortURL)
-	v1.Get("/url/:id", middlewares.NewTurnstileMiddleware(ar.TurnstileUtil), ar.ShortenURLHandler.RedirectToURL)
+	v1.Get("/url/:id/redirect", middlewares.NewTurnstileMiddleware(ar.TurnstileUtil), ar.ShortenURLHandler.RedirectToURL)
+	v1.Get("/url/:id/metadata", ar.ShortenURLHandler.FindOriginalURL)
 }
 
 func (ar *AppRouter) SetupPrivateRoute() {
@@ -87,5 +88,5 @@ func (ar *AppRouter) SetupPrivateRoute() {
 	v1.Use(middlewares.NewRateLimiterMiddleware(constants.AUTH_CLAIM_KEY))
 	v1.Get("/me", ar.UserHandler.GetProfile)
 	v1.Get("/me/url", ar.ShortenURLHandler.GetUserLinks)
-	v1.Post("/url/find", ar.ShortenURLHandler.IsCustomURLAvailable)
+	v1.Post("/url/custom-code", ar.ShortenURLHandler.IsCustomURLAvailable)
 }
