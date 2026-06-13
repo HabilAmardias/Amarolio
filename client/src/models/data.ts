@@ -2,7 +2,7 @@ import type { Profile, Experience, Project } from "./types";
 import AmaryHomepage from "../assets/Amary-Homepage.png";
 
 export const PROFILE: Profile = {
-  name: "Habil Amardias", // {/* TODO: Replace with real content */}
+  name: "Muhammad Habil Amardias", // {/* TODO: Replace with real content */}
   title: "Someone with several side quests", // {/* TODO: Replace with real content */}
   bio: "I enjoy keeping up with technological advancements", // {/* TODO: Replace with real content */}
   avatarUrl: "/placeholder-avatar.jpg", // {/* TODO: Replace with real content */}

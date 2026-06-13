@@ -5,14 +5,30 @@ import GlassBox from "../../components/common/GlassBox";
 import ProjectCard from "../../components/cards/ProjectCard";
 import SectionHeader from "../../components/common/SectionHeader";
 import ProfilePicture from "../../assets/profile-picture.jpg";
+import { Helmet } from "react-helmet-async";
 
 export default function HomeView() {
   const { profile } = useProfileController();
   const { projects } = useProjectController();
   const featuredProjects = projects.filter((p) => p.featured).slice(0, 3);
+  const domain = window.location.origin;
 
   return (
     <Container maxWidth="lg">
+      <Helmet>
+        <title>{`${profile.name} | ${profile.title}`}</title>
+        <meta name="description" content={profile.bio?.substring(0, 160)} />
+        <link rel="canonical" href={domain} />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Person",
+            "name": profile.name,
+            "url": domain,
+            "description": profile.bio,
+          })}
+        </script>
+      </Helmet>
       {/* Profile Section */}
       <GlassBox sx={{ mb: 6, textAlign: "center", py: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3, md: 4 } }}>
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -35,6 +51,7 @@ export default function HomeView() {
           {/* Name */}
           <Typography
             variant="h2"
+            component="h1"
             sx={{
               fontSize: { xs: "1.75rem", sm: "2.25rem", md: "2.75rem" },
               mb: 2,

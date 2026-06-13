@@ -3,12 +3,18 @@ import { useProjectController } from "../../controllers/useProjectController";
 import ProjectCard from "../../components/cards/ProjectCard";
 import SectionHeader from "../../components/common/SectionHeader";
 import GlassBox from "../../components/common/GlassBox";
+import { Helmet } from "react-helmet-async";
 
 export default function ProjectsView() {
   const { projects, allTags, activeFilter, setActiveFilter } = useProjectController();
 
   return (
     <Container maxWidth="lg">
+      <Helmet>
+        <title>Projects | Portfolio of Work</title>
+        <meta name="description" content="A curated collection of my software development projects, open-source contributions, and technical experiments." />
+        <meta name="keywords" content="software projects, portfolio, github, programming, coding projects, web development" />
+      </Helmet>
       <SectionHeader
         title="Projects"
         subtitle="A collection of my work and personal projects"
