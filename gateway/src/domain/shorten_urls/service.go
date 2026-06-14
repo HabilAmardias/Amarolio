@@ -33,12 +33,12 @@ func (sus *ShortenURLServiceImpl) IsCustomURLAvailable(userID, customCode string
 	return sus.callIsCustomURLAvailable(userID, customCode)
 }
 
-func (sus *ShortenURLServiceImpl) GetUserLinks(userID string, lastID *int64, limit int64) ([]URL, int64, int64, error) {
+func (sus *ShortenURLServiceImpl) GetUserLinks(userID string, lastID *int64, limit int64) ([]URL, *int64, int64, error) {
 	res, err := sus.callGetUserLinks(userID, lastID, limit)
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, nil, 0, err
 	}
-	return res.Data.Entries, *res.Data.PageInfo.LastID, res.Data.PageInfo.Limit, nil
+	return res.Data.Entries, res.Data.PageInfo.LastID, res.Data.PageInfo.Limit, nil
 }
 
 func (sus *ShortenURLServiceImpl) NewShortURL(userID *string, url string, duration *int, customCode *string) (NewShortenURL, error) {

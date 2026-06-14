@@ -14,7 +14,7 @@ import (
 type ShortenURLServiceItf interface {
 	VisitOriginalURL(id string, device string) (string, error)
 	NewShortURL(userID *string, url string, duration *int, customCode *string) (NewShortenURL, error)
-	GetUserLinks(userID string, lastID *int64, limit int64) ([]URL, int64, int64, error)
+	GetUserLinks(userID string, lastID *int64, limit int64) ([]URL, *int64, int64, error)
 	IsCustomURLAvailable(userID, customCode string) (bool, error)
 	FindOriginalURL(id string) (FindOriginalURL, error)
 }
@@ -111,7 +111,7 @@ func (suh *ShortenURLHandlerImpl) GetUserLinks(ctx fiber.Ctx) error {
 					Ascend bool   "json:\"ascend\""
 				} "json:\"sort_by,omitempty\""
 			}{
-				LastID: &lastID,
+				LastID: lastID,
 				Limit:  limit,
 			},
 		},
