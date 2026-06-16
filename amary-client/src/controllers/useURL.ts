@@ -1,38 +1,48 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getUserURLs as apiGetUserURLs } from "../api/url.api";
 import type { UserLink } from "../models/url.model";
 
+type PaginationState = {
+  page: number;
+  cursor: number | undefined;
+  limit: number;
+};
+
 export function useURL() {
   const [userURL, setUserURL] = useState<UserLink[]>([]);
-  const [limit, setLimit] = useState<number>(5);
-  const [page, setPage] = useState<number>(0);
   const [hasNextPage, setHasNextPage] = useState<boolean>(false);
-  const [cursors, setCursors] = useState<Record<number, number | undefined>>({
+  const [pagination, setPagination] = useState<PaginationState>({
+    page: 0,
+    cursor: undefined,
+    limit: 5,
+  });
+  const [error, setError] = useState<Error | null>(null);
+
+  const cursorsRef = useRef<Record<number, number | undefined>>({
     0: undefined,
   });
-  const [activeCursor, setActiveCursor] = useState<number | undefined>(
-    undefined,
-  );
-  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    apiGetUserURLs(limit + 1, activeCursor)
+    apiGetUserURLs(pagination.limit + 1, pagination.cursor)
       .then((val) => {
         if (!isMounted) return;
-        if (val.entries.length > limit) {
-          setHasNextPage(true);
-          setUserURL(val.entries.slice(0, limit));
-        } else {
-          setHasNextPage(false);
-          setUserURL(val.entries);
-        }
-        if (val.page_info?.last_id) {
-          setCursors((prev) => ({
-            ...prev,
-            [page + 1]: val.page_info.last_id,
-          }));
+
+        const hasNext = val.entries.length > pagination.limit;
+        const pageItems = hasNext
+          ? val.entries.slice(0, pagination.limit)
+          : val.entries;
+
+        setHasNextPage(hasNext);
+        setUserURL(pageItems);
+
+        const lastVisibleItem = pageItems[pageItems.length - 1];
+        if (lastVisibleItem?.id) {
+          cursorsRef.current = {
+            ...cursorsRef.current,
+            [pagination.page + 1]: lastVisibleItem.id,
+          };
         }
       })
       .catch((err) => {
@@ -42,33 +52,32 @@ export function useURL() {
     return () => {
       isMounted = false;
     };
-  }, [limit, activeCursor, page]);
+  }, [pagination]); // ✅ only one state object drives everything
 
-  async function handleChangePage(
+  function handleChangePage(
     _: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number,
   ) {
-    const nextCursor = cursors[newPage];
-
-    setActiveCursor(nextCursor);
-    setPage(newPage);
+    setPagination((prev) => ({
+      ...prev,
+      page: newPage,
+      cursor: cursorsRef.current[newPage],
+    }));
   }
 
   function handleChangeLimit(
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) {
     const newLimit = parseInt(event.target.value);
-
-    setLimit(newLimit);
-    setPage(0);
-    setActiveCursor(undefined);
-    setCursors({ 0: undefined });
+    cursorsRef.current = { 0: undefined };
+    // ✅ single atomic update, one effect run
+    setPagination({ page: 0, cursor: undefined, limit: newLimit });
   }
 
   return {
     userURL,
-    limit,
-    page,
+    limit: pagination.limit,
+    page: pagination.page,
     hasNextPage,
     error,
     handleChangePage,

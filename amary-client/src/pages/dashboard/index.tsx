@@ -3,7 +3,6 @@ import { useURL } from '../../controllers/useURL';
 
 export function DashboardPage() {
   const { userURL, page, limit, hasNextPage, error, handleChangePage, handleChangeLimit } = useURL()
-
   return (
     <Container maxWidth="md">
       <Box sx={{ my: 4 }}>
@@ -65,7 +64,7 @@ export function DashboardPage() {
                   {userURL
                     .map((url) => (
                       <TableRow
-                        key={url.url}
+                        key={url.id}
                         sx={{
                           '&:hover': {
                             background: '#faf6f0',
