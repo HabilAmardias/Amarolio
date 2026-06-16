@@ -70,7 +70,7 @@ export default function RedirectPage() {
                     setDestinationUrl(resBody.data.url.url);
                 }
             } catch (err) {
-                console.error("Failed to fetch link metadata for SEO", err);
+                setError(err instanceof Error ? err.message : 'An error occurred')
             }
         };
         fetchMetadata();
@@ -172,7 +172,9 @@ export default function RedirectPage() {
                     </Typography>
 
                     {error ? (
-                        <Typography variant="body2" className="error-message">
+                        <Typography sx={{
+                            marginY: "1rem",
+                        }} variant="body2" className="error-message">
                             {error}
                         </Typography>
                     ) : (
