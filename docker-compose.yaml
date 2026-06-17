@@ -72,24 +72,24 @@ services:
     image: ghcr.io/habilamardias/gateway-amarolio:latest
     restart: unless-stopped
     ports:
-      - ${SERVER_PORT}:${SERVER_PORT}
+      - "127.0.0.1:${SERVER_PORT}:${SERVER_PORT}"
   amarolio_client:
     container_name: amarolio-client-container
     image: ghcr.io/habilamardias/amarolio-client:latest
     ports:
-      - ${AMAROLIO_CLIENT_PORT}:80
+      - "127.0.0.1:${AMAROLIO_CLIENT_PORT}:80"
     restart: unless-stopped
   amary_client:
     container_name: amary-client-container
     image: ghcr.io/habilamardias/amary-client:latest
     ports:
-      - ${AMARY_CLIENT_PORT}:80
+      - "127.0.0.1:${AMARY_CLIENT_PORT}:80"
     restart: unless-stopped
   amary_redirect:
     container_name: amary-redirect-container
     image: ghcr.io/habilamardias/amary-redirect:latest
     ports:
-      - ${AMARY_REDIRECT_PORT}:80
+      - "127.0.0.1:${AMARY_REDIRECT_PORT}:80"
     restart: unless-stopped
   
 volumes:
