@@ -21,6 +21,14 @@ func NewShortenURLService(hs string, pr string) *ShortenURLServiceImpl {
 	return &ShortenURLServiceImpl{hs, pr}
 }
 
+func (sus *ShortenURLServiceImpl) GetVisitSummary(id string, userID string) (VisitDashboard, error) {
+	res, err := sus.callGetVisitSummary(userID, id)
+	if err != nil {
+		return VisitDashboard{}, err
+	}
+	return res.Data, nil
+}
+
 func (sus *ShortenURLServiceImpl) FindOriginalURL(id string) (FindOriginalURL, error) {
 	res, err := sus.callFindOriginalURL(id)
 	if err != nil {
@@ -57,6 +65,13 @@ func (sus *ShortenURLServiceImpl) VisitOriginalURL(id string, device string) (st
 	}
 
 	return res.Data.URL, err
+}
+
+func (sus *ShortenURLServiceImpl) callGetVisitSummary(userID string, id string) (*dto.ServerResponse[VisitDashboard], error) {
+	headers := map[string]string{
+		constants.X_USER_ID: userID,
+	}
+	return services.Call[VisitDashboard](sus.hs, sus.pr, fmt.Sprintf("/api/v1/url/%s/dashboard", id), http.MethodGet, http.StatusOK, nil, nil, headers)
 }
 
 func (sus *ShortenURLServiceImpl) callIsCustomURLAvailable(userID string, customCode string) (bool, error) {

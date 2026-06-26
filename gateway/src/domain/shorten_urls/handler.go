@@ -17,6 +17,7 @@ type ShortenURLServiceItf interface {
 	GetUserLinks(userID string, lastID *int64, limit int64) ([]URL, *int64, int64, error)
 	IsCustomURLAvailable(userID, customCode string) (bool, error)
 	FindOriginalURL(id string) (FindOriginalURL, error)
+	GetVisitSummary(id string, userID string) (VisitDashboard, error)
 }
 
 type ShortenURLHandlerImpl struct {
@@ -25,6 +26,23 @@ type ShortenURLHandlerImpl struct {
 
 func NewShortenURLHandler(sus ShortenURLServiceItf) *ShortenURLHandlerImpl {
 	return &ShortenURLHandlerImpl{sus}
+}
+
+func (suh *ShortenURLHandlerImpl) GetVisitSummary(ctx fiber.Ctx) error {
+	id := ctx.Params("id")
+	claim, err := handlers.GetAuthPayload(ctx, constants.AUTH_CLAIM_KEY)
+	if err != nil {
+		return err
+	}
+	vd, err := suh.sus.GetVisitSummary(id, claim.Subject)
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[VisitDashboardRes]{
+		Success: true,
+		Data:    VisitDashboardRes(vd),
+	})
 }
 
 func (suh *ShortenURLHandlerImpl) FindOriginalURL(ctx fiber.Ctx) error {

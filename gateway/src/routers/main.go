@@ -89,4 +89,5 @@ func (ar *AppRouter) SetupPrivateRoute() {
 	v1.Get("/me", ar.UserHandler.GetProfile)
 	v1.Get("/me/url", ar.ShortenURLHandler.GetUserLinks)
 	v1.Post("/url/custom-code", ar.ShortenURLHandler.IsCustomURLAvailable)
+	v1.Get("/url/:id/dashboard", ar.ShortenURLHandler.GetVisitSummary)
 }
