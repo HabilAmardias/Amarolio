@@ -3,6 +3,7 @@ import type {
   ShortenResponse,
   UserLink,
   FindCustomURLRequest,
+  VisitDashboardRes,
 } from "../models/url.model";
 import type { ServerResponse, PaginateResponse } from "../models/model";
 import { apiFetch } from "./api";
@@ -51,3 +52,22 @@ export async function shortenUrl(
   const resBody: ServerResponse<ShortenResponse> = await res.json();
   return resBody.data;
 }
+
+export async function getURLMetadata(urlId: string) {
+  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/url/${urlId}/metadata`
+  const res = await apiFetch(url, 200, {
+    method: "GET"
+  })
+  const resBody: ServerResponse<{ url: UserLink }> = await res.json()
+  return resBody.data
+}
+
+export async function getURLStats(urlId: string): Promise<VisitDashboardRes> {
+  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/url/${urlId}/dashboard`
+  const res = await apiFetch(url, 200, {
+    method: "GET",
+  })
+  const resBody: ServerResponse<VisitDashboardRes> = await res.json();
+  return resBody.data
+}
+

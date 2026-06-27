@@ -46,14 +46,14 @@ func NewVisitRecordService(vrr VisitRecordRepoItf, ur URLRepoItf, uc URLCacheItf
 
 func (vrs *VisitRecordServiceImpl) GetVisitRecordSummary(ctx context.Context, userID string, code string) (*VisitDashboard, error) {
 	var (
-		todayVisitCount        *int64                  = new(int64)
-		thisWeekCount          *int64                  = new(int64)
-		todayDeviceCount       *[]DeviceCount          = new([]DeviceCount)
-		thisDayOfWeekCount     *[]DayOfWeekCount       = new([]DayOfWeekCount)
-		thisWeekDeviceCount    *[]DeviceCount          = new([]DeviceCount)
-		thisWeekDOWDeviceCount *[]DeviceDayOfWeekCount = new([]DeviceDayOfWeekCount)
-		url                    *url.URL                = new(url.URL)
-		vd                     *VisitDashboard         = new(VisitDashboard)
+		todayVisitCount        *int64                 = new(int64)
+		thisWeekCount          *int64                 = new(int64)
+		todayDeviceCount       []DeviceCount          = make([]DeviceCount, 0)
+		thisDayOfWeekCount     []DayOfWeekCount       = make([]DayOfWeekCount, 0)
+		thisWeekDeviceCount    []DeviceCount          = make([]DeviceCount, 0)
+		thisWeekDOWDeviceCount []DeviceDayOfWeekCount = make([]DeviceDayOfWeekCount, 0)
+		url                    *url.URL               = new(url.URL)
+		vd                     *VisitDashboard        = new(VisitDashboard)
 	)
 
 	if err := vrs.uc.Get(ctx, code, url); err != nil {
@@ -91,16 +91,16 @@ func (vrs *VisitRecordServiceImpl) GetVisitRecordSummary(ctx context.Context, us
 		return vrs.vrr.GetThisWeekCount(newCtx, url.ID, thisWeekCount)
 	})
 	g.Go(func() error {
-		return vrs.vrr.GetTodayCountGroupByDevice(newCtx, url.ID, todayDeviceCount)
+		return vrs.vrr.GetTodayCountGroupByDevice(newCtx, url.ID, &todayDeviceCount)
 	})
 	g.Go(func() error {
-		return vrs.vrr.GetThisDayOfWeekCount(newCtx, url.ID, thisDayOfWeekCount)
+		return vrs.vrr.GetThisDayOfWeekCount(newCtx, url.ID, &thisDayOfWeekCount)
 	})
 	g.Go(func() error {
-		return vrs.vrr.GetThisWeekCountGroupByDevice(newCtx, url.ID, thisWeekDeviceCount)
+		return vrs.vrr.GetThisWeekCountGroupByDevice(newCtx, url.ID, &thisWeekDeviceCount)
 	})
 	g.Go(func() error {
-		return vrs.vrr.GetThisWeekCountGroupByDeviceAndDayOfWeek(newCtx, url.ID, thisWeekDOWDeviceCount)
+		return vrs.vrr.GetThisWeekCountGroupByDeviceAndDayOfWeek(newCtx, url.ID, &thisWeekDOWDeviceCount)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -110,10 +110,10 @@ func (vrs *VisitRecordServiceImpl) GetVisitRecordSummary(ctx context.Context, us
 	*vd = VisitDashboard{
 		TodayVisitCount:        *todayVisitCount,
 		ThisWeekCount:          *thisWeekCount,
-		TodayDeviceCount:       *todayDeviceCount,
-		ThisDayOfWeekCount:     *thisDayOfWeekCount,
-		ThisWeekDeviceCount:    *thisWeekDeviceCount,
-		ThisWeekDOWDeviceCount: *thisWeekDOWDeviceCount,
+		TodayDeviceCount:       todayDeviceCount,
+		ThisDayOfWeekCount:     thisDayOfWeekCount,
+		ThisWeekDeviceCount:    thisWeekDeviceCount,
+		ThisWeekDOWDeviceCount: thisWeekDOWDeviceCount,
 	}
 
 	go func(cd string, v VisitDashboard) {

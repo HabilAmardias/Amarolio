@@ -107,6 +107,7 @@ func (sus *URLServiceImpl) FindOriginalURL(ctx context.Context, shortCode string
 		UserID:    url.UserID,
 		LongURL:   decryptedURL,
 		ShortURL:  fmt.Sprintf("%s/%s", os.Getenv("AMARY_REDIRECT_DOMAIN"), *url.ShortCode),
+		Code:      *url.ShortCode,
 		CreatedAt: url.CreatedAt,
 		ExpiredAt: url.ExpiredAt,
 	}, nil
@@ -309,6 +310,7 @@ func (sus *URLServiceImpl) decryptAndFormatURL(ls []URL) ([]DecryptedURL, error)
 			ID:        l.ID,
 			UserID:    l.UserID,
 			LongURL:   du,
+			Code:      *l.ShortCode,
 			ShortURL:  fmt.Sprintf("%s/%s", os.Getenv("AMARY_REDIRECT_DOMAIN"), *l.ShortCode),
 			CreatedAt: l.CreatedAt,
 			ExpiredAt: l.ExpiredAt,

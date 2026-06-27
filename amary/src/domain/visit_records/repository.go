@@ -31,19 +31,19 @@ func (vrr *VisitRecordRepoImpl) GetThisWeekCountGroupByDeviceAndDayOfWeek(ctx co
 	devices AS (
 		SELECT DISTINCT device
 		FROM visit_records
-		WHERE url_id = :your_url_id AND deleted_at IS NULL
+		WHERE url_id = $1 AND deleted_at IS NULL
 		-- Optional: add other global device lists if needed
 	)
 	SELECT
 		d.device,
-		TO_CHAR(wd.day, 'Day') AS day_of_week,
+		TO_CHAR(wd.day, 'FMDay') AS day_of_week,
 		COALESCE(COUNT(vr.id), 0) AS visit_count
 	FROM devices d
 	CROSS JOIN week_days wd
 	LEFT JOIN visit_records vr
 		ON vr.device = d.device
 		AND vr.created_at::date = wd.day
-		AND vr.url_id = :your_url_id
+		AND vr.url_id = $1
 		AND vr.deleted_at IS NULL
 	GROUP BY d.device, wd.day
 	ORDER BY d.device, wd.day;
@@ -176,7 +176,7 @@ func (vrr *VisitRecordRepoImpl) GetThisDayOfWeekCount(ctx context.Context, urlID
 		) AS day
 	)
 	SELECT
-		TO_CHAR(wd.day, 'Day')   AS day_of_week,
+		TO_CHAR(wd.day, 'FMDay')   AS day_of_week,
 		COUNT(vr.id)             AS visit_count
 	FROM week_days wd
 	LEFT JOIN visit_records vr
@@ -230,12 +230,11 @@ func (vrr *VisitRecordRepoImpl) GetTodayCountGroupByDevice(ctx context.Context, 
 		device,
 		COALESCE(COUNT(id), 0)
 	FROM visit_records
-	GROUP BY device
-	HAVING url_id = $1
-	AND YEAR(created_at) = YEAR(NOW())
-	AND MONTH(created_at) = MONTH(NOW())
-	AND DAY(created_at) = DAY(NOW())
+	WHERE url_id = $1
+	AND created_at >= CURRENT_DATE
+	AND created_at < CURRENT_DATE + INTERVAL '1 day'
 	AND deleted_at IS NULL
+	GROUP BY device
 	`
 
 	rows, err := driver.QueryContext(ctx, query, urlID)
@@ -285,9 +284,8 @@ func (vrr *VisitRecordRepoImpl) GetTodayCount(ctx context.Context, urlID int64, 
 		COALESCE(COUNT(id),0)
 	FROM visit_records
 	WHERE url_id = $1
-	AND YEAR(created_at) = YEAR(NOW())
-	AND MONTH(created_at) = MONTH(NOW())
-	AND DAY(created_at) = DAY(NOW())
+	AND created_at >= CURRENT_DATE
+	AND created_at < CURRENT_DATE + INTERVAL '1 day'
 	AND deleted_at IS NULL
 	`
 	if err := driver.QueryRowContext(ctx, query, urlID).Scan(count); err != nil {

@@ -40,10 +40,10 @@ func (vrh *VisitRecordHandlerImpl) GetVisitRecordSummary(ctx *gin.Context) {
 		return
 	}
 	var (
-		todayDeviceCount       []DeviceCountRes
-		thisDayOfWeekCount     []DayOfWeekCountRes
-		thisWeekDeviceCount    []DeviceCountRes
-		thisWeekDOWDeviceCount []DeviceDayOfWeekCountRes
+		todayDeviceCount       []DeviceCountRes          = make([]DeviceCountRes, 0)
+		thisDayOfWeekCount     []DayOfWeekCountRes        = make([]DayOfWeekCountRes, 0)
+		thisWeekDeviceCount    []DeviceCountRes          = make([]DeviceCountRes, 0)
+		thisWeekDOWDeviceCount []DeviceDayOfWeekCountRes = make([]DeviceDayOfWeekCountRes, 0)
 	)
 
 	for _, el := range vd.TodayDeviceCount {

@@ -23,6 +23,7 @@ type (
 		ID        int64      `json:"id"`
 		UserID    *string    `json:"user_id"`
 		ShortURL  string     `json:"short_url"`
+		Code      string     `json:"code"`
 		LongURL   string     `json:"url"`
 		CreatedAt time.Time  `json:"created_at"`
 		ExpiredAt *time.Time `json:"expired_at"`
