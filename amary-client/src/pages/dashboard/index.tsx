@@ -1,5 +1,7 @@
-import { Box, Alert, Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination } from '@mui/material';
+import { Box, Alert, Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, IconButton, Tooltip } from '@mui/material';
 import { useURL } from '../../controllers/useURL';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import { Link } from 'react-router-dom';
 
 export function DashboardPage() {
   const { userURL, page, limit, hasNextPage, error, handleChangePage, handleChangeLimit } = useURL()
@@ -58,6 +60,7 @@ export function DashboardPage() {
                     <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Original URL</TableCell>
                     <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Expires At</TableCell>
                     <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Created At</TableCell>
+                    <TableCell sx={{ color: '#c25e00', fontWeight: 700 }} align="right">Stats</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -97,6 +100,23 @@ export function DashboardPage() {
                         </TableCell>
                         <TableCell sx={{ color: 'text.secondary' }}>
                           {new Date(url.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell align="right">
+                          <Tooltip title="View Stats" arrow>
+                            <IconButton
+                              component={Link}
+                              to={`/dashboard/url/${url.code}`}
+                              size="small"
+                              sx={{
+                                color: '#c25e00',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(194, 94, 0, 0.08)',
+                                },
+                              }}
+                            >
+                              <BarChartIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         </TableCell>
                       </TableRow>
                     ))}

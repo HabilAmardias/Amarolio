@@ -52,7 +52,7 @@ export function useURL() {
     return () => {
       isMounted = false;
     };
-  }, [pagination]); // ✅ only one state object drives everything
+  }, [pagination]);
 
   function handleChangePage(
     _: React.MouseEvent<HTMLButtonElement> | null,

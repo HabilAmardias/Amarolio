@@ -2,6 +2,7 @@ package routers
 
 import (
 	"amary/src/domain/url"
+	visitrecords "amary/src/domain/visit_records"
 	"amary/src/middlewares"
 
 	"github.com/gin-gonic/gin"
@@ -13,9 +14,10 @@ type Logger interface {
 }
 
 type AppRouter struct {
-	App               *gin.Engine
-	ShortenURLHandler *url.URLHandlerImpl
-	Logger            Logger
+	App                *gin.Engine
+	ShortenURLHandler  *url.URLHandlerImpl
+	VisitRecordHandler *visitrecords.VisitRecordHandlerImpl
+	Logger             Logger
 }
 
 func (ar *AppRouter) Setup() {
@@ -39,4 +41,5 @@ func (ar *AppRouter) SetupPrivateRoute() {
 	v1.GET("/me/url", ar.ShortenURLHandler.GetUserLinks)
 	v1.POST("/url", ar.ShortenURLHandler.NewShortURL)
 	v1.POST("/url/custom-code", ar.ShortenURLHandler.IsCustomURLExist)
+	v1.GET("/url/:id/dashboard", ar.VisitRecordHandler.GetVisitRecordSummary)
 }

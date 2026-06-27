@@ -24,17 +24,21 @@ func Bootstrap(db *db.DBHandle, app *gin.Engine, rc *redis.Client, lg *zap.Sugar
 
 	suc := url.NewShortenURLCache(rc)
 	sur := url.NewURLRepo(db)
+	vrc := visitrecords.NewVisitRecordCache(rc)
 	vrr := visitrecords.NewVisitRecordRepo(db)
 	trm := repository.NewTransactionManager(db)
 
+	vrs := visitrecords.NewVisitRecordService(vrr, sur, suc, vrc)
 	sus := url.NewURLService(ue, ide, suc, sur, vrr, trm)
 
 	suh := url.NewURLHandler(sus)
+	vrh := visitrecords.NewVisitRecordHandler(vrs)
 
 	router := &routers.AppRouter{
-		App:               app,
-		ShortenURLHandler: suh,
-		Logger:            lg,
+		App:                app,
+		ShortenURLHandler:  suh,
+		VisitRecordHandler: vrh,
+		Logger:             lg,
 	}
 
 	router.Setup()

@@ -5,6 +5,7 @@ import { Box } from '@mui/material';
 import { LoginPage } from '../pages/login';
 import { LoginCallbackPage } from '../pages/login/callback'
 import { DashboardPage } from '../pages/dashboard';
+import { URLStatsPage } from '../pages/dashboard/URLStatsPage';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { HelmetProvider } from 'react-helmet-async';
 
@@ -24,6 +25,14 @@ export function AppRouter() {
                 element={
                   <ProtectedRoute>
                     <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/url/:id"
+                element={
+                  <ProtectedRoute>
+                    <URLStatsPage />
                   </ProtectedRoute>
                 }
               />

@@ -17,6 +17,7 @@ type (
 		ID        int64
 		UserID    *string
 		ShortURL  string
+		Code      string
 		LongURL   string
 		CreatedAt time.Time
 		ExpiredAt *time.Time
