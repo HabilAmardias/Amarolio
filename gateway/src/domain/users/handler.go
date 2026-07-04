@@ -28,8 +28,8 @@ func NewUserHandler(us UserServiceItf) *UserHandlerImpl {
 }
 
 func (uh *UserHandlerImpl) LogOut(ctx fiber.Ctx) error {
-	req := new(LoginReq)
-	if err := ctx.Bind().Query(req); err != nil {
+	req := new(LogoutReq)
+	if err := ctx.Bind().JSON(req); err != nil {
 		return err
 	}
 	secure := os.Getenv("ENVIRONMENT") == constants.PRODUCTION
@@ -47,7 +47,12 @@ func (uh *UserHandlerImpl) LogOut(ctx fiber.Ctx) error {
 		Secure:   secure,
 		Expires:  time.Now().Add(-3 * time.Minute),
 	})
-	return ctx.Redirect().Status(fasthttp.StatusTemporaryRedirect).To(req.RedirectURI)
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[LogoutRes]{
+		Success: true,
+		Data: LogoutRes{
+			RedirectURI: req.RedirectURI,
+		},
+	})
 }
 
 func (uh *UserHandlerImpl) GetProfile(ctx fiber.Ctx) error {
@@ -112,7 +117,7 @@ func (uh *UserHandlerImpl) LoginCallback(ctx fiber.Ctx) error {
 
 func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
 	req := new(LoginReq)
-	if err := ctx.Bind().Query(req); err != nil {
+	if err := ctx.Bind().JSON(req); err != nil {
 		return err
 	}
 	var isProd bool = os.Getenv("ENVIRONMENT") == constants.PRODUCTION
@@ -134,7 +139,12 @@ func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
 		HTTPOnly: true,
 		Secure:   isProd,
 	})
-	return ctx.Redirect().Status(http.StatusTemporaryRedirect).To(url)
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[LoginRes]{
+		Success: true,
+		Data: LoginRes{
+			RedirectURI: url,
+		},
+	})
 }
 
 func (uh *UserHandlerImpl) RefreshAuth(ctx fiber.Ctx) error {

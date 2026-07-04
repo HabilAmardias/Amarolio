@@ -8,9 +8,15 @@ type (
 		Email string `json:"email"`
 	}
 	LoginReq struct {
-		RedirectURI string `query:"redirect_uri" validate:"required"`
+		RedirectURI string `json:"redirect_uri" validate:"required"`
 	}
 	LogoutReq struct {
-		RedirectURI string `query:"redirect_uri" validate:"required"`
+		RedirectURI string `json:"redirect_uri" validate:"required"`
+	}
+	LoginRes struct {
+		RedirectURI string `json:"redirect_uri"`
+	}
+	LogoutRes struct {
+		RedirectURI string `json:"redirect_uri"`
 	}
 )
