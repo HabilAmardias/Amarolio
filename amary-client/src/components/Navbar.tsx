@@ -124,7 +124,7 @@ export function Navbar() {
                   display: { xs: 'none', md: 'block' },
                 }}
               >
-                {user.email}
+                {user.username}
               </Typography>
               <Button
                 color="inherit"

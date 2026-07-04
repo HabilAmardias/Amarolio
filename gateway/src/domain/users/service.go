@@ -61,7 +61,7 @@ func (us *UserServiceImpl) GetProfile(userID string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return res.Data.Email, nil
+	return res.Data.Username, nil
 }
 
 func (us *UserServiceImpl) LoginCallback(code string, state string) (string, string, error) {

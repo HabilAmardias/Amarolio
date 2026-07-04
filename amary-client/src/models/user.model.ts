@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 
 export interface User {
-  email: string;
+  username: string;
 }
 
 export interface LogoutRes {

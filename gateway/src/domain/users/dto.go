@@ -5,7 +5,7 @@ type (
 		Message string `json:"message"`
 	}
 	GetProfileRes struct {
-		Email string `json:"email"`
+		Username string `json:"username"`
 	}
 	LoginReq struct {
 		RedirectURI string `json:"redirect_uri" validate:"required"`

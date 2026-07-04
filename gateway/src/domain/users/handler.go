@@ -60,14 +60,14 @@ func (uh *UserHandlerImpl) GetProfile(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	email, err := uh.us.GetProfile(claim.Subject)
+	username, err := uh.us.GetProfile(claim.Subject)
 	if err != nil {
 		return err
 	}
 	return ctx.Status(fasthttp.StatusOK).JSON(dto.ServerResponse[GetProfileRes]{
 		Success: true,
 		Data: GetProfileRes{
-			Email: email,
+			Username: username,
 		},
 	})
 }

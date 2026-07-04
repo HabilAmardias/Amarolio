@@ -11,6 +11,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -73,7 +74,7 @@ func (us *UserServiceImpl) GetProfile(ctx context.Context, userID string) (strin
 			}
 		}()
 	}
-	return user.Email, nil
+	return strings.Split(user.Email, "@")[0], nil
 }
 
 func (us *UserServiceImpl) Login() (string, string) {
