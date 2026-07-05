@@ -22,11 +22,11 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
           background: 'radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 100%)',
         }}
       >
-        <CircularProgress 
-          sx={{ 
+        <CircularProgress
+          sx={{
             color: '#c25e00',
             boxShadow: '0 0 30px rgba(194, 94, 0, 0.6)',
-          }} 
+          }}
         />
       </Box>
     );

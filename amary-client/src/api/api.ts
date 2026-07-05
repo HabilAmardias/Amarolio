@@ -1,51 +1,119 @@
 import type { ErrorResponse, ServerResponse } from "../models/model";
+import type { LogoutRes } from "../models/user.model";
 
-async function refreshAuth() {
+async function refreshAuth(): Promise<string> {
   const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/refresh`;
   const res = await fetch(url, {
     method: "POST",
     credentials: "include",
   });
+
   if (!res.ok) {
-    throw new Error("Session Expired");
+    let errorDetail = "Internal Server Error";
+    let errorCode: number | undefined;
+
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      try {
+        const resBody: ServerResponse<ErrorResponse> = await res.json();
+        errorCode = resBody?.data?.error_code;
+        errorDetail = resBody?.data?.detail || errorDetail;
+      } catch (e) {
+        // Fallback if JSON parsing fails
+      }
+    }
+
+    // if other than refresh token expired (or error parsing code not matching), throw an error
+    if (errorCode !== 40102) {
+      throw new Error(errorDetail);
+    }
+
+    // if refresh token expired, remove all cookies and redirect to homepage
+    const origin = window.location.origin;
+    const reqBody = JSON.stringify({
+      redirect_uri: origin
+    });
+    const logoutURL = `${import.meta.env.VITE_SERVER_HOST}/api/v1/logout`;
+    const logoutRes = await fetch(logoutURL, {
+      method: "POST",
+      credentials: "include",
+      body: reqBody
+    });
+
+    if (logoutRes.ok) {
+      const contentTypeLogout = logoutRes.headers.get("content-type");
+      if (contentTypeLogout && contentTypeLogout.includes("application/json")) {
+        try {
+          const logoutResBody: ServerResponse<LogoutRes> = await logoutRes.json();
+          return logoutResBody.data.redirect_uri;
+        } catch (e) {
+          // ignore and fallback
+        }
+      }
+    }
+    return origin;
   }
+  return "";
 }
 
 export const apiFetch = async (
   info: RequestInfo,
   expectedStatus: number,
   init?: RequestInit,
-) => {
+): Promise<Response> => {
   let res = await fetch(info, {
     ...init,
     credentials: "include",
   });
-  if (res.status === 401) {
-    await refreshAuth();
+
+  // if http status match with expected status, then return response
+  if (res.status === expectedStatus) {
+    return res;
+  }
+
+  // Parse error details safely
+  let resBody: ServerResponse<ErrorResponse> | null = null;
+  const contentType = res.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    try {
+      resBody = await res.json();
+    } catch (e) {
+      // Fallback
+    }
+  }
+
+  const errorCode = resBody?.data?.error_code;
+  const errorDetail = resBody?.data?.detail || `HTTP Error ${res.status}`;
+
+  // if the error is about access token expired, then try to refresh the token and retry the request
+  if (errorCode === 40102) {
+    const redirectURI = await refreshAuth();
+    if (redirectURI) {
+      window.location.href = redirectURI;
+      return new Promise<never>(() => { });
+    }
 
     res = await fetch(info, {
       ...init,
       credentials: "include",
     });
 
-    if (res.status === 401) {
-      throw new Error("SESSION_EXPIRED");
+    if (res.status === expectedStatus) {
+      return res;
     }
-  }
 
-  if (res.status !== expectedStatus) {
-    let errorMessage = `Request failed with status ${res.status}`;
-    const contentType = res.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
+    let retryResBody: ServerResponse<ErrorResponse> | null = null;
+    const retryContentType = res.headers.get("content-type");
+    if (retryContentType && retryContentType.includes("application/json")) {
       try {
-        const resBody: ServerResponse<ErrorResponse> = await res.json();
-        errorMessage = resBody.data?.detail || errorMessage;
-      } catch {
-        errorMessage = "Internal Server Error";
+        retryResBody = await res.json();
+      } catch (e) {
+        // Fallback
       }
     }
-    throw new Error(errorMessage);
+    const retryErrorDetail = retryResBody?.data?.detail || `HTTP Error ${res.status}`;
+    throw new Error(retryErrorDetail);
   }
 
-  return res;
+  throw new Error(errorDetail);
 };

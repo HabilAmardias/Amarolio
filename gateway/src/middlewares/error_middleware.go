@@ -18,8 +18,9 @@ type Logger interface {
 
 func NewErrorMiddleware(logger Logger) fiber.ErrorHandler {
 	return func(ctx fiber.Ctx, err error) error {
-		code := http.StatusInternalServerError
+		httpCode := http.StatusInternalServerError
 		var errDetail string = "Internal Server Error"
+		errorCode := customerrors.CommonErr
 
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) {
@@ -31,29 +32,26 @@ func NewErrorMiddleware(logger Logger) fiber.ErrorHandler {
 				}
 				fes = append(fes, de.ToString())
 			}
-			code = http.StatusBadRequest
+			httpCode = http.StatusBadRequest
 			errDetail = strings.Join(fes, "; ")
+			errorCode = customerrors.ValidationErr
 
-			logger.Errorln(ctx.Method, ctx.Request().URI().Path(), code, ve.Error())
-			return ctx.Status(code).JSON(dto.ServerResponse[dto.ErrorResponse]{
-				Success: false,
-				Data: dto.ErrorResponse{
-					Detail: errDetail,
-				},
-			})
+			logger.Errorln(ctx.Method, ctx.Request().URI().Path(), httpCode, errorCode, ve.Error())
 		}
 
 		var ce *customerrors.CustomError
 		if errors.As(err, &ce) {
-			code = ce.GetErrStatusCode()
+			httpCode = ce.GetErrStatusCode()
 			errDetail = ce.UserErr
+			errorCode = ce.ErrCode
 
-			logger.Errorln(ctx.Method(), ctx.Path(), code, ce.Error())
+			logger.Errorln(ctx.Method(), ctx.Path(), httpCode, errorCode, ce.Error())
 		}
 
-		return ctx.Status(code).JSON(dto.ServerResponse[dto.ErrorResponse]{
+		return ctx.Status(httpCode).JSON(dto.ServerResponse[dto.ErrorResponse]{
 			Data: dto.ErrorResponse{
-				Detail: errDetail,
+				Detail:    errDetail,
+				ErrorCode: errorCode,
 			},
 		})
 	}
