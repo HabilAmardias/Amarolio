@@ -12,7 +12,7 @@ import (
 )
 
 type VisitRecordServiceItf interface {
-	GetVisitRecordSummary(ctx context.Context, userID string, code string) (*VisitDashboard, error)
+	GetVisitRecordSummary(ctx context.Context, userID string, code string) (VisitDashboard, error)
 }
 
 type VisitRecordHandlerImpl struct {
@@ -41,7 +41,7 @@ func (vrh *VisitRecordHandlerImpl) GetVisitRecordSummary(ctx *gin.Context) {
 	}
 	var (
 		todayDeviceCount       []DeviceCountRes          = make([]DeviceCountRes, 0)
-		thisDayOfWeekCount     []DayOfWeekCountRes        = make([]DayOfWeekCountRes, 0)
+		thisDayOfWeekCount     []DayOfWeekCountRes       = make([]DayOfWeekCountRes, 0)
 		thisWeekDeviceCount    []DeviceCountRes          = make([]DeviceCountRes, 0)
 		thisWeekDOWDeviceCount []DeviceDayOfWeekCountRes = make([]DeviceDayOfWeekCountRes, 0)
 	)

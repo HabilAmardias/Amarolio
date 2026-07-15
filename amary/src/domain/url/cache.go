@@ -41,33 +41,33 @@ func (suc *URLCache) Set(ctx context.Context, encodedID string, ttl time.Duratio
 	return err
 }
 
-func (suc *URLCache) Get(ctx context.Context, encodedID string, url *URL) error {
+func (suc *URLCache) Get(ctx context.Context, encodedID string) (URL, error) {
 	key := fmt.Sprintf("shorten_url:%s", encodedID)
 	taggedUrl := new(TaggedURL)
 
 	val, err := suc.rc.Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return customerror.NewError(
+			return URL{}, customerror.NewError(
 				"url not found",
 				err,
 				customerror.ItemNotFound,
 			)
 		}
-		return customerror.NewError(
+		return URL{}, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.CommonErr,
 		)
 	}
 	if err := json.Unmarshal([]byte(val), taggedUrl); err != nil {
-		return customerror.NewError(
+		return URL{}, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.CommonErr,
 		)
 	}
 
-	*url = URL(*taggedUrl)
-	return nil
+	url := URL(*taggedUrl)
+	return url, nil
 }

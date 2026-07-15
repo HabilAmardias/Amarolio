@@ -20,7 +20,7 @@ type URLServiceItf interface {
 	VisitOriginalURL(ctx context.Context, encodedID string, device string) (string, error)
 	GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, error)
 	IsCustomURLAvailable(ctx context.Context, customCode string) (bool, error)
-	FindOriginalURL(ctx context.Context, shortCode string) (*DecryptedURL, error)
+	FindOriginalURL(ctx context.Context, shortCode string) (DecryptedURL, error)
 }
 
 type URLHandlerImpl struct {
@@ -41,7 +41,7 @@ func (suh *URLHandlerImpl) FindOriginalURL(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, dto.ServerResponse[FindOriginalUrlRes]{
 		Success: true,
 		Data: FindOriginalUrlRes{
-			URL: URLRes(*url),
+			URL: URLRes(url),
 		},
 	})
 }

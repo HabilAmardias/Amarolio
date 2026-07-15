@@ -15,7 +15,8 @@ func NewVisitRecordRepo(handle db.DBTX) *VisitRecordRepoImpl {
 	return &VisitRecordRepoImpl{handle}
 }
 
-func (vrr *VisitRecordRepoImpl) GetThisWeekCountGroupByDeviceAndDayOfWeek(ctx context.Context, urlID int64, count *[]DeviceDayOfWeekCount) error {
+func (vrr *VisitRecordRepoImpl) GetThisWeekCountGroupByDeviceAndDayOfWeek(ctx context.Context, urlID int64) ([]DeviceDayOfWeekCount, error) {
+	count := make([]DeviceDayOfWeekCount, 0, 14)
 	driver := vrr.handle
 	if tx := repository.GetTransactionFromCtx(ctx); tx != nil {
 		driver = tx
@@ -50,7 +51,7 @@ func (vrr *VisitRecordRepoImpl) GetThisWeekCountGroupByDeviceAndDayOfWeek(ctx co
 	`
 	rows, err := driver.QueryContext(ctx, query, urlID)
 	if err != nil {
-		return customerror.NewError(
+		return count, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
@@ -64,25 +65,26 @@ func (vrr *VisitRecordRepoImpl) GetThisWeekCountGroupByDeviceAndDayOfWeek(ctx co
 			&item.DayOfWeek,
 			&item.Count,
 		); err != nil {
-			return customerror.NewError(
+			return count, customerror.NewError(
 				"something went wrong",
 				err,
 				customerror.DatabaseExecutionErr,
 			)
 		}
-		*count = append(*count, item)
+		count = append(count, item)
 	}
 	if err := rows.Err(); err != nil {
-		return customerror.NewError(
+		return count, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
 		)
 	}
-	return nil
+	return count, nil
 }
 
-func (vrr *VisitRecordRepoImpl) GetThisWeekCountGroupByDevice(ctx context.Context, urlID int64, count *[]DeviceCount) error {
+func (vrr *VisitRecordRepoImpl) GetThisWeekCountGroupByDevice(ctx context.Context, urlID int64) ([]DeviceCount, error) {
+	count := make([]DeviceCount, 0, 14)
 	driver := vrr.handle
 	if tx := repository.GetTransactionFromCtx(ctx); tx != nil {
 		driver = tx
@@ -103,7 +105,7 @@ func (vrr *VisitRecordRepoImpl) GetThisWeekCountGroupByDevice(ctx context.Contex
 
 	rows, err := driver.QueryContext(ctx, query, urlID)
 	if err != nil {
-		return customerror.NewError(
+		return count, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
@@ -116,25 +118,26 @@ func (vrr *VisitRecordRepoImpl) GetThisWeekCountGroupByDevice(ctx context.Contex
 			&item.Device,
 			&item.Count,
 		); err != nil {
-			return customerror.NewError(
+			return count, customerror.NewError(
 				"something went wrong",
 				err,
 				customerror.DatabaseExecutionErr,
 			)
 		}
-		*count = append(*count, item)
+		count = append(count, item)
 	}
 	if err := rows.Err(); err != nil {
-		return customerror.NewError(
+		return count, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
 		)
 	}
-	return nil
+	return count, nil
 }
 
-func (vrr *VisitRecordRepoImpl) GetThisWeekCount(ctx context.Context, urlID int64, count *int64) error {
+func (vrr *VisitRecordRepoImpl) GetThisWeekCount(ctx context.Context, urlID int64) (int64, error) {
+	var count int64 = 0
 	driver := vrr.handle
 	if tx := repository.GetTransactionFromCtx(ctx); tx != nil {
 		driver = tx
@@ -151,18 +154,19 @@ func (vrr *VisitRecordRepoImpl) GetThisWeekCount(ctx context.Context, urlID int6
 	`
 
 	if err := driver.QueryRowContext(ctx, query, urlID).Scan(
-		count,
+		&count,
 	); err != nil {
-		return customerror.NewError(
+		return count, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
 		)
 	}
-	return nil
+	return count, nil
 }
 
-func (vrr *VisitRecordRepoImpl) GetThisDayOfWeekCount(ctx context.Context, urlID int64, weekCounts *[]DayOfWeekCount) error {
+func (vrr *VisitRecordRepoImpl) GetThisDayOfWeekCount(ctx context.Context, urlID int64) ([]DayOfWeekCount, error) {
+	weekCounts := make([]DayOfWeekCount, 0, 7)
 	driver := vrr.handle
 	if tx := repository.GetTransactionFromCtx(ctx); tx != nil {
 		driver = tx
@@ -188,7 +192,7 @@ func (vrr *VisitRecordRepoImpl) GetThisDayOfWeekCount(ctx context.Context, urlID
 	`
 	rows, err := driver.QueryContext(ctx, query, urlID)
 	if err != nil {
-		return customerror.NewError(
+		return weekCounts, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
@@ -201,25 +205,26 @@ func (vrr *VisitRecordRepoImpl) GetThisDayOfWeekCount(ctx context.Context, urlID
 			&item.DayOfWeek,
 			&item.Count,
 		); err != nil {
-			return customerror.NewError(
+			return weekCounts, customerror.NewError(
 				"something went wrong",
 				err,
 				customerror.DatabaseExecutionErr,
 			)
 		}
-		*weekCounts = append(*weekCounts, item)
+		weekCounts = append(weekCounts, item)
 	}
 	if err := rows.Err(); err != nil {
-		return customerror.NewError(
+		return weekCounts, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
 		)
 	}
-	return nil
+	return weekCounts, nil
 }
 
-func (vrr *VisitRecordRepoImpl) GetTodayCountGroupByDevice(ctx context.Context, urlID int64, count *[]DeviceCount) error {
+func (vrr *VisitRecordRepoImpl) GetTodayCountGroupByDevice(ctx context.Context, urlID int64) ([]DeviceCount, error) {
+	count := make([]DeviceCount, 0, 14)
 	driver := vrr.handle
 	if tx := repository.GetTransactionFromCtx(ctx); tx != nil {
 		driver = tx
@@ -239,7 +244,7 @@ func (vrr *VisitRecordRepoImpl) GetTodayCountGroupByDevice(ctx context.Context, 
 
 	rows, err := driver.QueryContext(ctx, query, urlID)
 	if err != nil {
-		return customerror.NewError(
+		return count, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
@@ -253,27 +258,28 @@ func (vrr *VisitRecordRepoImpl) GetTodayCountGroupByDevice(ctx context.Context, 
 			&item.Device,
 			&item.Count,
 		); err != nil {
-			return customerror.NewError(
+			return count, customerror.NewError(
 				"something went wrong",
 				err,
 				customerror.DatabaseExecutionErr,
 			)
 		}
-		*count = append(*count, item)
+		count = append(count, item)
 	}
 
 	if err := rows.Err(); err != nil {
-		return customerror.NewError(
+		return count, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
 		)
 	}
 
-	return nil
+	return count, nil
 }
 
-func (vrr *VisitRecordRepoImpl) GetTodayCount(ctx context.Context, urlID int64, count *int64) error {
+func (vrr *VisitRecordRepoImpl) GetTodayCount(ctx context.Context, urlID int64) (int64, error) {
+	var count int64 = 0
 	driver := vrr.handle
 	if tx := repository.GetTransactionFromCtx(ctx); tx != nil {
 		driver = tx
@@ -288,14 +294,14 @@ func (vrr *VisitRecordRepoImpl) GetTodayCount(ctx context.Context, urlID int64, 
 	AND created_at < CURRENT_DATE + INTERVAL '1 day'
 	AND deleted_at IS NULL
 	`
-	if err := driver.QueryRowContext(ctx, query, urlID).Scan(count); err != nil {
-		return customerror.NewError(
+	if err := driver.QueryRowContext(ctx, query, urlID).Scan(&count); err != nil {
+		return count, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
 		)
 	}
-	return nil
+	return count, nil
 }
 
 func (vrr *VisitRecordRepoImpl) InsertNewRecord(
