@@ -18,15 +18,17 @@ type Logger interface {
 
 func NewErrorMiddleware(logger Logger) fiber.ErrorHandler {
 	return func(ctx fiber.Ctx, err error) error {
-		code := http.StatusInternalServerError
+		httpCode := http.StatusInternalServerError
+		errorCode := customerrors.CommonErr
 		var errDetail string = "Internal Server Error"
 
 		var ce *customerrors.CustomError
 		if errors.As(err, &ce) {
-			code = ce.GetErrStatusCode()
+			httpCode = ce.GetErrStatusCode()
 			errDetail = ce.UserErr
+			errorCode = ce.ErrCode
 
-			logger.Errorln(ctx.Method(), ctx.Path(), code, ce.Error())
+			logger.Errorln(ctx.Method(), ctx.Path(), httpCode, errorCode, ce.Error())
 		}
 
 		var ve validator.ValidationErrors
@@ -39,15 +41,17 @@ func NewErrorMiddleware(logger Logger) fiber.ErrorHandler {
 				}
 				fes = append(fes, de.ToString())
 			}
-			code = http.StatusBadRequest
+			httpCode = http.StatusBadRequest
 			errDetail = strings.Join(fes, "; ")
+			errorCode = customerrors.ValidationErr
 
-			logger.Errorln(ctx.Method(), ctx.Path(), code, ve.Error())
+			logger.Errorln(ctx.Method(), ctx.Path(), httpCode, errorCode, ve.Error())
 		}
 
-		return ctx.Status(code).JSON(dto.ServerResponse{
+		return ctx.Status(httpCode).JSON(dto.ServerResponse{
 			Data: dto.ErrorResponse{
-				Detail: errDetail,
+				Detail:    errDetail,
+				ErrorCode: errorCode,
 			},
 		})
 	}

@@ -23,7 +23,8 @@ func NewErrorMiddleware(lg Logger) gin.HandlerFunc {
 			return
 		}
 
-		code := http.StatusInternalServerError
+		httpCode := http.StatusInternalServerError
+		errorCode := customerror.CommonErr
 		var errDetail string = "Internal Server Error"
 		err := ctx.Errors[0]
 
@@ -37,14 +38,16 @@ func NewErrorMiddleware(lg Logger) gin.HandlerFunc {
 				}
 				fes = append(fes, de.ToString())
 			}
-			code = http.StatusBadRequest
+			httpCode = http.StatusBadRequest
 			errDetail = strings.Join(fes, "; ")
+			errorCode = customerror.ValidationErr
 
-			lg.Errorln(ctx.Request.Method, ctx.Request.URL.Path, code, ve.Error())
-			ctx.JSON(code, dto.ServerResponse[dto.ErrorResponse]{
+			lg.Errorln(ctx.Request.Method, ctx.Request.URL.Path, httpCode, errorCode, ve.Error())
+			ctx.JSON(httpCode, dto.ServerResponse[dto.ErrorResponse]{
 				Success: false,
 				Data: dto.ErrorResponse{
-					Detail: errDetail,
+					Detail:    errDetail,
+					ErrorCode: errorCode,
 				},
 			})
 			return
@@ -52,24 +55,27 @@ func NewErrorMiddleware(lg Logger) gin.HandlerFunc {
 
 		var ce *customerror.CustomError
 		if errors.As(err, &ce) {
-			code = ce.GetErrStatusCode()
+			httpCode = ce.GetErrStatusCode()
 			errDetail = ce.UserErr
+			errorCode = ce.ErrCode
 
-			lg.Errorln(ctx.Request.Method, ctx.Request.URL.Path, code, ce.Error())
-			ctx.JSON(code, dto.ServerResponse[dto.ErrorResponse]{
+			lg.Errorln(ctx.Request.Method, ctx.Request.URL.Path, httpCode, errorCode, ce.Error())
+			ctx.JSON(httpCode, dto.ServerResponse[dto.ErrorResponse]{
 				Success: false,
 				Data: dto.ErrorResponse{
-					Detail: errDetail,
+					Detail:    errDetail,
+					ErrorCode: errorCode,
 				},
 			})
 			return
 		}
 
-		lg.Errorln(ctx.Request.Method, ctx.Request.URL.Path, code, err.Error())
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, dto.ServerResponse[dto.ErrorResponse]{
+		lg.Errorln(ctx.Request.Method, ctx.Request.URL.Path, httpCode, errorCode, err.Error())
+		ctx.AbortWithStatusJSON(httpCode, dto.ServerResponse[dto.ErrorResponse]{
 			Success: false,
 			Data: dto.ErrorResponse{
-				Detail: errDetail,
+				Detail:    errDetail,
+				ErrorCode: errorCode,
 			},
 		})
 	}

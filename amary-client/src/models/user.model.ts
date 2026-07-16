@@ -1,7 +1,15 @@
 import { atom } from "jotai";
 
 export interface User {
-  email: string;
+  username: string;
+}
+
+export interface LogoutRes {
+  redirect_uri: string;
+}
+
+export interface LoginRes {
+  redirect_uri: string;
 }
 
 const initialUser: User | null = null;

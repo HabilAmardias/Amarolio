@@ -55,9 +55,9 @@ func (ar *AppRouter) Setup() {
 func (ar *AppRouter) SetupPublicRoute() {
 	v1 := ar.App.Group("/api/v1")
 	v1.Use(middlewares.NewRateLimiterMiddleware(constants.AUTH_CLAIM_KEY))
-	v1.Get("/login", ar.UserHandler.Login)
+	v1.Post("/login", ar.UserHandler.Login)
 	v1.Get("/login/callback", ar.UserHandler.LoginCallback)
-	v1.Get("/logout", ar.UserHandler.LogOut)
+	v1.Post("/logout", ar.UserHandler.LogOut)
 	v1.Post("/refresh", middlewares.NewAuthMiddleware(
 		ar.JWTUtil,
 		constants.REFRESH_TOKEN,

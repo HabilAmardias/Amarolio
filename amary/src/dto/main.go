@@ -12,7 +12,8 @@ type (
 		Message string `json:"message"`
 	}
 	ErrorResponse struct {
-		Detail string `json:"detail"`
+		Detail    string `json:"detail"`
+		ErrorCode int    `json:"error_code"`
 	}
 	PlainMessageResponse struct {
 		Message string `json:"message"`

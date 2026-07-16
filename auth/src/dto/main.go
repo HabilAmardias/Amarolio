@@ -8,7 +8,8 @@ type (
 		Data    interface{} `json:"data"`
 	}
 	ErrorResponse struct {
-		Detail string `json:"detail"`
+		Detail    string `json:"detail"`
+		ErrorCode int    `json:"error_code"`
 	}
 	DetailsError struct {
 		Field   string `json:"field"`

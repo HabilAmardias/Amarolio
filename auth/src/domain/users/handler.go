@@ -32,7 +32,7 @@ func (uh *UserHandlerImpl) GetProfile(ctx fiber.Ctx) error {
 		return err
 	}
 
-	email, err := uh.us.GetProfile(ctx.RequestCtx(), userID)
+	username, err := uh.us.GetProfile(ctx.RequestCtx(), userID)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func (uh *UserHandlerImpl) GetProfile(ctx fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{
 		Success: true,
 		Data: GetProfileRes{
-			Email: email,
+			Username: username,
 		},
 	})
 }

@@ -56,27 +56,27 @@ func (vc *VisitRecordCacheImpl) Set(ctx context.Context, code string, ttl time.D
 	return err
 }
 
-func (vc *VisitRecordCacheImpl) Get(ctx context.Context, code string, vd *VisitDashboard) error {
+func (vc *VisitRecordCacheImpl) Get(ctx context.Context, code string) (VisitDashboard, error) {
 	key := fmt.Sprintf("shorten_url:%s:dashboard", code)
 	taggedData := new(TaggedVisitDashboard)
 
 	val, err := vc.rc.Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return customerror.NewError(
+			return VisitDashboard{}, customerror.NewError(
 				"url not found",
 				err,
 				customerror.ItemNotFound,
 			)
 		}
-		return customerror.NewError(
+		return VisitDashboard{}, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.CommonErr,
 		)
 	}
 	if err := json.Unmarshal([]byte(val), taggedData); err != nil {
-		return customerror.NewError(
+		return VisitDashboard{}, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.CommonErr,
@@ -102,7 +102,7 @@ func (vc *VisitRecordCacheImpl) Get(ctx context.Context, code string, vd *VisitD
 		thisWeekDOWDeviceCount = append(thisWeekDOWDeviceCount, DeviceDayOfWeekCount(el))
 	}
 
-	*vd = VisitDashboard{
+	vd := VisitDashboard{
 		TodayVisitCount:        taggedData.TodayVisitCount,
 		ThisWeekCount:          taggedData.ThisWeekCount,
 		TodayDeviceCount:       todayDeviceCount,
@@ -111,5 +111,5 @@ func (vc *VisitRecordCacheImpl) Get(ctx context.Context, code string, vd *VisitD
 		ThisWeekDOWDeviceCount: thisWeekDOWDeviceCount,
 	}
 
-	return nil
+	return vd, nil
 }

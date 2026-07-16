@@ -44,7 +44,7 @@ func (ju *JWTUtil) VerifyJWT(tokenStr string, usedFor int) (*CustomClaim, error)
 			return nil, customerrors.NewError(
 				"session expired",
 				err,
-				customerrors.Unauthenticate,
+				customerrors.AuthExpiredErr,
 			)
 		}
 		return nil, customerrors.NewError(
@@ -72,7 +72,7 @@ func (ju *JWTUtil) VerifyJWT(tokenStr string, usedFor int) (*CustomClaim, error)
 		return nil, customerrors.NewError(
 			"invalid token",
 			errors.New("invalid token usage"),
-			customerrors.InvalidAction,
+			customerrors.Forbidden,
 		)
 	}
 	return claim, nil

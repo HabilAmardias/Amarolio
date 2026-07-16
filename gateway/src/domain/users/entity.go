@@ -16,6 +16,6 @@ type (
 		Token string `json:"auth_token"`
 	}
 	GetProfile struct {
-		Email string `json:"email"`
+		Username string `json:"username"`
 	}
 )

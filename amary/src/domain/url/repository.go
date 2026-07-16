@@ -18,7 +18,8 @@ func NewURLRepo(handle db.DBTX) *URLRepoImpl {
 	return &URLRepoImpl{handle}
 }
 
-func (sur *URLRepoImpl) FindByCode(ctx context.Context, shortCode string, url *URL) error {
+func (sur *URLRepoImpl) FindByCode(ctx context.Context, shortCode string) (URL, error) {
+	url := URL{}
 	var driver db.DBTX = sur.handle
 	if tx := repository.GetTransactionFromCtx(ctx); tx != nil {
 		driver = tx
@@ -47,22 +48,23 @@ func (sur *URLRepoImpl) FindByCode(ctx context.Context, shortCode string, url *U
 		&url.ExpiredAt,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return customerror.NewError(
+			return url, customerror.NewError(
 				"url not found",
 				err,
 				customerror.ItemNotFound,
 			)
 		}
-		return customerror.NewError(
+		return url, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
 		)
 	}
-	return nil
+	return url, nil
 }
 
-func (sur *URLRepoImpl) UpdateShortCode(ctx context.Context, id int64, shortCode string, url *URL) error {
+func (sur *URLRepoImpl) UpdateShortCode(ctx context.Context, id int64, shortCode string) (URL, error) {
+	url := URL{}
 	query := `
 	UPDATE urls
 	SET short_code = $1, updated_at = CURRENT_TIMESTAMP
@@ -83,16 +85,17 @@ func (sur *URLRepoImpl) UpdateShortCode(ctx context.Context, id int64, shortCode
 		&url.DeletedAt,
 		&url.ExpiredAt,
 	); err != nil {
-		return customerror.NewError(
+		return URL{}, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
 		)
 	}
-	return nil
+	return url, nil
 }
 
-func (sur *URLRepoImpl) FindUserLinks(ctx context.Context, userID string, lastID *int64, limit int64, links *[]URL) error {
+func (sur *URLRepoImpl) FindUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]URL, error) {
+	links := make([]URL, 0, limit)
 	query := `
 	SELECT
 		id,
@@ -116,7 +119,7 @@ func (sur *URLRepoImpl) FindUserLinks(ctx context.Context, userID string, lastID
 	}
 	rows, err := driver.QueryContext(ctx, query, userID, lastID, limit)
 	if err != nil {
-		return customerror.NewError(
+		return links, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
@@ -136,24 +139,24 @@ func (sur *URLRepoImpl) FindUserLinks(ctx context.Context, userID string, lastID
 			&l.DeletedAt,
 			&l.ExpiredAt,
 		); err != nil {
-			return customerror.NewError(
+			return links, customerror.NewError(
 				"something went wrong",
 				err,
 				customerror.DatabaseExecutionErr,
 			)
 		}
-		*links = append(*links, l)
+		links = append(links, l)
 	}
 
 	if err := rows.Err(); err != nil {
-		return customerror.NewError(
+		return links, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
 		)
 	}
 
-	return nil
+	return links, nil
 }
 
 func (sur *URLRepoImpl) InsertNewURL(
@@ -161,8 +164,8 @@ func (sur *URLRepoImpl) InsertNewURL(
 	userID *string,
 	encryptedLongURL string,
 	expiredAt *time.Time,
-	shortenURL *URL,
-) error {
+) (URL, error) {
+	shortenURL := URL{}
 	query := `
 	INSERT INTO urls (user_id, encrypted_long_url, expired_at)
 	VALUES ($1, $2, $3)
@@ -181,16 +184,17 @@ func (sur *URLRepoImpl) InsertNewURL(
 		&shortenURL.DeletedAt,
 		&shortenURL.ExpiredAt,
 	); err != nil {
-		return customerror.NewError(
+		return shortenURL, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
 		)
 	}
-	return nil
+	return shortenURL, nil
 }
 
-func (sur *URLRepoImpl) FindByID(ctx context.Context, id int64, url *URL) error {
+func (sur *URLRepoImpl) FindByID(ctx context.Context, id int64) (URL, error) {
+	url := URL{}
 	query := `
 	SELECT
 		id,
@@ -219,17 +223,17 @@ func (sur *URLRepoImpl) FindByID(ctx context.Context, id int64, url *URL) error 
 		&url.ExpiredAt,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return customerror.NewError(
+			return url, customerror.NewError(
 				"invalid url",
 				err,
 				customerror.ItemNotFound,
 			)
 		}
-		return customerror.NewError(
+		return url, customerror.NewError(
 			"something went wrong",
 			err,
 			customerror.DatabaseExecutionErr,
 		)
 	}
-	return nil
+	return url, nil
 }

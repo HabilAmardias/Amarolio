@@ -25,7 +25,7 @@ type IDEncoderItf interface {
 
 type URLCacheItf interface {
 	Set(ctx context.Context, shortCode string, ttl time.Duration, url URL) error
-	Get(ctx context.Context, shortCode string, url *URL) error
+	Get(ctx context.Context, shortCode string) (URL, error)
 }
 
 type VisitRecordRepoItf interface {
@@ -43,12 +43,11 @@ type URLRepoItf interface {
 		userID *string,
 		encryptedLongURL string,
 		expiredAt *time.Time,
-		shortenURL *URL,
-	) error
-	FindByID(ctx context.Context, id int64, url *URL) error
-	FindUserLinks(ctx context.Context, userID string, lastID *int64, limit int64, links *[]URL) error
-	UpdateShortCode(ctx context.Context, id int64, shortCode string, url *URL) error
-	FindByCode(ctx context.Context, shortCode string, url *URL) error
+	) (URL, error)
+	FindByID(ctx context.Context, id int64) (URL, error)
+	FindUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]URL, error)
+	UpdateShortCode(ctx context.Context, id int64, shortCode string) (URL, error)
+	FindByCode(ctx context.Context, shortCode string) (URL, error)
 }
 
 type TransactionManagerItf interface {
@@ -68,13 +67,13 @@ func NewURLService(ue URLEncryptorItf, ide IDEncoderItf, suc URLCacheItf, sur UR
 	return &URLServiceImpl{ue, ide, suc, sur, vrr, trm}
 }
 
-func (sus *URLServiceImpl) FindOriginalURL(ctx context.Context, shortCode string) (*DecryptedURL, error) {
-	url := new(URL)
+func (sus *URLServiceImpl) FindOriginalURL(ctx context.Context, shortCode string) (DecryptedURL, error) {
 	now := time.Now()
-
-	if err := sus.suc.Get(ctx, shortCode, url); err != nil {
-		if err := sus.sur.FindByCode(ctx, shortCode, url); err != nil {
-			return nil, err
+	url, err := sus.suc.Get(ctx, shortCode)
+	if err != nil {
+		url, err = sus.sur.FindByCode(ctx, shortCode)
+		if err != nil {
+			return DecryptedURL{}, err
 		}
 		go func(eid string, u URL) {
 			ttl := 24 * time.Hour
@@ -86,11 +85,11 @@ func (sus *URLServiceImpl) FindOriginalURL(ctx context.Context, shortCode string
 			}
 
 			services.WithErrorRetry(ctx, fun, 100*time.Millisecond)
-		}(shortCode, *url)
+		}(shortCode, url)
 	}
 
 	if url.ExpiredAt != nil && now.After(*url.ExpiredAt) {
-		return nil, customerror.NewError(
+		return DecryptedURL{}, customerror.NewError(
 			"expired url",
 			errors.New("expired url"),
 			customerror.InvalidAction,
@@ -99,10 +98,10 @@ func (sus *URLServiceImpl) FindOriginalURL(ctx context.Context, shortCode string
 
 	decryptedURL, err := sus.ue.DecryptURL(url.EncryptedLongUrl)
 	if err != nil {
-		return nil, err
+		return DecryptedURL{}, err
 	}
 
-	return &DecryptedURL{
+	return DecryptedURL{
 		ID:        url.ID,
 		UserID:    url.UserID,
 		LongURL:   decryptedURL,
@@ -118,11 +117,12 @@ func (sus *URLServiceImpl) IsCustomURLAvailable(ctx context.Context, customCode 
 		return false, err
 	}
 
-	url := new(URL)
 	// find on cache
-	if err := sus.suc.Get(ctx, customCode, url); err != nil {
+	_, err := sus.suc.Get(ctx, customCode)
+	if err != nil {
 		// if failed, fallback to database
-		if err := sus.sur.FindByCode(ctx, customCode, url); err != nil {
+		_, err = sus.sur.FindByCode(ctx, customCode)
+		if err != nil {
 			var cErr *customerror.CustomError
 			if !errors.As(err, &cErr) {
 				return false, customerror.NewError(
@@ -142,12 +142,12 @@ func (sus *URLServiceImpl) IsCustomURLAvailable(ctx context.Context, customCode 
 }
 
 func (sus *URLServiceImpl) GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, error) {
-	links := new([]URL)
-	if err := sus.sur.FindUserLinks(ctx, userID, lastID, limit, links); err != nil {
+	links, err := sus.sur.FindUserLinks(ctx, userID, lastID, limit)
+	if err != nil {
 		return nil, err
 	}
 	// decrypt real url
-	return sus.decryptAndFormatURL(*links)
+	return sus.decryptAndFormatURL(links)
 }
 
 func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, longURL string, duration *int, customCode *string) (string, *time.Time, error) {
@@ -181,8 +181,8 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 		}
 
 		// check dupe on cache, if exist, return error
-		dupe := new(URL)
-		if err := sus.suc.Get(ctx, *customCode, dupe); err == nil {
+		_, err := sus.suc.Get(ctx, *customCode)
+		if err == nil {
 			return "", nil, customerror.NewError(
 				"url already exist",
 				errors.New("code already exist"),
@@ -190,45 +190,48 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 			)
 		}
 
-		// if not exist on cache, check dupe on db, if exist return error
-		if err := sus.sur.FindByCode(ctx, *customCode, dupe); err != nil {
-			var cErr *customerror.CustomError
-			if !errors.As(err, &cErr) {
-				return "", nil, customerror.NewError(
-					"something went wrong",
-					errors.New("failed to parse error"),
-					customerror.CommonErr,
-				)
-			}
-
-			if cErr.ErrCode != customerror.ItemNotFound {
-				return "", nil, err
-			}
-		} else {
+		// if exist on database, return error
+		_, err = sus.sur.FindByCode(ctx, *customCode)
+		if err == nil {
 			return "", nil, customerror.NewError(
 				"url already exist",
 				errors.New("code already exist"),
 				customerror.InvalidAction,
 			)
+		}
+		var cErr *customerror.CustomError
+		if !errors.As(err, &cErr) {
+			return "", nil, customerror.NewError(
+				"something went wrong",
+				errors.New("failed to parse error"),
+				customerror.CommonErr,
+			)
+		}
+		// if database error, return the error
+		if cErr.ErrCode != customerror.ItemNotFound {
+			return "", nil, err
 		}
 	}
 
-	url := new(URL)
-	var shortCode string
-	if err := sus.trm.WithTransaction(ctx, func(c context.Context) error {
+	var (
+		shortCode string = ""
+		url       URL    = URL{}
+	)
 
-		if err := sus.sur.InsertNewURL(c, userID, encryptedURL, eat, url); err != nil {
+	if err := sus.trm.WithTransaction(ctx, func(c context.Context) error {
+		url, err = sus.sur.InsertNewURL(c, userID, encryptedURL, eat)
+		if err != nil {
 			return err
 		}
-
 		if customCode != nil && userID != nil {
 			shortCode = *customCode
 		} else {
 			shortCode = sus.ide.Encode(url.ID)
 		}
 
-		return sus.sur.UpdateShortCode(c, url.ID, shortCode, url)
+		url, err = sus.sur.UpdateShortCode(c, url.ID, shortCode)
 
+		return err
 	}); err != nil {
 		return "", nil, err
 	}
@@ -244,17 +247,18 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 		}
 
 		services.WithErrorRetry(ctx, fun, 100*time.Millisecond)
-	}(userID, shortCode, *url)
+	}(userID, shortCode, url)
 
 	return shortCode, eat, nil
 }
 
 func (sus *URLServiceImpl) VisitOriginalURL(ctx context.Context, shortCode string, device string) (string, error) {
-	url := new(URL)
 	now := time.Now()
 
-	if err := sus.suc.Get(ctx, shortCode, url); err != nil {
-		if err := sus.sur.FindByCode(ctx, shortCode, url); err != nil {
+	url, err := sus.suc.Get(ctx, shortCode)
+	if err != nil {
+		url, err = sus.sur.FindByCode(ctx, shortCode)
+		if err != nil {
 			return "", err
 		}
 		go func(eid string, u URL) {
@@ -267,7 +271,7 @@ func (sus *URLServiceImpl) VisitOriginalURL(ctx context.Context, shortCode strin
 			}
 
 			services.WithErrorRetry(ctx, fun, 100*time.Millisecond)
-		}(shortCode, *url)
+		}(shortCode, url)
 	}
 
 	if url.ExpiredAt != nil && now.After(*url.ExpiredAt) {
@@ -294,7 +298,7 @@ func (sus *URLServiceImpl) VisitOriginalURL(ctx context.Context, shortCode strin
 
 			services.WithErrorRetry(ctx, fun, 100*time.Millisecond)
 		}
-	}(*url, device)
+	}(url, device)
 
 	return decryptedURL, nil
 }

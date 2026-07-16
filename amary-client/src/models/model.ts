@@ -16,4 +16,5 @@ export interface PaginateResponse<T> {
 
 export interface ErrorResponse {
   detail: string;
+  error_code: number
 }

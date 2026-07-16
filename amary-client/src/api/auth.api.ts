@@ -1,17 +1,33 @@
 import type { ServerResponse } from "../models/model";
-import type { User } from "../models/user.model";
+import type { User, LogoutRes, LoginRes } from "../models/user.model";
 import { apiFetch } from "./api";
 
 export async function login(): Promise<void> {
   const redirectURI = window.location.origin;
-  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/login?redirect_uri=${redirectURI}`;
-  window.location.href = url;
+  const reqBody = JSON.stringify({
+    redirect_uri: redirectURI
+  })
+  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/login`;
+  const res = await apiFetch(url, 200, {
+    body: reqBody,
+    method: "POST",
+  });
+  const resBody: ServerResponse<LoginRes> = await res.json();
+  window.location.href = resBody.data.redirect_uri;
 }
 
 export async function logout(): Promise<void> {
   const redirectURI = window.location.origin;
-  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/logout?redirect_uri=${redirectURI}`;
-  window.location.href = url;
+  const reqBody = JSON.stringify({
+    redirect_uri: redirectURI
+  })
+  const url = `${import.meta.env.VITE_SERVER_HOST}/api/v1/logout`;
+  const res = await apiFetch(url, 200, {
+    body: reqBody,
+    method: "POST",
+  });
+  const resBody: ServerResponse<LogoutRes> = await res.json();
+  window.location.href = resBody.data.redirect_uri;
 }
 
 export async function getMe(): Promise<User | null> {
