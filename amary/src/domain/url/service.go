@@ -190,33 +190,34 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 			)
 		}
 
-		// if not exist on cache, check dupe on db, if exist return error
+		// if exist on database, return error
 		_, err = sus.sur.FindByCode(ctx, *customCode)
-		if err != nil {
-			var cErr *customerror.CustomError
-			if !errors.As(err, &cErr) {
-				return "", nil, customerror.NewError(
-					"something went wrong",
-					errors.New("failed to parse error"),
-					customerror.CommonErr,
-				)
-			}
-
-			if cErr.ErrCode != customerror.ItemNotFound {
-				return "", nil, err
-			}
-		} else {
+		if err == nil {
 			return "", nil, customerror.NewError(
 				"url already exist",
 				errors.New("code already exist"),
 				customerror.InvalidAction,
 			)
 		}
+		var cErr *customerror.CustomError
+		if !errors.As(err, &cErr) {
+			return "", nil, customerror.NewError(
+				"something went wrong",
+				errors.New("failed to parse error"),
+				customerror.CommonErr,
+			)
+		}
+		// if database error, return the error
+		if cErr.ErrCode != customerror.ItemNotFound {
+			return "", nil, err
+		}
 	}
+
 	var (
 		shortCode string = ""
 		url       URL    = URL{}
 	)
+
 	if err := sus.trm.WithTransaction(ctx, func(c context.Context) error {
 		url, err = sus.sur.InsertNewURL(c, userID, encryptedURL, eat)
 		if err != nil {
@@ -229,6 +230,7 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 		}
 
 		url, err = sus.sur.UpdateShortCode(c, url.ID, shortCode)
+
 		return err
 	}); err != nil {
 		return "", nil, err
