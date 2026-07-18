@@ -112,7 +112,7 @@ func (uh *UserHandlerImpl) LoginCallback(ctx fiber.Ctx) error {
 		Secure:   secure,
 		Expires:  time.Now().Add(-3 * time.Minute),
 	})
-	return ctx.Redirect().Status(http.StatusTemporaryRedirect).To(redirectURI + "/login/callback")
+	return ctx.Redirect().Status(http.StatusTemporaryRedirect).To(redirectURI)
 }
 
 func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {

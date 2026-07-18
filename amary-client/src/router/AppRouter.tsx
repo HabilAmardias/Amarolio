@@ -3,11 +3,12 @@ import { HomePage } from '../pages/home';
 import { Navbar } from '../components/Navbar';
 import { Box } from '@mui/material';
 import { LoginPage } from '../pages/login';
-import { LoginCallbackPage } from '../pages/login/callback'
 import { DashboardPage } from '../pages/dashboard';
 import { URLStatsPage } from '../pages/dashboard/URLStatsPage';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { HelmetProvider } from 'react-helmet-async';
+import { QRISPage } from '../pages/donation/qris';
+import { Error404Page } from '../pages/error';
 
 export function AppRouter() {
   return (
@@ -19,7 +20,6 @@ export function AppRouter() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/login/callback" element={<LoginCallbackPage />} />
               <Route
                 path="/dashboard"
                 element={
@@ -28,6 +28,9 @@ export function AppRouter() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/donation/qris" element={
+                <QRISPage />
+              }></Route>
               <Route
                 path="/dashboard/url/:id"
                 element={
@@ -36,6 +39,7 @@ export function AppRouter() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="*" element={<Error404Page />} />
             </Routes>
           </Box>
         </Box>
