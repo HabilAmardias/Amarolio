@@ -1,10 +1,24 @@
-import { AppBar, Toolbar, Typography, Box, Button, IconButton } from '@mui/material';
+import { AppBar, Toolbar, Typography, Box, Button, IconButton, Popper, Grow, Paper, ClickAwayListener, MenuList, MenuItem } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../controllers/useAuth';
+import { useRef, useState } from 'react';
 
 export function Navbar() {
   const { user, logout } = useAuth();
+  const [open, setOpen] = useState<boolean>(false)
+  const ref = useRef<HTMLButtonElement>(null)
+
+  const handleClose = (event: Event | React.SyntheticEvent) => {
+    if (
+      ref.current &&
+      ref.current.contains(event.target as HTMLElement)
+    ) {
+      return;
+    }
+
+    setOpen(false);
+  };
 
   return (
     <AppBar position="static" color="default">
@@ -42,20 +56,84 @@ export function Navbar() {
           </Typography>
 
           <Button
-            href={import.meta.env.VITE_DONATION_URI}
-            target="_blank"
-            rel="noopener noreferrer"
+            ref={ref}
+            onClick={() => setOpen((prev) => !prev)}
             sx={{
+              background: "none",
+              color: "#c25e00",
               ml: { xs: 1, sm: 2, md: 3 },
-              color: '#ffffff',
-              fontWeight: 600,
+              fontWeight: 900,
               fontSize: { xs: '0.75rem', sm: '0.9rem', md: '1rem' },
-              whiteSpace: 'nowrap',
               minWidth: 'auto',
+              border: "none",
+              boxShadow: "none",
+              "&:hover": {
+                boxShadow: "none",
+                border: "none"
+              }
             }}
           >
-            ☕ Donate
+            Donate ☕
           </Button>
+          <Popper
+            open={open}
+            anchorEl={ref.current}
+            placement='bottom-start'
+            transition
+            disablePortal
+          >
+            {({ TransitionProps }) => (
+              <Grow
+                {...TransitionProps}
+                style={{
+                  transformOrigin: "left-top"
+                }}
+              >
+                <Paper>
+                  <ClickAwayListener onClickAway={handleClose}>
+                    <MenuList
+                      autoFocusItem={open}
+                      id="composition-menu"
+                      aria-labelledby="composition-button"
+                      sx={{
+                        bgcolor: "#c25e00"
+                      }}
+                    >
+                      <MenuItem>
+                        <Button
+                          href='/donation/qris'
+                          sx={{
+                            background: "none",
+                            border: "none",
+                            "&:hover": {
+                              background: "none",
+                              border: "none"
+                            }
+                          }}>QRIS</Button>
+                      </MenuItem>
+                      <MenuItem>
+                        <Button
+                          href={import.meta.env.VITE_DONATION_URI}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          sx={{
+                            background: "none",
+                            border: "none",
+                            "&:hover": {
+                              background: "none",
+                              border: "none"
+                            }
+                          }}
+                        >
+                          Ko-Fi
+                        </Button>
+                      </MenuItem>
+                    </MenuList>
+                  </ClickAwayListener>
+                </Paper>
+              </Grow>
+            )}
+          </Popper>
         </Box>
 
         {/* CENTER SECTION: Dashboard Button (Responsive) */}
