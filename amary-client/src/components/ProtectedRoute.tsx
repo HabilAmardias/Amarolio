@@ -1,15 +1,13 @@
 import { Navigate } from 'react-router-dom';
-import { useAtom } from 'jotai';
-import { authAtom, authLoadingAtom } from '../models/user.model';
 import { CircularProgress, Box } from '@mui/material';
+import { useAuth } from '../controllers/useAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const [user] = useAtom(authAtom);
-  const [isLoading] = useAtom(authLoadingAtom);
+  const { user, isLoading } = useAuth()
 
   if (isLoading) {
     return (

@@ -22,7 +22,7 @@ func NewURLEncryptor() *URLEncryptor {
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-	block, err := aes.NewCipher([]byte(key))
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}

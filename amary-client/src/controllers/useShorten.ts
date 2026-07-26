@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useAtom } from "jotai";
-import { authAtom } from "../models/user.model";
-import { tokenAtom, resultAtom } from "../models/url.model";
+import { userModel } from "../models/user/model";
 import { shortenUrl, findCustomURLs } from "../api/url.api";
+import type { ShortenResponse } from "../models/url/type";
 
 export function useShorten() {
-  const [user] = useAtom(authAtom);
-  const [result, setResult] = useAtom(resultAtom);
-  const [token, setToken] = useAtom(tokenAtom);
+  const [user] = useAtom(userModel.userAtom);
+  const [result, setResult] = useState<ShortenResponse | null>(null);
+  const [token, setToken] = useState<string>("");
   const [rawCustom, setRawCustom] = useState<string>("");
   const [customSlug, setCustomSlug] = useState<string>("");
   const timerRef = useRef<number | null>(null);
