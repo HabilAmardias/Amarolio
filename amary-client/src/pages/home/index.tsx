@@ -1,12 +1,8 @@
 import { Box, Container, Typography } from '@mui/material';
 import { ShortenForm } from '../../components/ShortenForm';
-import { ResultCard } from '../../components/ResultCard';
-import { useShorten } from '../../controllers/useShorten';
 import { Helmet } from 'react-helmet-async';
 
 export function HomePage() {
-  const { result } = useShorten();
-
   return (
     <Container maxWidth="sm">
       <Helmet>
@@ -56,8 +52,6 @@ export function HomePage() {
         </Typography>
 
         <ShortenForm />
-
-        {result && <ResultCard result={result} />}
       </Box>
     </Container>
   );

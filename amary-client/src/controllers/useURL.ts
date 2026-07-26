@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { getUserURLs as apiGetUserURLs } from "../api/url.api";
-import type { UserLink } from "../models/url.model";
+import type { UserLink } from "../models/url/type";
 
 type PaginationState = {
   page: number;

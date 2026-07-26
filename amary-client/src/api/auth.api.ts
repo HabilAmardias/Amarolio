@@ -1,5 +1,5 @@
-import type { ServerResponse } from "../models/model";
-import type { User, LogoutRes, LoginRes } from "../models/user.model";
+import type { ServerResponse } from "../models/type";
+import type { User, LogoutRes, LoginRes } from "../models/user/type";
 import { apiFetch } from "./api";
 
 export async function login(): Promise<void> {

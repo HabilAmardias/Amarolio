@@ -1,5 +1,5 @@
-import type { ErrorResponse, ServerResponse } from "../models/model";
-import type { LogoutRes } from "../models/user.model";
+import type { ErrorResponse, ServerResponse } from "../models/type";
+import type { LogoutRes } from "../models/user/type";
 
 // Store the active refresh promise to share across concurrent API requests
 let activeRefreshPromise: Promise<string> | null = null;

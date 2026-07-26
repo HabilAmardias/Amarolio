@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Box, Container, Typography, Button, Alert, Paper } from '@mui/material';
-import { useAuth } from '../../controllers/useAuth';
 import { Google as GoogleIcon } from '@mui/icons-material';
+import { Navigate } from 'react-router-dom';
+import { useAtom } from 'jotai';
+import { userModel } from '../../models/user/model';
+import { login } from '../../api/auth.api';
 
 export function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const [user] = useAtom(userModel.userAtom);
 
   const handleGoogleLogin = async () => {
     setError('');
@@ -21,6 +24,9 @@ export function LoginPage() {
     }
   };
 
+  if (user) {
+    return <Navigate to="/" replace />
+  }
 
 
   return (

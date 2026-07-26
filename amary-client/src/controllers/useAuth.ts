@@ -1,15 +1,15 @@
 import { useAtom } from "jotai";
-import { authAtom, authLoadingAtom } from "../models/user.model";
+import { userModel } from "../models/user/model";
 import {
   login as loginApi,
   logout as logoutApi,
   getMe as getMeApi,
 } from "../api/auth.api";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 
 export function useAuth() {
-  const [user, setUser] = useAtom(authAtom);
-  const [isLoading, setIsLoading] = useAtom(authLoadingAtom);
+  const [user, setUser] = useAtom(userModel.userAtom);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     getMeApi()

@@ -4,8 +4,8 @@ import type {
   UserLink,
   FindCustomURLRequest,
   VisitDashboardRes,
-} from "../models/url.model";
-import type { ServerResponse, PaginateResponse } from "../models/model";
+} from "../models/url/type";
+import type { ServerResponse, PaginateResponse } from "../models/type";
 import { apiFetch } from "./api";
 
 export async function findCustomURLs(customCode: string) {
