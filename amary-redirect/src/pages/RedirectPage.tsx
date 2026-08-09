@@ -149,9 +149,20 @@ export default function RedirectPage() {
                 <meta name="description" content="Please wait while Amary securely prepares your link. We are redirecting you to your destination." />
                 <meta name="robots" content="noindex, follow" />
                 {destinationUrl && <link rel="canonical" href={destinationUrl} />}
+                <meta property="og:site_name" content="Amary" />
                 <meta property="og:title" content={pageTitle} />
                 <meta property="og:description" content="Secure and fast link redirection by Amary URL Shortener." />
                 <meta property="og:type" content="website" />
+                <meta property="og:url" content={window.location.href} />
+                <meta property="og:image" content="https://amary.id/og-image.png" />
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
+                <meta property="og:image:alt" content="Amary URL shortener" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={pageTitle} />
+                <meta name="twitter:description" content="Secure and fast link redirection by Amary URL Shortener." />
+                <meta name="twitter:image" content="https://amary.id/og-image.png" />
+                <meta name="twitter:image:alt" content="Amary URL shortener" />
                 <script type="application/ld+json">
                     {JSON.stringify({
                         "@context": "https://schema.org",

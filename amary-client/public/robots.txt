@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /dashboard
+Disallow: /dashboard/url/
+
+Sitemap: https://amary.amarolio.id/sitemap.xml

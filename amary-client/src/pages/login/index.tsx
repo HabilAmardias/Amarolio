@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, Container, Typography, Button, Alert, Paper } from '@mui/material';
 import { Google as GoogleIcon } from '@mui/icons-material';
 import { Navigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAtom } from 'jotai';
 import { userModel } from '../../models/user/model';
 import { login } from '../../api/auth.api';
@@ -30,6 +31,12 @@ export function LoginPage() {
 
   return (
     <Container maxWidth="sm">
+      <Helmet>
+        <title>Sign In | Amary</title>
+        <meta name="description" content="Sign in to your Amary account to manage your shortened links, track analytics, and create custom short URLs." />
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="googlebot" content="noindex, nofollow" />
+      </Helmet>
       <Box sx={{ py: { xs: 6, sm: 8 }, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 'calc(100vh - 64px)' }}>
         <Typography
           variant="h3"

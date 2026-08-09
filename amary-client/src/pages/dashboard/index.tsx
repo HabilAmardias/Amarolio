@@ -1,4 +1,5 @@
 import { Box, Alert, Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, IconButton, Tooltip } from '@mui/material';
+import { Helmet } from 'react-helmet-async';
 import { useURL } from '../../controllers/useURL';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { Link } from 'react-router-dom';
@@ -7,6 +8,12 @@ export function DashboardPage() {
   const { userURL, page, limit, hasNextPage, error, handleChangePage, handleChangeLimit } = useURL()
   return (
     <Container maxWidth="md">
+      <Helmet>
+        <title>Dashboard | Amary</title>
+        <meta name="description" content="Manage your shortened URLs, view expiration dates, and access click analytics on the Amary dashboard." />
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="googlebot" content="noindex, nofollow" />
+      </Helmet>
       <Box sx={{ my: { xs: 3, sm: 4 } }}>
         <Typography
           variant="h3"

@@ -1,4 +1,5 @@
 import { useParams, Link as RouterLink } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import {
   Box,
   Container,
@@ -45,6 +46,12 @@ export function URLStatsPage() {
 
   return (
     <Container maxWidth="lg" sx={{ my: 4, px: { xs: 2, sm: 3 } }}>
+      <Helmet>
+        <title>URL Stats | Amary</title>
+        <meta name="description" content="View detailed analytics for your shortened Amary link, including visits today, this week, and device breakdown." />
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="googlebot" content="noindex, nofollow" />
+      </Helmet>
       {/* Back navigation */}
       <Box sx={{ mb: 3 }}>
         <Button
