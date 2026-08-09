@@ -1,4 +1,4 @@
-import { Card, Typography, Box, Chip, Avatar } from "@mui/material";
+import { Card, Typography, Box, Chip } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import type { Experience } from "../../models/types";
 
@@ -9,13 +9,6 @@ interface ExperienceCardProps {
 export default function ExperienceCard({ experience }: ExperienceCardProps) {
   const theme = useTheme();
   const isLight = theme.palette.mode === "light";
-
-  const initials = experience.company
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word.charAt(0).toUpperCase())
-    .join("");
 
   return (
     <Card
