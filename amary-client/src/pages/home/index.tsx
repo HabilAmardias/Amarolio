@@ -14,12 +14,20 @@ export function HomePage() {
         <meta name="description" content="Amary helps you simplify and shorten long URLs into manageable links. Free, fast, and easy to use for all your sharing needs." />
         <meta name="keywords" content="URL shortener, link shortener, Amary, simplify links, marketing tools" />
         <link rel="canonical" href={window.location.origin} />
+        <meta property="og:site_name" content="Amary" />
         <meta property="og:title" content="Amary | Fast & Simple URL Shortener" />
         <meta property="og:description" content="Simplify your links with ease using Amary. Create short, manageable links in seconds." />
         <meta property="og:url" content={window.location.origin} />
         <meta property="og:type" content="website" />
+        <meta property="og:image" content={`${window.location.origin}/og-image.png`} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Amary - Fast and simple URL shortener" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Amary | URL Shortener" />
+        <meta name="twitter:title" content="Amary | Fast & Simple URL Shortener" />
+        <meta name="twitter:description" content="Simplify your links with ease using Amary. Create short, manageable links in seconds." />
+        <meta name="twitter:image" content={`${window.location.origin}/og-image.png`} />
+        <meta name="twitter:image:alt" content="Amary - Fast and simple URL shortener" />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -27,7 +35,39 @@ export function HomePage() {
             "name": "Amary",
             "url": window.location.origin,
             "description": "Simplify your links with ease using Amary URL Shortener.",
-            "applicationCategory": "UtilitiesApplication"
+            "applicationCategory": "UtilitiesApplication",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "featureList": [
+              "Free URL shortening",
+              "Custom expiration",
+              "Click analytics",
+              "No signup required"
+            ],
+            "publisher": {
+              "@type": "Organization",
+              "name": "Amary",
+              "logo": {
+                "@type": "ImageObject",
+                "url": `${window.location.origin}/favicon.svg`
+              }
+            }
+          })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Amary",
+            "url": window.location.origin,
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": `${window.location.origin}/?query={search_term_string}`,
+              "query-input": "required name=search_term_string"
+            }
           })}
         </script>
       </Helmet>

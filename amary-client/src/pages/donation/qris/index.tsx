@@ -1,4 +1,5 @@
 import { Box, Paper, Typography } from '@mui/material'
+import { Helmet } from 'react-helmet-async'
 import qrisImage from '../../../assets/qris.JPG'
 
 export function QRISPage() {
@@ -14,6 +15,16 @@ export function QRISPage() {
                 boxSizing: 'border-box',
             }}
         >
+            <Helmet>
+                <title>Support Amary - Donate | Amary</title>
+                <meta name="description" content="Support Amary's development with a donation. Scan the QRIS code to contribute securely and help keep the URL shortener free." />
+                <link rel="canonical" href={`${window.location.origin}/donation/qris`} />
+                <meta property="og:site_name" content="Amary" />
+                <meta property="og:title" content="Support Amary - Donate" />
+                <meta property="og:description" content="Support Amary's development with a donation. Scan the QRIS code to contribute securely and help keep the URL shortener free." />
+                <meta property="og:url" content={`${window.location.origin}/donation/qris`} />
+                <meta property="og:type" content="website" />
+            </Helmet>
             <Typography
                 variant="h4"
                 component="h1"

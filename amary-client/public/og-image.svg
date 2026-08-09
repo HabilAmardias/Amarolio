@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff8ef"/>
+      <stop offset="55%" stop-color="#f8e7d2"/>
+      <stop offset="100%" stop-color="#f3a45b"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffe8c2"/>
+      <stop offset="100%" stop-color="#f9c08a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="150" cy="80" r="320" fill="url(#glow)" opacity="0.45"/>
+  <circle cx="1080" cy="560" r="300" fill="#f3a45b" opacity="0.35"/>
+  <rect x="60" y="60" width="1080" height="510" rx="32" fill="#ffffff" opacity="0.55" stroke="#ffffff" stroke-width="2"/>
+  <g transform="translate(330, 200)">
+    <path d="M90 110H56a44 44 0 0 1-44-44v0a44 44 0 0 1 44-44h34a44 44 0 0 1 44 44" stroke="#ce6218" stroke-width="22" stroke-linecap="round" fill="none"/>
+    <path d="M172 152h34a44 44 0 0 1 44 44v0a44 44 0 0 1-44 44h-34a44 44 0 0 1-44-44" stroke="#ce6218" stroke-width="22" stroke-linecap="round" fill="none" opacity="0.4"/>
+    <path d="M112 146l38-38" stroke="#ce6218" stroke-width="28" stroke-linecap="round"/>
+    <circle cx="112" cy="146" r="12" fill="#ce6218"/>
+    <circle cx="150" cy="108" r="12" fill="#ce6218"/>
+  </g>
+  <text x="600" y="320" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="120" font-weight="700" fill="#111111">Amary</text>
+  <text x="600" y="395" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="600" fill="#57534e">Fast &amp; simple URL shortener</text>
+  <text x="600" y="475" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="30" fill="#78716c">Free · Fast · No signup needed</text>
+  <text x="600" y="540" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="500" fill="#ce6218">amary.amarolio.id</text>
+</svg>
