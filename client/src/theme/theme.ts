@@ -5,46 +5,52 @@ import { useEffect, useState } from "react";
 export type ColorMode = "system" | "light" | "dark";
 
 export const brand = {
-  steel: "#6a89a7",
-  pale: "#bdddfc",
-  sky: "#88bdf2",
-  navy: "#384959",
+  blue: "#3D6BD4",
+  sky: "#8FB3F0",
+  mist: "#DCE8FB",
+  navy: "#253350",
+  ink: "#222A3B",
+  slate: "#5C6B84",
+  amber: "#F0A63B",
+  cream: "#F7F4EE",
 };
 
 const typography = {
-  fontFamily: "'Inter', 'Plus Jakarta Sans', 'Sora', 'DM Sans', sans-serif",
+  fontFamily: "'Open Sans', 'Poppins', 'Inter', sans-serif",
   h1: {
-    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-    fontWeight: 800,
+    fontFamily: "'Poppins', 'Open Sans', sans-serif",
+    fontWeight: 700,
     letterSpacing: "-0.02em",
     lineHeight: 1.12,
   },
   h2: {
-    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-    fontWeight: 800,
+    fontFamily: "'Poppins', 'Open Sans', sans-serif",
+    fontWeight: 700,
     letterSpacing: "-0.015em",
-    lineHeight: 1.15,
+    lineHeight: 1.18,
   },
   h3: {
-    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-    fontWeight: 700,
+    fontFamily: "'Poppins', 'Open Sans', sans-serif",
+    fontWeight: 600,
     letterSpacing: "-0.01em",
-    lineHeight: 1.25,
+    lineHeight: 1.28,
   },
   h4: {
-    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-    fontWeight: 700,
+    fontFamily: "'Poppins', 'Open Sans', sans-serif",
+    fontWeight: 600,
     letterSpacing: "-0.01em",
   },
   h5: {
-    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-    fontWeight: 700,
+    fontFamily: "'Poppins', 'Open Sans', sans-serif",
+    fontWeight: 600,
   },
   h6: {
-    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-    fontWeight: 700,
+    fontFamily: "'Poppins', 'Open Sans', sans-serif",
+    fontWeight: 600,
   },
   button: { textTransform: "none", fontWeight: 600 },
+  body1: { lineHeight: 1.7 },
+  body2: { lineHeight: 1.65 },
 };
 
 function buildTheme(mode: "light" | "dark"): Theme {
@@ -54,45 +60,53 @@ function buildTheme(mode: "light" | "dark"): Theme {
       mode,
       ...(isLight
         ? {
-            background: { default: "#f4f7fb", paper: "#ffffff" },
+            background: { default: brand.cream, paper: "#ffffff" },
             primary: {
-              main: brand.steel,
+              main: brand.blue,
               light: brand.sky,
               dark: brand.navy,
               contrastText: "#ffffff",
             },
             secondary: {
               main: brand.sky,
-              light: brand.pale,
-              contrastText: "#18303f",
+              light: brand.mist,
+              contrastText: brand.navy,
             },
-            text: { primary: "#384959", secondary: "#4e6b87" },
-            divider: "rgba(106, 137, 167, 0.22)",
+            warning: {
+              main: brand.amber,
+              contrastText: "#4A3210",
+            },
+            text: { primary: brand.ink, secondary: brand.slate },
+            divider: "rgba(61, 107, 212, 0.16)",
           }
         : {
-            background: { default: "#152129", paper: "#1e2c37" },
+            background: { default: "#1B212E", paper: "#232B3A" },
             primary: {
               main: brand.sky,
-              light: brand.pale,
-              dark: brand.steel,
-              contrastText: "#0d1a22",
+              light: "#C6DCFA",
+              dark: brand.blue,
+              contrastText: "#0E1A2E",
             },
             secondary: {
-              main: brand.steel,
+              main: "#6F8FC8",
               light: brand.sky,
-              contrastText: "#f0f7fe",
+              contrastText: "#0E1A2E",
             },
-            text: { primary: "#eaf3fb", secondary: "#a9c0d5" },
-            divider: "rgba(189, 221, 252, 0.14)",
+            warning: {
+              main: "#F5B45C",
+              contrastText: "#241B08",
+            },
+            text: { primary: "#F2F5FA", secondary: "#A9B7CD" },
+            divider: "rgba(143, 179, 240, 0.16)",
           }),
     },
     typography,
-    shape: { borderRadius: 12 },
+    shape: { borderRadius: 14 },
     components: {
       MuiCssBaseline: {
         styleOverrides: {
           body: {
-            fontFamily: "'Inter', 'Plus Jakarta Sans', 'Sora', 'DM Sans', sans-serif",
+            fontFamily: "'Open Sans', 'Poppins', 'Inter', sans-serif",
           },
         },
       },
@@ -107,21 +121,21 @@ function buildTheme(mode: "light" | "dark"): Theme {
         styleOverrides: {
           root: {
             backgroundImage: "none",
-            background: isLight ? "#ffffff" : "#1e2c37",
+            background: isLight ? "#ffffff" : "#232B3A",
             border: `1px solid ${
-              isLight ? "rgba(106,137,167,0.18)" : "rgba(189,221,252,0.12)"
+              isLight ? "rgba(61,107,212,0.14)" : "rgba(143,179,240,0.14)"
             }`,
-            borderRadius: 20,
+            borderRadius: 22,
             transition:
-              "transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease",
+              "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.28s ease",
             "&:hover": {
-              transform: "translateY(-4px)",
+              transform: "translateY(-5px)",
               boxShadow: isLight
-                ? "0 18px 40px -18px rgba(56,73,89,0.3)"
-                : "0 18px 48px -12px rgba(0,0,0,0.55)",
+                ? "0 20px 44px -18px rgba(37,51,80,0.28)"
+                : "0 20px 48px -14px rgba(0,0,0,0.55)",
               borderColor: isLight
-                ? "rgba(136,189,242,0.5)"
-                : "rgba(189,221,252,0.3)",
+                ? "rgba(61,107,212,0.35)"
+                : "rgba(143,179,240,0.35)",
             },
           },
         },
@@ -130,11 +144,11 @@ function buildTheme(mode: "light" | "dark"): Theme {
         styleOverrides: {
           root: {
             background: isLight
-              ? "rgba(244,247,251,0.75)"
-              : "rgba(21,33,41,0.72)",
-            backdropFilter: "blur(16px) saturate(160%)",
+              ? "rgba(247,244,238,0.72)"
+              : "rgba(27,33,46,0.72)",
+            backdropFilter: "blur(18px) saturate(150%)",
             borderBottom: `1px solid ${
-              isLight ? "rgba(106,137,167,0.14)" : "rgba(189,221,252,0.1)"
+              isLight ? "rgba(61,107,212,0.1)" : "rgba(143,179,240,0.1)"
             }`,
             boxShadow: "none",
           },
@@ -147,14 +161,19 @@ function buildTheme(mode: "light" | "dark"): Theme {
             textTransform: "none",
             fontWeight: 600,
             letterSpacing: "0.01em",
+            transition:
+              "transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, background-color 0.2s ease",
+            "&:active": {
+              transform: "translateY(1px) scale(0.98)",
+            },
           },
           contained: {
             boxShadow: isLight
-              ? "0 10px 24px -10px rgba(56,73,89,0.55)"
+              ? "0 10px 24px -10px rgba(61,107,212,0.55)"
               : "0 8px 24px -8px rgba(0,0,0,0.5)",
             "&:hover": {
               boxShadow: isLight
-                ? "0 12px 28px -10px rgba(56,73,89,0.7)"
+                ? "0 14px 30px -12px rgba(61,107,212,0.7)"
                 : "0 10px 28px -8px rgba(0,0,0,0.6)",
             },
           },
@@ -163,13 +182,13 @@ function buildTheme(mode: "light" | "dark"): Theme {
       MuiChip: {
         styleOverrides: {
           root: {
-            fontWeight: 500,
+            fontWeight: 600,
             borderRadius: 999,
           },
           outlined: {
             borderColor: isLight
-              ? "rgba(106,137,167,0.4)"
-              : "rgba(189,221,252,0.25)",
+              ? "rgba(61,107,212,0.35)"
+              : "rgba(143,179,240,0.3)",
           },
         },
       },

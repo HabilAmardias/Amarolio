@@ -17,13 +17,12 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
           justifyContent: 'center',
           alignItems: 'center',
           height: '100vh',
-          background: 'radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 100%)',
+          background: 'radial-gradient(1100px 560px at 8% -8%, #ffe8c2 0%, transparent 55%), radial-gradient(900px 560px at 100% 4%, #f9c08a 0%, transparent 52%), radial-gradient(1000px 640px at 55% 112%, #f3a45b 0%, transparent 55%), linear-gradient(180deg, #fff8ef 0%, #f8e7d2 100%)',
         }}
       >
         <CircularProgress
           sx={{
-            color: '#c25e00',
-            boxShadow: '0 0 30px rgba(194, 94, 0, 0.6)',
+            color: 'primary.main',
           }}
         />
       </Box>

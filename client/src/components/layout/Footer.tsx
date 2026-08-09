@@ -33,7 +33,7 @@ export default function Footer() {
         mt: "auto",
         py: 5,
         borderTop: `1px solid ${
-          isLight ? "rgba(106,137,167,0.16)" : "rgba(189,221,252,0.08)"
+          isLight ? "rgba(61,107,212,0.14)" : "rgba(143,179,240,0.1)"
         }`,
       }}
     >
@@ -56,6 +56,7 @@ export default function Footer() {
                 border: "1px solid",
                 borderColor: "divider",
                 color: "text.secondary",
+                transition: "all 0.2s ease",
                 "&:hover": {
                   color: "primary.main",
                   borderColor: "primary.main",
@@ -72,8 +73,8 @@ export default function Footer() {
           color="text.secondary"
           sx={{ textAlign: "center" }}
         >
-          © {new Date().getFullYear()} Amarolio. All rights reserved.{" "}
-          {/* TODO: Replace with real content */}
+          Made with a little coffee & a lot of code. © {new Date().getFullYear()}{" "}
+          Amarolio. All rights reserved.
         </Typography>
       </Box>
     </Box>

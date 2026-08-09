@@ -30,7 +30,7 @@ export function URLStatsPage() {
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "80vh" }}>
-        <CircularProgress sx={{ color: "#c25e00" }} />
+        <CircularProgress sx={{ color: "primary.main" }} />
       </Box>
     );
   }
@@ -52,13 +52,13 @@ export function URLStatsPage() {
           to="/dashboard"
           startIcon={<ArrowBackIcon />}
           sx={{
-            color: "#c25e00",
+            color: "primary.main",
             background: "none",
             boxShadow: "none",
             fontSize: "0.95rem",
             px: 1,
             "&:hover": {
-              background: "rgba(194, 94, 0, 0.06)",
+              background: "rgba(180, 83, 9, 0.06)",
               boxShadow: "none",
               transform: "none",
             },
@@ -78,7 +78,7 @@ export function URLStatsPage() {
               <Grid item xs={12} md={9}>
                 <Typography
                   variant="subtitle2"
-                  sx={{ color: "#8b4513", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, mb: 0.5 }}
+                  sx={{ color: "secondary.main", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, mb: 0.5 }}
                 >
                   Shortened Link Analytics
                 </Typography>
@@ -90,11 +90,12 @@ export function URLStatsPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     sx={{
-                      color: "#c25e00",
+                      color: "primary.main",
                       fontWeight: 700,
                       textDecoration: "none",
                       wordBreak: "break-all",
                       fontFamily: "'Merriweather', 'Georgia', serif",
+                      fontSize: { xs: "1.3rem", sm: "2rem" },
                       "&:hover": {
                         textDecoration: "underline",
                       },
@@ -107,10 +108,11 @@ export function URLStatsPage() {
                       onClick={handleCopy}
                       size="small"
                       sx={{
-                        color: "#c25e00",
-                        border: "1px solid #e8dcc8",
-                        bgcolor: "#faf6f0",
-                        "&:hover": { bgcolor: "#f5e6d3" },
+                        color: "primary.main",
+                        border: "1px solid",
+                        borderColor: "divider",
+                        bgcolor: "background.paper",
+                        "&:hover": { bgcolor: "rgba(180, 83, 9, 0.06)" },
                       }}
                     >
                       <ContentCopyIcon fontSize="small" />
@@ -134,7 +136,7 @@ export function URLStatsPage() {
                     href={urlDetails.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: "#8b4513", textDecoration: "none" }}
+                    style={{ color: "secondary.main", textDecoration: "none" }}
                   >
                     {urlDetails.url}
                   </a>
@@ -157,15 +159,16 @@ export function URLStatsPage() {
         <Grid item xs={12} sm={6}>
           <Card
             sx={{
-              background: "linear-gradient(135deg, #ffffff 0%, #fdf9f3 100%)",
-              borderLeft: "5px solid #c25e00",
+              background: "linear-gradient(145deg, rgba(255,255,255,0.6) 0%, rgba(255, 244, 230, 0.35) 100%)",
+              borderLeft: "5px solid",
+              borderLeftColor: "primary.main",
             }}
           >
             <CardContent sx={{ display: "flex", alignItems: "center", p: 3 }}>
               <Box
                 sx={{
-                  bgcolor: "rgba(194, 94, 0, 0.1)",
-                  color: "#c25e00",
+                  bgcolor: "rgba(180, 83, 9, 0.1)",
+                  color: "primary.main",
                   p: 1.5,
                   borderRadius: 2,
                   mr: 2.5,
@@ -174,11 +177,11 @@ export function URLStatsPage() {
               >
                 <TodayIcon fontSize="large" />
               </Box>
-              <Box>
-                <Typography variant="body2" sx={{ color: "#5d4037", fontWeight: 600, textTransform: "uppercase" }}>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 600, textTransform: "uppercase" }}>
                   Visits Today
                 </Typography>
-                <Typography variant="h3" sx={{ color: "#3e2723", fontWeight: 700, mt: 0.5 }}>
+                <Typography variant="h3" sx={{ color: "text.primary", fontWeight: 700, mt: 0.5 }}>
                   {stats?.today_visit_count}
                 </Typography>
               </Box>
@@ -188,15 +191,16 @@ export function URLStatsPage() {
         <Grid item xs={12} sm={6}>
           <Card
             sx={{
-              background: "linear-gradient(135deg, #ffffff 0%, #fdf9f3 100%)",
-              borderLeft: "5px solid #8b4513",
+              background: "linear-gradient(145deg, rgba(255,255,255,0.6) 0%, rgba(255, 244, 230, 0.35) 100%)",
+              borderLeft: "5px solid",
+              borderLeftColor: "secondary.main",
             }}
           >
             <CardContent sx={{ display: "flex", alignItems: "center", p: 3 }}>
               <Box
                 sx={{
-                  bgcolor: "rgba(139, 69, 19, 0.1)",
-                  color: "#8b4513",
+                  bgcolor: "rgba(146, 64, 14, 0.1)",
+                  color: "secondary.main",
                   p: 1.5,
                   borderRadius: 2,
                   mr: 2.5,
@@ -205,11 +209,11 @@ export function URLStatsPage() {
               >
                 <CalendarMonthIcon fontSize="large" />
               </Box>
-              <Box>
-                <Typography variant="body2" sx={{ color: "#5d4037", fontWeight: 600, textTransform: "uppercase" }}>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 600, textTransform: "uppercase" }}>
                   Visits This Week
                 </Typography>
-                <Typography variant="h3" sx={{ color: "#3e2723", fontWeight: 700, mt: 0.5 }}>
+                <Typography variant="h3" sx={{ color: "text.primary", fontWeight: 700, mt: 0.5 }}>
                   {stats?.this_week_count}
                 </Typography>
               </Box>
@@ -225,8 +229,8 @@ export function URLStatsPage() {
           <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
             <CardContent sx={{ p: 3, flexGrow: 1, display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
-                <Typography variant="h6" sx={{ color: "#8b4513", display: "flex", alignItems: "center", gap: 1 }}>
-                  <PieChartIcon sx={{ color: "#c25e00" }} /> Device Breakdown
+                <Typography variant="h6" sx={{ color: "secondary.main", display: "flex", alignItems: "center", gap: 1 }}>
+                  <PieChartIcon sx={{ color: "primary.main" }} /> Device Breakdown
                 </Typography>
                 <Tabs
                   value={deviceTab}
@@ -234,16 +238,15 @@ export function URLStatsPage() {
                   size="small"
                   sx={{
                     minHeight: 0,
-                    "& .MuiTabs-indicator": { bgcolor: "#c25e00" },
+                    "& .MuiTabs-indicator": { bgcolor: "primary.main" },
                     "& .MuiTab-root": {
                       py: 0.5,
                       px: 1.5,
                       minHeight: 0,
                       minWidth: 0,
-                      fontSize: "0.8rem",
-                      fontWeight: 600,
-                      color: "#5d4037",
-                      "&.Mui-selected": { color: "#c25e00" },
+                      fontSize: "1rem",
+                      color: "text.secondary",
+                      "&.Mui-selected": { color: "primary.main" },
                     },
                   }}
                 >
@@ -262,8 +265,8 @@ export function URLStatsPage() {
         <Grid item xs={12} md={7}>
           <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
             <CardContent sx={{ p: 3, flexGrow: 1, display: "flex", flexDirection: "column" }}>
-              <Typography variant="h6" sx={{ color: "#8b4513", mb: 3, display: "flex", alignItems: "center", gap: 1 }}>
-                <BarChartIcon sx={{ color: "#c25e00" }} /> Daily Visits (This Week)
+              <Typography variant="h6" sx={{ color: "secondary.main", mb: 3, display: "flex", alignItems: "center", gap: 1 }}>
+                <BarChartIcon sx={{ color: "primary.main" }} /> Daily Visits (This Week)
               </Typography>
               <Box sx={{ flexGrow: 1, minHeight: 250, position: "relative" }}>
                 <canvas ref={dailyChartRef} />
@@ -276,8 +279,8 @@ export function URLStatsPage() {
       {/* Stacked multi-series chart */}
       <Card sx={{ mb: 4 }}>
         <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ color: "#8b4513", mb: 3, display: "flex", alignItems: "center", gap: 1 }}>
-            <MultilineChartIcon sx={{ color: "#c25e00" }} /> Device Activity Detail by Day
+          <Typography variant="h6" sx={{ color: "secondary.main", mb: 3, display: "flex", alignItems: "center", gap: 1 }}>
+            <MultilineChartIcon sx={{ color: "primary.main" }} /> Device Activity Detail by Day
           </Typography>
           <Box sx={{ minHeight: 300, position: "relative" }}>
             <canvas ref={stackedChartRef} />

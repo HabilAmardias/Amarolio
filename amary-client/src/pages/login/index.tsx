@@ -28,19 +28,19 @@ export function LoginPage() {
     return <Navigate to="/" replace />
   }
 
-
   return (
     <Container maxWidth="sm">
-      <Box sx={{ py: 8, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 'calc(100vh - 64px)' }}>
+      <Box sx={{ py: { xs: 6, sm: 8 }, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 'calc(100vh - 64px)' }}>
         <Typography
           variant="h3"
           component="h1"
           gutterBottom
           sx={{
-            color: '#c25e00',
+            color: 'primary.main',
             fontWeight: 700,
             textAlign: 'center',
             mb: 2,
+            fontSize: { xs: '1.9rem', sm: '2.5rem' },
           }}
         >
           Welcome Back
@@ -59,29 +59,20 @@ export function LoginPage() {
 
         <Paper
           elevation={0}
+          variant="outlined"
           sx={{
-            p: 4,
-            border: '1px solid #e8dcc8',
-            borderRadius: 2,
+            p: { xs: 2.5, sm: 4 },
+            borderRadius: 4,
           }}
         >
           <Button
             fullWidth
-            variant="outlined"
+            variant="contained"
             onClick={() => handleGoogleLogin()}
             disabled={isLoading}
             startIcon={<GoogleIcon />}
             sx={{
               py: 1.5,
-              mb: 2,
-              borderColor: '#faf6f0',
-              color: '#faf6f0',
-              fontWeight: 600,
-              '&:hover': {
-                borderColor: '#8b4513',
-                backgroundColor: 'rgba(194, 94, 0, 0.04)',
-                color: '#8b4513',
-              },
             }}
           >
             {isLoading ? 'Signing in...' : 'Sign in with Google'}

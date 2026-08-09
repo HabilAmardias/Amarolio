@@ -6,6 +6,12 @@ import { Chart, registerables } from "chart.js";
 
 Chart.register(...registerables);
 
+// Amary autumn liquid glass chart palette
+const CHART_COLORS = ["#b45309", "#e8820f", "#f59e0b"];
+const CHART_TEXT = "#7a5c44";
+const CHART_INK = "#3b2417";
+const CHART_FONT = "'Inter', 'Helvetica Neue', Arial, sans-serif";
+
 export function useURLStats(urlId: string | undefined) {
   const [stats, setStats] = useState<VisitDashboardRes | null>(null);
   const [urlDetails, setUrlDetails] = useState<UserLink | null>(null);
@@ -81,7 +87,7 @@ export function useURLStats(urlId: string | undefined) {
         datasets: [
           {
             data: counts,
-            backgroundColor: ["#c25e00", "#8b4513", "#f4a460"],
+            backgroundColor: CHART_COLORS,
             borderWidth: 2,
             borderColor: "#ffffff",
           },
@@ -95,9 +101,9 @@ export function useURLStats(urlId: string | undefined) {
             position: "bottom",
             labels: {
               font: {
-                family: "'Merriweather', 'Georgia', serif",
+                family: CHART_FONT,
               },
-              color: "#3e2723",
+              color: CHART_INK,
             },
           },
         },
@@ -131,7 +137,7 @@ export function useURLStats(urlId: string | undefined) {
             label: "Visits",
             data: counts,
             backgroundColor: "rgba(194, 94, 0, 0.85)",
-            hoverBackgroundColor: "#c25e00",
+            hoverBackgroundColor: "#b45309",
             borderRadius: 6,
             borderWidth: 0,
           },
@@ -151,9 +157,9 @@ export function useURLStats(urlId: string | undefined) {
               display: false,
             },
             ticks: {
-              color: "#5d4037",
+              color: CHART_TEXT,
               font: {
-                family: "'Merriweather', 'Georgia', serif",
+                family: CHART_FONT,
                 size: 11,
               },
             },
@@ -164,7 +170,7 @@ export function useURLStats(urlId: string | undefined) {
               color: "rgba(139, 69, 19, 0.08)",
             },
             ticks: {
-              color: "#5d4037",
+              color: CHART_TEXT,
               font: {
                 size: 11,
               },
@@ -189,7 +195,7 @@ export function useURLStats(urlId: string | undefined) {
     const devices = [... new Set(stats.today_device_count.map(d => d.device))]
 
     const datasets = devices.map((device, idx) => {
-      const colors = ["#c25e00", "#8b4513", "#f4a460"];
+      const colors = CHART_COLORS;
       return {
         label: device,
         data: days.map((day) => {
@@ -221,9 +227,9 @@ export function useURLStats(urlId: string | undefined) {
             position: "bottom",
             labels: {
               font: {
-                family: "'Merriweather', 'Georgia', serif",
+                family: CHART_FONT,
               },
-              color: "#3e2723",
+              color: CHART_INK,
             },
           },
         },
@@ -234,9 +240,9 @@ export function useURLStats(urlId: string | undefined) {
               display: false,
             },
             ticks: {
-              color: "#5d4037",
+              color: CHART_TEXT,
               font: {
-                family: "'Merriweather', 'Georgia', serif",
+                family: CHART_FONT,
                 size: 11,
               },
             },
@@ -248,7 +254,7 @@ export function useURLStats(urlId: string | undefined) {
               color: "rgba(139, 69, 19, 0.08)",
             },
             ticks: {
-              color: "#5d4037",
+              color: CHART_TEXT,
               font: {
                 size: 11,
               },

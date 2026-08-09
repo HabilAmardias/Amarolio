@@ -1,4 +1,5 @@
 import { Typography, Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 interface SectionHeaderProps {
   eyebrow?: string;
@@ -11,8 +12,12 @@ export default function SectionHeader({
   title,
   subtitle,
 }: SectionHeaderProps) {
+  const theme = useTheme();
+  const isLight = theme.palette.mode === "light";
+
   return (
     <Box
+      className="animate-fade-up"
       sx={{
         mb: 5,
         textAlign: { xs: "center", sm: "left" },
@@ -31,10 +36,12 @@ export default function SectionHeader({
             borderRadius: 999,
             border: "1px solid",
             borderColor: "divider",
-            background: "rgba(136,189,242,0.14)",
+            background: isLight
+              ? "rgba(143,179,240,0.16)"
+              : "rgba(143,179,240,0.12)",
             color: "primary.main",
             fontSize: "0.78rem",
-            fontWeight: 700,
+            fontWeight: 600,
             textTransform: "uppercase",
             letterSpacing: "0.1em",
             mb: 1.5,
@@ -45,7 +52,7 @@ export default function SectionHeader({
               width: 6,
               height: 6,
               borderRadius: "50%",
-              bgcolor: "secondary.main",
+              bgcolor: "warning.main",
             }}
           />
           {eyebrow}

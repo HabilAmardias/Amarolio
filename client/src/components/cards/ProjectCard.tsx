@@ -7,6 +7,7 @@ import {
   Chip,
   IconButton,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { GitHub, Launch } from "@mui/icons-material";
 import type { Project } from "../../models/types";
 
@@ -14,17 +15,27 @@ interface ProjectCardProps {
   project: Project;
 }
 
-export default function ProjectCard({ project }: ProjectCardProps) {  return (
+export default function ProjectCard({ project }: ProjectCardProps) {
+  const theme = useTheme();
+  const isLight = theme.palette.mode === "light";
+
+  return (
     <Card
+      className="animate-fade-up"
       sx={{
         height: "100%",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        "& .card-media": {
+          transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
+        },
+        "&:hover .card-media": { transform: "scale(1.07)" },
       }}
     >
-      <Box sx={{ position: "relative" }}>
+      <Box sx={{ position: "relative", overflow: "hidden" }}>
         <CardMedia
+          className="card-media"
           component="img"
           height="200"
           image={project.imageUrl}
@@ -33,7 +44,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {  return (
           sx={{
             objectFit: "cover",
             display: "block",
-            background: "rgba(106,137,167,0.12)",
+            background: "rgba(61,107,212,0.1)",
           }}
         />
         {project.featured && (
@@ -44,8 +55,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {  return (
               position: "absolute",
               top: 12,
               right: 12,
-              bgcolor: "rgba(136,189,242,0.92)",
-              color: "#0d1a22",
+              bgcolor: "#F0A63B",
+              color: "#4A3210",
               fontWeight: 700,
               backdropFilter: "blur(6px)",
             }}
@@ -64,7 +75,11 @@ export default function ProjectCard({ project }: ProjectCardProps) {  return (
           variant="h6"
           component="h3"
           gutterBottom
-          sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}
+          sx={{
+            fontWeight: 600,
+            fontFamily: "'Poppins', sans-serif",
+            letterSpacing: "-0.01em",
+          }}
         >
           {project.title}
         </Typography>
@@ -79,7 +94,19 @@ export default function ProjectCard({ project }: ProjectCardProps) {  return (
           sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mb: 2.5 }}
         >
           {project.tags.map((tag) => (
-            <Chip key={tag} label={tag} size="small" variant="outlined" />
+            <Chip
+              key={tag}
+              label={tag}
+              size="small"
+              variant="outlined"
+              sx={{
+                "&:hover": {
+                  bgcolor: isLight
+                    ? "rgba(61,107,212,0.08)"
+                    : "rgba(143,179,240,0.12)",
+                },
+              }}
+            />
           ))}
         </Box>
         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
@@ -94,9 +121,11 @@ export default function ProjectCard({ project }: ProjectCardProps) {  return (
                 border: "1px solid",
                 borderColor: "divider",
                 color: "text.secondary",
+                transition: "all 0.2s ease",
                 "&:hover": {
                   color: "primary.main",
                   borderColor: "primary.main",
+                  transform: "translateY(-2px)",
                 },
               }}
             >
@@ -114,9 +143,11 @@ export default function ProjectCard({ project }: ProjectCardProps) {  return (
                 border: "1px solid",
                 borderColor: "divider",
                 color: "text.secondary",
+                transition: "all 0.2s ease",
                 "&:hover": {
                   color: "primary.main",
                   borderColor: "primary.main",
+                  transform: "translateY(-2px)",
                 },
               }}
             >

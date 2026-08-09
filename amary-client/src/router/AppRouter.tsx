@@ -14,7 +14,7 @@ export function AppRouter() {
   return (
     <HelmetProvider>
       <BrowserRouter>
-        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
           <Navbar />
           <Box component="main" sx={{ flexGrow: 1 }}>
             <Routes>

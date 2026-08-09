@@ -18,14 +18,16 @@ export function ResultCard({ result }: ResultCardProps) {
   return (
     <>
       <Card variant="outlined">
-        <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
             <Typography
               variant="h6"
               sx={{
                 flexGrow: 1,
-                color: '#c25e00',
+                color: 'primary.main',
                 fontWeight: 600,
+                wordBreak: 'break-all',
+                fontSize: { xs: '1rem', sm: '1.25rem' },
               }}
             >
               {result.url}
@@ -33,11 +35,10 @@ export function ResultCard({ result }: ResultCardProps) {
             <IconButton
               onClick={handleCopy}
               size="small"
+              aria-label="Copy short URL"
               sx={{
-                color: '#c25e00',
-                '&:hover': {
-                  backgroundColor: 'rgba(194, 94, 0, 0.08)',
-                },
+                color: 'primary.main',
+                flexShrink: 0,
               }}
             >
               <ContentCopy />
@@ -48,6 +49,7 @@ export function ResultCard({ result }: ResultCardProps) {
             sx={{
               mb: 1,
               color: 'text.secondary',
+              wordBreak: 'break-all',
             }}
           >
             Original: {result.original_url}
@@ -55,7 +57,7 @@ export function ResultCard({ result }: ResultCardProps) {
           <Typography
             variant="caption"
             sx={{
-              color: '#8b4513',
+              color: 'secondary.main',
               fontWeight: 600,
             }}
           >
