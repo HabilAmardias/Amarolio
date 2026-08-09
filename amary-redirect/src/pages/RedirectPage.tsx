@@ -28,20 +28,54 @@ export interface ErrorResponse {
     detail: string;
 }
 
-interface FallingStar {
+interface FallingLeaf {
     id: number
     left: number
+    size: number
     delay: number
     duration: number
+    drift: number
+    spin: number
+    sway: number
+    color: string
 }
 
-const generateStars = (): FallingStar[] =>
-    Array.from({ length: 8 }, (_, i) => ({
+const LEAF_COLORS = ['#d97706', '#ea580c', '#f59e0b', '#b45309', '#c2410c']
+
+const generateLeaves = (): FallingLeaf[] =>
+    Array.from({ length: 12 }, (_, i) => ({
         id: i,
         left: Math.random() * 100,
-        delay: Math.random() * 0.5,
-        duration: 2 + Math.random() * 1,
+        size: 14 + Math.random() * 16,
+        delay: Math.random() * 2.5,
+        duration: 9 + Math.random() * 6,
+        drift: (Math.random() - 0.5) * 220,
+        spin: 180 + Math.random() * 360,
+        sway: 2 + Math.random() * 2.5,
+        color: LEAF_COLORS[i % LEAF_COLORS.length],
     }))
+
+function LeafIcon({ variant = 'filled' }: { variant?: 'filled' | 'outline' }) {
+    const shared = {
+        viewBox: '0 0 24 24',
+        'aria-hidden': true,
+        focusable: false,
+    }
+    if (variant === 'filled') {
+        return (
+            <svg {...shared} fill="currentColor">
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" fill="rgba(255,255,255,0.3)" />
+            </svg>
+        )
+    }
+    return (
+        <svg {...shared} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+        </svg>
+    )
+}
 
 export default function RedirectPage() {
     const { slug } = useParams<{ slug: string }>()
@@ -50,7 +84,7 @@ export default function RedirectPage() {
     const [tsToken, setTsToken] = useState<string>("")
     const [error, setError] = useState<string | null>(null)
     const [destinationUrl, setDestinationUrl] = useState<string | null>(null)
-    const [stars] = useState<FallingStar[]>(generateStars())
+    const [leaves] = useState<FallingLeaf[]>(generateLeaves())
 
     const pageTitle = slug ? `Redirecting... | Amary` : "Amary | Secure Link Redirection";
     const mainSiteUrl = import.meta.env.VITE_AMARY_CLIENT_DOMAIN
@@ -133,20 +167,35 @@ export default function RedirectPage() {
                     })}
                 </script>
             </Helmet>
-            {/* Falling leaves/stars background */}
-            <div className="stars-container">
-                {stars.map((star) => (
-                    <div
-                        key={star.id}
-                        className="falling-star"
+            {/* Ambient autumn light behind the glass */}
+            <div className="ambient-orbs" aria-hidden="true">
+                <span className="orb orb-1" />
+                <span className="orb orb-2" />
+                <span className="orb orb-3" />
+                <span className="orb orb-4" />
+            </div>
+
+            {/* Falling leaves background */}
+            <div className="leaves-container" aria-hidden="true">
+                {leaves.map((leaf) => (
+                    <span
+                        key={leaf.id}
+                        className="leaf-item"
                         style={
                             {
-                                '--left': `${star.left}%`,
-                                '--delay': `${star.delay}s`,
-                                '--duration': `${star.duration}s`,
+                                '--left': `${leaf.left}%`,
+                                '--size': `${leaf.size}px`,
+                                '--delay': `${leaf.delay}s`,
+                                '--duration': `${leaf.duration}s`,
+                                '--drift': `${leaf.drift}px`,
+                                '--spin': `${leaf.spin}deg`,
+                                '--sway': `${leaf.sway}s`,
+                                '--leaf-color': leaf.color,
                             } as React.CSSProperties
                         }
-                    />
+                    >
+                        <LeafIcon />
+                    </span>
                 ))}
             </div>
 
@@ -159,7 +208,9 @@ export default function RedirectPage() {
                     >
                         <Typography variant="h6" component="div" className="brand-heading">
                             Amary
-                            <Box className="leaf-icon">🍂</Box>
+                            <Box component="span" className="leaf-icon">
+                                <LeafIcon variant="outline" />
+                            </Box>
                         </Typography>
                     </a>
 
@@ -189,22 +240,29 @@ export default function RedirectPage() {
                                     disabled={loading || !tsSuccess}
                                     sx={{
                                         marginTop: '2rem',
-                                        backgroundColor: '#C87137',
+                                        background: 'linear-gradient(135deg, #ee8a3c 0%, #c87137 55%, #b45309 100%)',
                                         color: '#fff',
+                                        fontFamily: "'Inter', sans-serif",
                                         fontWeight: 600,
-                                        padding: '0.75rem 2rem',
+                                        letterSpacing: '0.5px',
+                                        padding: '0.9rem 2.75rem',
                                         fontSize: '1rem',
                                         textTransform: 'none',
-                                        borderRadius: '8px',
+                                        borderRadius: '14px',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '0.5rem',
+                                        gap: '0.6rem',
+                                        boxShadow: '0 12px 26px -10px rgba(180, 83, 9, 0.6), inset 0 1px 0 rgba(255,255,255,0.25)',
+                                        transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
                                         '&:hover': {
-                                            backgroundColor: '#b8631f',
+                                            background: 'linear-gradient(135deg, #f0943f 0%, #b8631f 55%, #a3480a 100%)',
+                                            boxShadow: '0 16px 30px -10px rgba(180, 83, 9, 0.65)',
+                                            transform: 'translateY(-2px)',
                                         },
                                         '&:disabled': {
-                                            backgroundColor: '#d4a574',
-                                            color: '#fff',
+                                            background: 'rgba(217, 119, 6, 0.35)',
+                                            color: 'rgba(255,255,255,0.95)',
+                                            boxShadow: 'none',
                                         },
                                     }}
                                 >
@@ -225,7 +283,9 @@ export default function RedirectPage() {
                     <Typography variant="caption" className="description">
                         {loading ? 'Preparing your journey...' : 'Click the button to proceed'}
                     </Typography>
-                    <Turnstile onSuccess={handleTsOnSuccess} siteKey={import.meta.env.VITE_CF_TURNSTILE_SITEKEY} />
+                    <Box className="turnstile-wrapper">
+                        <Turnstile onSuccess={handleTsOnSuccess} siteKey={import.meta.env.VITE_CF_TURNSTILE_SITEKEY} />
+                    </Box>
                 </Box>
             </Container>
         </Box>

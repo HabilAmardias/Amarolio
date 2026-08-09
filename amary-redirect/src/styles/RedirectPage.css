@@ -1,4 +1,4 @@
-/* Autumn-themed redirect page with minimalist design */
+/* Autumn-themed redirect page — Glassmorphism redesign */
 
 * {
   margin: 0;
@@ -21,95 +21,220 @@ body,
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 50%, #dcc5a8 100%);
   position: fixed;
   top: 0;
   left: 0;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  color: #5b3a1e;
+  background:
+    radial-gradient(45rem 32rem at 12% 18%, rgba(251, 191, 36, 0.32), transparent 60%),
+    radial-gradient(40rem 30rem at 88% 12%, rgba(234, 88, 12, 0.24), transparent 60%),
+    radial-gradient(42rem 42rem at 78% 92%, rgba(217, 119, 6, 0.28), transparent 60%),
+    radial-gradient(34rem 34rem at 8% 88%, rgba(162, 28, 25, 0.16), transparent 60%),
+    linear-gradient(135deg, #fdf3e3 0%, #fbe7c6 35%, #f6d6a8 65%, #f0c58f 100%);
+}
+
+/* Ambient autumn light orbs — give the glass something to refract */
+.ambient-orbs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  animation: orb-drift 18s ease-in-out infinite alternate;
+}
+
+.orb-1 {
+  width: 22rem;
+  height: 22rem;
+  left: -6rem;
+  top: -4rem;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.85), transparent 70%);
+}
+
+.orb-2 {
+  width: 18rem;
+  height: 18rem;
+  right: -5rem;
+  top: 10%;
+  background: radial-gradient(circle, rgba(234, 88, 12, 0.7), transparent 70%);
+  animation-delay: -6s;
+}
+
+.orb-3 {
+  width: 20rem;
+  height: 20rem;
+  left: 32%;
+  bottom: -8rem;
+  background: radial-gradient(circle, rgba(217, 119, 6, 0.72), transparent 70%);
+  animation-delay: -12s;
+}
+
+.orb-4 {
+  width: 14rem;
+  height: 14rem;
+  right: 18%;
+  bottom: 14%;
+  background: radial-gradient(circle, rgba(194, 65, 12, 0.55), transparent 70%);
+  animation-delay: -3s;
+}
+
+@keyframes orb-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(2rem, -1.5rem, 0) scale(1.12);
+  }
 }
 
 /* Falling leaves animation */
-.stars-container {
+.leaves-container {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   pointer-events: none;
   overflow: hidden;
+  z-index: 5;
 }
 
-.falling-star {
+.leaf-item {
   position: absolute;
-  font-size: 2rem;
-  opacity: 0.6;
-  animation: fall linear infinite;
+  top: -3rem;
   left: var(--left);
-  top: -10px;
+  width: var(--size);
+  height: var(--size);
+  color: var(--leaf-color);
+  opacity: 0;
+  animation: leaf-fall var(--duration) linear infinite;
   animation-delay: var(--delay);
-  animation-duration: var(--duration);
+  will-change: transform, opacity;
 }
 
-@keyframes fall {
+.leaf-item svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 4px rgba(120, 60, 10, 0.3));
+  animation: leaf-sway var(--sway) ease-in-out infinite alternate;
+}
+
+@keyframes leaf-fall {
   0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 0.7;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
   }
-  50% {
-    opacity: 0.5;
+  5% {
+    opacity: 0.9;
   }
   100% {
-    transform: translateY(100vh) rotate(360deg);
+    transform: translate3d(var(--drift), 105vh, 0) rotate(var(--spin));
     opacity: 0;
   }
 }
 
-.falling-star::before {
-  content: '🍂';
+@keyframes leaf-sway {
+  from {
+    transform: rotate(-12deg);
+  }
+  to {
+    transform: rotate(12deg);
+  }
 }
 
-/* Content wrapper */
+/* Content wrapper — frosted glass card */
 .content-wrapper {
   position: relative;
   z-index: 10;
   text-align: center;
-  padding: 3rem 2rem;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(139, 69, 19, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(200, 113, 55, 0.2);
-  animation: fadeInScale 0.6s ease-out;
+  padding: 3.25rem 2.75rem;
+  border-radius: 28px;
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.62) 0%,
+    rgba(255, 255, 255, 0.3) 55%,
+    rgba(255, 248, 235, 0.42) 100%
+  );
+  backdrop-filter: blur(22px) saturate(170%);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 20px 50px -12px rgba(146, 64, 14, 0.28),
+    0 6px 20px rgba(146, 64, 14, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+  animation: fadeInScale 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Light sheen sweeping across the glass */
+.content-wrapper::after {
+  content: '';
+  position: absolute;
+  top: -80%;
+  left: -30%;
+  width: 45%;
+  height: 260%;
+  background: linear-gradient(105deg, transparent 32%, rgba(255, 255, 255, 0.35) 50%, transparent 68%);
+  transform: rotate(20deg) translateX(-150%);
+  animation: sheen-sweep 7s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes sheen-sweep {
+  0%,
+  55%,
+  100% {
+    transform: rotate(20deg) translateX(-150%);
+  }
+  85% {
+    transform: rotate(20deg) translateX(320%);
+  }
 }
 
 /* Brand heading */
 .brand-heading {
-  color: #8b4513;
-  font-weight: 700;
-  font-size: 1.5rem;
-  letter-spacing: 2px;
+  font-family: 'Playfair Display', serif;
+  color: #7c4a1e;
+  font-weight: 600;
+  font-size: 1.35rem;
+  letter-spacing: 4px;
   margin-bottom: 1.5rem;
   text-transform: uppercase;
+}
+
+/* Floating brand leaf icon */
+.leaf-icon {
+  display: block;
+  width: 3rem;
+  height: 3rem;
+  margin: 1.25rem auto 0;
+  color: #d97706;
+  animation: float 3s ease-in-out infinite;
+}
+
+.leaf-icon svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 10px rgba(180, 83, 9, 0.3));
 }
 
 @keyframes fadeInScale {
   0% {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.95) translateY(10px);
   }
   100% {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
-}
-
-/* Leaf icon */
-.leaf-icon {
-  font-size: 3.5rem;
-  margin-bottom: 1.5rem;
-  animation: float 3s ease-in-out infinite;
 }
 
 @keyframes float {
@@ -124,24 +249,32 @@ body,
 
 /* Typography */
 .title {
-  color: #8b4513;
+  font-family: 'Playfair Display', serif;
+  color: #5b3a1e;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   letter-spacing: 0.5px;
 }
 
 .subtitle {
-  color: #a0633d;
+  color: #9a5b2f;
   margin-bottom: 2rem;
   font-size: 0.95rem;
   font-weight: 400;
 }
 
 .description {
-  color: #b8894a;
+  color: #b4783f;
   display: block;
   margin-top: 1.5rem;
   font-size: 0.85rem;
+}
+
+/* Turnstile widget */
+.turnstile-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.25rem;
 }
 
 /* Progress container */
@@ -163,11 +296,27 @@ body,
 /* Error message */
 .error-message {
   color: #c84c3c;
-  background: rgba(200, 76, 60, 0.1);
+  background: rgba(200, 76, 60, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   padding: 1rem;
-  border-radius: 8px;
-  /* border-left: 4px solid #c84c3c; */
+  border-radius: 12px;
+  border: 1px solid rgba(200, 76, 60, 0.2);
   text-align: center;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .leaf-item,
+  .orb,
+  .leaf-icon,
+  .content-wrapper,
+  .content-wrapper::after {
+    animation: none !important;
+  }
+  .leaf-item {
+    opacity: 0.6;
+  }
 }
 
 /* Responsive */
@@ -179,18 +328,19 @@ body,
   }
 
   .content-wrapper {
-    padding: 2rem 1.5rem;
-    border-radius: 8px;
-    max-width: 90vw;
+    padding: 2.25rem 1.5rem;
+    border-radius: 20px;
+    max-width: 92vw;
   }
 
   .leaf-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-top: 1rem;
   }
 
   .title {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
 
   .subtitle {
