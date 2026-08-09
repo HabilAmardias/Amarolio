@@ -2,6 +2,8 @@ import { Container, Typography, Box, Button, Chip, Avatar } from "@mui/material"
 import { useTheme } from "@mui/material/styles";
 import { NavLink } from "react-router-dom";
 import ArrowForward from "@mui/icons-material/ArrowForward";
+import Terminal from "@mui/icons-material/Terminal";
+import LocationOn from "@mui/icons-material/LocationOn";
 import { useProfileController } from "../../controllers/useProfileController";
 import { useProjectController } from "../../controllers/useProjectController";
 import { useExperienceController } from "../../controllers/useExperienceController";
@@ -62,60 +64,50 @@ export default function HomeView() {
         ]}
       />
 
-      <GlassBox
-        sx={{
-          mb: 8,
-          py: { xs: 5, md: 7 },
-          px: { xs: 3, sm: 4, md: 6 },
-        }}
-      >
+      {/* Hero */}
+      <Box sx={{ position: "relative", mb: { xs: 7, md: 9 } }}>
+        <Box
+          className="blob"
+          sx={{
+            width: { xs: 260, md: 380 },
+            height: { xs: 260, md: 380 },
+            top: -80,
+            right: { xs: -120, md: -60 },
+            background: isLight
+              ? "rgba(143,179,240,0.35)"
+              : "rgba(143,179,240,0.14)",
+          }}
+        />
+        <Box
+          className="blob"
+          sx={{
+            width: { xs: 200, md: 300 },
+            height: { xs: 200, md: 300 },
+            bottom: -60,
+            left: -140,
+            background: isLight
+              ? "rgba(240,166,59,0.22)"
+              : "rgba(240,166,59,0.1)",
+            animationDelay: "-6s",
+          }}
+        />
+
         <Box
           sx={{
+            position: "relative",
             display: "flex",
             flexDirection: { xs: "column", md: "row" },
             alignItems: "center",
-            gap: { xs: 4, md: 6 },
+            gap: { xs: 5, md: 7 },
+            py: { xs: 4, md: 5 },
           }}
         >
-          {/* Avatar */}
-          <Box sx={{ order: { xs: 0, md: 2 }, flexShrink: 0 }}>
-            <Box
-              sx={{
-                width: { xs: 148, sm: 176, md: 200 },
-                height: { xs: 148, sm: 176, md: 200 },
-                borderRadius: "50%",
-                p: "5px",
-                background: isLight
-                  ? "linear-gradient(135deg, #384959, #88bdf2)"
-                  : "linear-gradient(135deg, #bdddfc, #6a89a7)",
-                boxShadow: isLight
-                  ? "0 16px 40px -12px rgba(56,73,89,0.45)"
-                  : "0 16px 40px -12px rgba(0,0,0,0.5)",
-              }}
-            >
-              <Avatar
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  border: "4px solid",
-                  borderColor: "background.paper",
-                  fontSize: "3rem",
-                  fontWeight: 700,
-                }}
-                alt={profile.name}
-                src={ProfilePicture}
-              >
-                {profile.name?.charAt(0).toUpperCase()}
-              </Avatar>
-            </Box>
-          </Box>
-
           {/* Text */}
           <Box
+            className="animate-fade-up"
             sx={{
               flex: 1,
               minWidth: 0,
-              order: { xs: 1, md: 0 },
               textAlign: { xs: "center", md: "left" },
             }}
           >
@@ -124,22 +116,46 @@ export default function HomeView() {
               variant="h1"
               component="h1"
               sx={{
-                fontSize: { xs: "2rem", sm: "2.6rem", md: "3rem" },
+                fontSize: { xs: "2.1rem", sm: "2.8rem", md: "3.2rem" },
                 mb: 1.25,
               }}
             >
-              {profile.name}
+              Hey, I&apos;m{" "}
+              <Box
+                component="span"
+                sx={{
+                  position: "relative",
+                  display: "inline-block",
+                  color: "primary.main",
+                  "&::after": {
+                    content: '""',
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    bottom: "0.06em",
+                    height: "0.32em",
+                    borderRadius: 999,
+                    background: isLight
+                      ? "rgba(240,166,59,0.35)"
+                      : "rgba(240,166,59,0.3)",
+                    zIndex: -1,
+                  },
+                }}
+              >
+                {profile.name}
+              </Box>
             </Typography>
 
             <Typography
               variant="h5"
               sx={{
-                fontSize: { xs: "1.1rem", sm: "1.3rem" },
+                fontSize: { xs: "1.15rem", sm: "1.35rem" },
                 mb: 2.5,
-                fontWeight: 700,
+                fontWeight: 600,
+                fontFamily: "'Poppins', sans-serif",
                 background: isLight
-                  ? "linear-gradient(90deg, #384959, #6a89a7, #88bdf2)"
-                  : "linear-gradient(90deg, #bdddfc, #88bdf2)",
+                  ? "linear-gradient(90deg, #3D6BD4, #8FB3F0, #F0A63B)"
+                  : "linear-gradient(90deg, #C6DCFA, #8FB3F0, #F5B45C)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -196,17 +212,37 @@ export default function HomeView() {
               sx={{
                 display: "flex",
                 flexWrap: "wrap",
-                gap: { xs: 2.5, sm: 4 },
+                gap: { xs: 2, sm: 3 },
                 justifyContent: { xs: "center", md: "flex-start" },
-                mt: 3.5,
+                mt: 4,
               }}
             >
               {stats.map((stat) => (
-                <Box key={stat.label}>
+                <Box
+                  key={stat.label}
+                  sx={{
+                    px: { xs: 2, sm: 2.5 },
+                    py: 1.5,
+                    borderRadius: "18px",
+                    border: "1px solid",
+                    borderColor: "divider",
+                    background: isLight
+                      ? "rgba(255,255,255,0.65)"
+                      : "rgba(143,179,240,0.07)",
+                    transition:
+                      "transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s ease",
+                    "&:hover": {
+                      transform: "translateY(-3px)",
+                      boxShadow: isLight
+                        ? "0 12px 24px -12px rgba(37,51,80,0.25)"
+                        : "0 12px 24px -10px rgba(0,0,0,0.5)",
+                    },
+                  }}
+                >
                   <Typography
-                    variant="h5"
+                    variant="h6"
                     component="div"
-                    sx={{ fontWeight: 800, lineHeight: 1.1 }}
+                    sx={{ fontWeight: 700, lineHeight: 1.1, fontFamily: "'Poppins', sans-serif" }}
                   >
                     {stat.value}
                   </Typography>
@@ -217,8 +253,107 @@ export default function HomeView() {
               ))}
             </Box>
           </Box>
+
+          {/* Avatar */}
+          <Box
+            className="animate-fade-up"
+            sx={{ flexShrink: 0, animationDelay: "0.15s", position: "relative" }}
+          >
+            <Box
+              className="animate-float"
+              sx={{
+                position: "absolute",
+                top: { xs: -28, md: -40 },
+                right: { xs: -8, md: -28 },
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
+                px: 1.5,
+                py: 0.8,
+                borderRadius: 999,
+                background: isLight ? "#ffffff" : "#232B3A",
+                border: "1px solid",
+                borderColor: "divider",
+                boxShadow: isLight
+                  ? "0 12px 28px -12px rgba(37,51,80,0.3)"
+                  : "0 12px 28px -10px rgba(0,0,0,0.5)",
+              }}
+            >
+              <Terminal fontSize="small" sx={{ color: "warning.main" }} />
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {skills[0]}
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                position: "relative",
+                width: { xs: 168, sm: 200, md: 232 },
+                height: { xs: 168, sm: 200, md: 232 },
+                borderRadius: "34% 66% 62% 38% / 44% 40% 60% 56%",
+                background: isLight
+                  ? "linear-gradient(135deg, #3D6BD4, #8FB3F0, #F0A63B)"
+                  : "linear-gradient(135deg, #C6DCFA, #8FB3F0, #F5B45C)",
+                padding: "6px",
+                boxShadow: isLight
+                  ? "0 24px 56px -18px rgba(61,107,212,0.5)"
+                  : "0 24px 56px -16px rgba(0,0,0,0.55)",
+                animation: "float 7s ease-in-out infinite",
+              }}
+            >
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 10,
+                  borderRadius: "inherit",
+                  border: "2px dashed",
+                  borderColor: "rgba(255,255,255,0.6)",
+                }}
+              />
+              <Avatar
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "inherit",
+                  fontSize: "3.2rem",
+                  fontWeight: 700,
+                }}
+                alt={profile.name}
+                src={ProfilePicture}
+              >
+                {profile.name?.charAt(0).toUpperCase()}
+              </Avatar>
+            </Box>
+
+            <Box
+              className="animate-float"
+              sx={{
+                position: "absolute",
+                bottom: { xs: -18, md: -26 },
+                left: { xs: -12, md: -30 },
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
+                px: 1.5,
+                py: 0.8,
+                borderRadius: 999,
+                background: isLight ? "#ffffff" : "#232B3A",
+                border: "1px solid",
+                borderColor: "divider",
+                boxShadow: isLight
+                  ? "0 12px 28px -12px rgba(37,51,80,0.3)"
+                  : "0 12px 28px -10px rgba(0,0,0,0.5)",
+                animationDelay: "-3s",
+              }}
+            >
+              <LocationOn fontSize="small" sx={{ color: "primary.main" }} />
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                Jakarta, ID
+              </Typography>
+            </Box>
+          </Box>
         </Box>
-      </GlassBox>
+      </Box>
 
       <SectionHeader
         eyebrow="My Work"
@@ -258,7 +393,17 @@ export default function HomeView() {
               key={skill}
               label={skill}
               variant="outlined"
-              sx={{ px: 0.5, py: 0.5 }}
+              sx={{
+                px: 0.5,
+                py: 0.5,
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  transform: "translateY(-2px)",
+                  bgcolor: isLight
+                    ? "rgba(61,107,212,0.1)"
+                    : "rgba(143,179,240,0.14)",
+                },
+              }}
             />
           ))}
         </Box>

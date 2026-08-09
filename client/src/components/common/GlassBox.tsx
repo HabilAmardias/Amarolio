@@ -11,14 +11,14 @@ export default function GlassBox({ children, sx, ...props }: BoxProps) {
       sx={{
         backdropFilter: "blur(18px) saturate(150%)",
         background: isLight
-          ? "rgba(255,255,255,0.75)"
-          : "rgba(30,44,55,0.55)",
+          ? "rgba(255,255,255,0.72)"
+          : "rgba(35,43,58,0.55)",
         border: `1px solid ${
-          isLight ? "rgba(106,137,167,0.16)" : "rgba(189,221,252,0.1)"
+          isLight ? "rgba(61,107,212,0.14)" : "rgba(143,179,240,0.12)"
         }`,
-        borderRadius: "28px",
+        borderRadius: "30px",
         boxShadow: isLight
-          ? "0 20px 50px -30px rgba(56,73,89,0.3)"
+          ? "0 20px 50px -30px rgba(37,51,80,0.28)"
           : "0 20px 50px -24px rgba(0,0,0,0.5)",
         p: 4,
         ...sx,

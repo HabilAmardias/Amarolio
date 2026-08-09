@@ -49,33 +49,58 @@ function Brand() {
     <Box
       component={NavLink}
       to="/"
-      sx={{ display: "flex", alignItems: "center", gap: 1.25 }}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1.25,
+        "&:hover .brand-badge": { transform: "rotate(-8deg) scale(1.06)" },
+      }}
     >
       <Box
+        className="brand-badge"
         sx={{
-          width: 34,
-          height: 34,
-          borderRadius: "14px",
+          width: 36,
+          height: 36,
+          borderRadius: "12px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: isLight ? "#ffffff" : "#0d1a22",
-          fontWeight: 800,
-          fontSize: "1rem",
-          letterSpacing: "-0.02em",
+          position: "relative",
+          color: isLight ? "#ffffff" : "#0E1A2E",
+          fontWeight: 700,
+          fontSize: "1.05rem",
+          fontFamily: "'Poppins', sans-serif",
           background: isLight
-            ? "linear-gradient(135deg, #384959, #6a89a7)"
-            : "linear-gradient(135deg, #bdddfc, #88bdf2)",
+            ? "linear-gradient(135deg, #3D6BD4, #8FB3F0)"
+            : "linear-gradient(135deg, #C6DCFA, #8FB3F0)",
           boxShadow: isLight
-            ? "0 6px 16px -6px rgba(56,73,89,0.55)"
-            : "0 6px 16px -6px rgba(0,0,0,0.4)",
+            ? "0 8px 20px -8px rgba(61,107,212,0.6)"
+            : "0 8px 20px -8px rgba(0,0,0,0.45)",
+          transition: "transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            top: 2,
+            right: 2,
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: "#F0A63B",
+            border: "2px solid",
+            borderColor: isLight ? "#ffffff" : "#1B212E",
+          },
         }}
       >
         A
       </Box>
       <Typography
         variant="h6"
-        sx={{ fontWeight: 700, letterSpacing: "-0.02em", fontSize: "1.05rem" }}
+        sx={{
+          fontWeight: 600,
+          fontFamily: "'Poppins', sans-serif",
+          letterSpacing: "-0.02em",
+          fontSize: "1.05rem",
+        }}
       >
         Amarolio
       </Typography>
@@ -105,12 +130,13 @@ function ThemeToggle() {
           borderColor: "divider",
           borderRadius: 999,
           p: 0.9,
+          transition: "all 0.2s ease",
           "&:hover": {
             color: "primary.main",
             borderColor: "primary.main",
             background: isLight
-              ? "rgba(136,189,242,0.15)"
-              : "rgba(136,189,242,0.12)",
+              ? "rgba(143,179,240,0.18)"
+              : "rgba(143,179,240,0.14)",
           },
         }}
       >
@@ -126,10 +152,10 @@ export default function Navbar() {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const hoverBg = isLight ? "rgba(106,137,167,0.12)" : "rgba(136,189,242,0.12)";
+  const hoverBg = isLight ? "rgba(61,107,212,0.1)" : "rgba(143,179,240,0.14)";
   const activeBg = isLight
-    ? "rgba(136,189,242,0.24)"
-    : "rgba(136,189,242,0.16)";
+    ? "rgba(61,107,212,0.16)"
+    : "rgba(143,179,240,0.18)";
 
   return (
     <AppBar position="sticky" color="transparent" elevation={0}>
@@ -164,15 +190,28 @@ export default function Navbar() {
                     fontWeight: 500,
                     fontSize: "0.9rem",
                     whiteSpace: "nowrap",
+                    position: "relative",
                     transition: "all 0.2s ease",
                     "&:hover": {
                       color: "text.primary",
                       background: hoverBg,
+                      transform: "translateY(-1px)",
                     },
                     "&[aria-current='page']": {
                       color: "primary.main",
                       fontWeight: 700,
                       background: activeBg,
+                      "&::after": {
+                        content: '""',
+                        position: "absolute",
+                        top: "50%",
+                        right: 4,
+                        transform: "translateY(-50%)",
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: "#F0A63B",
+                      },
                     },
                   }}
                 >
