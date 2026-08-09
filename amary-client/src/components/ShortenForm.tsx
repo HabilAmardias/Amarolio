@@ -48,28 +48,37 @@ export function ShortenForm() {
           <Box sx={{
             mb: 2,
             p: 2,
-            border: '1px solid #e8dcc8',
-            borderRadius: 2,
-            background: '#faf6f0',
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 1,
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.6) 0%, rgba(255, 244, 230, 0.35) 100%)',
           }}>
-            <TextField
-              type="number"
-              label="Expiration (days)"
-              value={expiresInDays || ''}
-              onChange={(e) => setExpiresInDays(parseInt(e.target.value) || null)}
-              disabled={noExpiry || isLoading}
-              sx={{ mr: 2 }}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={noExpiry}
-                  onChange={(e) => setNoExpiry(e.target.checked)}
-                  disabled={isLoading}
-                />
-              }
-              label="No expiration"
-            />
+            <Box sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              gap: 2,
+              mb: 2,
+            }}>
+              <TextField
+                type="number"
+                label="Expiration (days)"
+                value={expiresInDays || ''}
+                onChange={(e) => setExpiresInDays(parseInt(e.target.value) || null)}
+                disabled={noExpiry || isLoading}
+                sx={{ width: { xs: '100%', sm: 180 } }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={noExpiry}
+                    onChange={(e) => setNoExpiry(e.target.checked)}
+                    disabled={isLoading}
+                  />
+                }
+                label="No expiration"
+              />
+            </Box>
             <Box sx={{ position: 'relative', mt: 2, overflow: 'visible' }}>
               <TextField
                 fullWidth
@@ -80,24 +89,21 @@ export function ShortenForm() {
                 disabled={isLoading}
                 helperText={isCheckingSlug ? 'Checking availability...' : 'Leave empty to generate automatically'}
                 sx={{
-                  // ensure there's room for the spinner inside the input
                   '& .MuiInputBase-input': {
                     paddingRight: '2.5rem',
                   },
                 }}
               />
 
-              {/* desktop: small spinner inside the input on the right, vertically centered */}
               {isCheckingSlug && (
                 <Box sx={{ position: 'absolute', right: 12, top: 50, bottom: 0, display: { xs: 'none', sm: 'flex' }, alignItems: 'center', pointerEvents: 'none' }}>
-                  <CircularProgress size={16} sx={{ color: '#C87137' }} />
+                  <CircularProgress size={16} sx={{ color: 'primary.main' }} />
                 </Box>
               )}
 
-              {/* mobile: show a smaller spinner under the field */}
               {isCheckingSlug && (
                 <Box sx={{ display: { xs: 'block', sm: 'none' }, mt: 1, textAlign: 'center' }}>
-                  <CircularProgress size={12} sx={{ color: '#C87137' }} />
+                  <CircularProgress size={12} sx={{ color: 'primary.main' }} />
                 </Box>
               )}
             </Box>
@@ -105,14 +111,15 @@ export function ShortenForm() {
         )}
         <Button
           sx={{
-            mb: 2
+            mb: 2,
+            py: 1.2,
           }}
           fullWidth
           variant="contained"
           onClick={handleShorten}
           disabled={isLoading || !url || !token || isCheckingSlug}
         >
-          {isLoading ? <CircularProgress size={24} /> : 'Shorten URL'}
+          {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Shorten URL'}
         </Button>
 
         {error && (
@@ -126,7 +133,9 @@ export function ShortenForm() {
           </Alert>
         )}
 
-        <Turnstile ref={ref} onExpire={turnstileOnExpire} onSuccess={(tk) => setToken(tk)} siteKey={import.meta.env.VITE_CF_TURNSTILE_SITEKEY} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+          <Turnstile ref={ref} onExpire={turnstileOnExpire} onSuccess={(tk) => setToken(tk)} siteKey={import.meta.env.VITE_CF_TURNSTILE_SITEKEY} />
+        </Box>
       </Box>
 
       {result && <ResultCard result={result} />}

@@ -1,5 +1,6 @@
 import { AppBar, Toolbar, Typography, Box, Button, IconButton, Popper, Grow, Paper, ClickAwayListener, MenuList, MenuItem } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import LocalCafeOutlinedIcon from '@mui/icons-material/LocalCafeOutlined';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../controllers/useAuth';
 import { useRef, useState } from 'react';
@@ -21,7 +22,7 @@ export function Navbar() {
   };
 
   return (
-    <AppBar position="static" color="default">
+    <AppBar position="static" color="inherit">
       <Toolbar
         sx={{
           display: 'flex',
@@ -29,6 +30,7 @@ export function Navbar() {
           alignItems: 'center',
           flexWrap: 'nowrap',
           gap: 1,
+          px: { xs: 1.5, sm: 2, md: 3 },
         }}
       >
         {/* LEFT SECTION: Logo & Donate */}
@@ -45,9 +47,10 @@ export function Navbar() {
             variant="h6"
             component="div"
             sx={{
-              color: '#c25e00',
+              color: 'primary.main',
               fontWeight: 700,
               whiteSpace: 'nowrap',
+              fontFamily: "'Merriweather', 'Georgia', serif",
             }}
           >
             <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -58,22 +61,24 @@ export function Navbar() {
           <Button
             ref={ref}
             onClick={() => setOpen((prev) => !prev)}
+            startIcon={<LocalCafeOutlinedIcon />}
             sx={{
               background: "none",
-              color: "#c25e00",
+              color: "primary.main",
               ml: { xs: 1, sm: 2, md: 3 },
-              fontWeight: 900,
-              fontSize: { xs: '0.75rem', sm: '0.9rem', md: '1rem' },
+              fontWeight: 600,
+              fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
               minWidth: 'auto',
               border: "none",
               boxShadow: "none",
               "&:hover": {
                 boxShadow: "none",
-                border: "none"
-              }
+                border: "none",
+                background: "rgba(180, 83, 9, 0.08)",
+              },
             }}
           >
-            Donate ☕
+            Donate
           </Button>
           <Popper
             open={open}
@@ -81,6 +86,7 @@ export function Navbar() {
             placement='bottom-start'
             transition
             disablePortal
+            sx={{ zIndex: 1300 }}
           >
             {({ TransitionProps }) => (
               <Grow
@@ -89,39 +95,49 @@ export function Navbar() {
                   transformOrigin: "left-top"
                 }}
               >
-                <Paper>
+                <Paper
+                  elevation={2}
+                  sx={{ mt: 0.5, overflow: 'hidden' }}
+                >
                   <ClickAwayListener onClickAway={handleClose}>
                     <MenuList
                       autoFocusItem={open}
                       id="composition-menu"
                       aria-labelledby="composition-button"
-                      sx={{
-                        bgcolor: "#c25e00"
-                      }}
+                      sx={{ py: 0.5 }}
                     >
-                      <MenuItem>
+                      <MenuItem sx={{ px: 1 }}>
                         <Button
                           href='/donation/qris'
                           sx={{
+                            width: '100%',
+                            justifyContent: 'flex-start',
+                            color: 'text.primary',
                             background: "none",
                             border: "none",
+                            borderRadius: 10,
                             "&:hover": {
-                              background: "none",
-                              border: "none"
+                              background: "rgba(180, 83, 9, 0.08)",
                             }
-                          }}>QRIS</Button>
+                          }}
+                        >
+                          QRIS
+                        </Button>
                       </MenuItem>
-                      <MenuItem>
+                      <MenuItem sx={{ px: 1 }}>
                         <Button
                           href={import.meta.env.VITE_DONATION_URI}
                           target='_blank'
                           rel='noopener noreferrer'
                           sx={{
+                            width: '100%',
+                            justifyContent: 'flex-start',
+                            color: 'text.primary',
                             background: "none",
                             border: "none",
+                            borderRadius: 10,
                             "&:hover": {
-                              background: "none",
-                              border: "none"
+                              background: "rgba(180, 83, 9, 0.08)",
                             }
                           }}
                         >
@@ -152,13 +168,14 @@ export function Navbar() {
               component={Link}
               to="/dashboard"
               sx={{
-                display: { xs: 'none', sm: 'inline-flex' }, // Hidden on mobile
-                color: '#ffffff',
+                display: { xs: 'none', sm: 'inline-flex' },
+                color: 'text.secondary',
                 fontWeight: 600,
                 fontSize: { sm: '0.9rem', md: '1rem' },
                 whiteSpace: 'nowrap',
                 '&:hover': {
-                  backgroundColor: 'rgba(194, 94, 0, 0.08)',
+                  backgroundColor: 'rgba(180, 83, 9, 0.08)',
+                  color: 'primary.main',
                 },
               }}
             >
@@ -170,10 +187,10 @@ export function Navbar() {
               component={Link}
               to="/dashboard"
               sx={{
-                display: { xs: 'inline-flex', sm: 'none' }, // Only visible on mobile
-                color: '#c25e00',
+                display: { xs: 'inline-flex', sm: 'none' },
+                color: 'primary.main',
                 '&:hover': {
-                  backgroundColor: 'rgba(194, 94, 0, 0.08)',
+                  backgroundColor: 'rgba(180, 83, 9, 0.08)',
                 },
               }}
               aria-label="dashboard"
@@ -198,7 +215,7 @@ export function Navbar() {
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#5d4037',
+                  color: 'text.secondary',
                   display: { xs: 'none', md: 'block' },
                 }}
               >
@@ -208,13 +225,14 @@ export function Navbar() {
                 color="inherit"
                 onClick={logout}
                 sx={{
-                  color: '#ffffff',
+                  color: 'text.secondary',
                   fontWeight: 600,
                   fontSize: { xs: '0.75rem', sm: '0.9rem', md: '1rem' },
                   px: { xs: 1, sm: 2 },
                   whiteSpace: 'nowrap',
                   '&:hover': {
-                    backgroundColor: 'rgba(194, 94, 0, 0.08)',
+                    backgroundColor: 'rgba(180, 83, 9, 0.08)',
+                    color: 'primary.main',
                   },
                 }}
               >
@@ -227,12 +245,13 @@ export function Navbar() {
               component={Link}
               to="/login"
               sx={{
-                color: '#ffffff',
+                color: 'text.secondary',
                 fontWeight: 600,
                 fontSize: { xs: '0.75rem', sm: '0.9rem', md: '1rem' },
                 whiteSpace: 'nowrap',
                 '&:hover': {
-                  backgroundColor: 'rgba(194, 94, 0, 0.08)',
+                  backgroundColor: 'rgba(180, 83, 9, 0.08)',
+                  color: 'primary.main',
                 },
               }}
             >

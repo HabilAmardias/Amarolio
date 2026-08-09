@@ -7,15 +7,16 @@ export function DashboardPage() {
   const { userURL, page, limit, hasNextPage, error, handleChangePage, handleChangeLimit } = useURL()
   return (
     <Container maxWidth="md">
-      <Box sx={{ my: 4 }}>
+      <Box sx={{ my: { xs: 3, sm: 4 } }}>
         <Typography
           variant="h3"
           component="h1"
           gutterBottom
           sx={{
-            color: '#c25e00',
+            color: 'primary.main',
             fontWeight: 700,
-            mb: 4,
+            mb: { xs: 3, sm: 4 },
+            fontSize: { xs: '1.9rem', sm: '2.5rem' },
           }}
         >
           Dashboard
@@ -24,10 +25,11 @@ export function DashboardPage() {
         <Typography
           variant="h5"
           sx={{
-            mt: 4,
+            mt: { xs: 3, sm: 4 },
             mb: 2,
-            color: '#8b4513',
+            color: 'secondary.main',
             fontWeight: 600,
+            fontSize: { xs: '1.2rem', sm: '1.5rem' },
           }}
         >
           Your Shortened URLs
@@ -43,24 +45,39 @@ export function DashboardPage() {
             {error.message}
           </Alert>
           : userURL.length === 0 ? (
-            <Typography
+            <Paper
+              variant="outlined"
               sx={{
-                color: 'text.secondary',
-                fontSize: '1.1rem',
+                p: 4,
+                textAlign: 'center',
+                borderRadius: 4,
               }}
             >
-              No URLs shortened yet.
-            </Typography>
+              <Typography
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: '1.05rem',
+                }}
+              >
+                No URLs shortened yet.
+              </Typography>
+            </Paper>
           ) : (
-            <TableContainer component={Paper}>
-              <Table>
+            <TableContainer
+              component={Paper}
+              sx={{
+                borderRadius: 1,
+                overflowX: 'auto',
+              }}
+            >
+              <Table sx={{ minWidth: 680 }}>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Short URL</TableCell>
-                    <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Original URL</TableCell>
-                    <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Expires At</TableCell>
-                    <TableCell sx={{ color: '#c25e00', fontWeight: 700 }}>Created At</TableCell>
-                    <TableCell sx={{ color: '#c25e00', fontWeight: 700 }} align="right">Stats</TableCell>
+                    <TableCell>Short URL</TableCell>
+                    <TableCell>Original URL</TableCell>
+                    <TableCell>Expires At</TableCell>
+                    <TableCell>Created At</TableCell>
+                    <TableCell align="right">Stats</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -70,21 +87,19 @@ export function DashboardPage() {
                         key={url.id}
                         sx={{
                           '&:hover': {
-                            background: '#faf6f0',
+                            background: 'rgba(180, 83, 9, 0.06)',
                           },
                         }}
                       >
-                        <TableCell>
+                        <TableCell sx={{ whiteSpace: 'nowrap' }}>
                           <a
                             href={url.short_url}
                             target="_blank"
                             rel="noopener"
                             style={{
-                              color: '#c25e00',
+                              color: '#B45309',
                               textDecoration: 'none',
-                              // '&:hover': {
-                              //   textDecoration: 'underline',
-                              // },
+                              fontWeight: 600,
                             }}
                           >
                             {url.short_url}
@@ -93,12 +108,12 @@ export function DashboardPage() {
                         <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', color: 'text.secondary' }}>
                           {url.url}
                         </TableCell>
-                        <TableCell sx={{ color: '#8b4513' }}>
+                        <TableCell sx={{ color: 'secondary.main', whiteSpace: 'nowrap' }}>
                           {url.expired_at
                             ? new Date(url.expired_at).toLocaleDateString()
                             : 'Never'}
                         </TableCell>
-                        <TableCell sx={{ color: 'text.secondary' }}>
+                        <TableCell sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
                           {new Date(url.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell align="right">
@@ -108,9 +123,9 @@ export function DashboardPage() {
                               to={`/dashboard/url/${url.code}`}
                               size="small"
                               sx={{
-                                color: '#c25e00',
+                                color: 'primary.main',
                                 '&:hover': {
-                                  backgroundColor: 'rgba(194, 94, 0, 0.08)',
+                                  backgroundColor: 'rgba(180, 83, 9, 0.08)',
                                 },
                               }}
                             >
@@ -139,15 +154,16 @@ export function DashboardPage() {
                   },
                 }}
                 sx={{
-                  borderTop: '1px solid #e8dcc8',
-                  color: '#5d4037',
+                  borderTop: '1px solid',
+                  borderTopColor: 'divider',
+                  color: 'text.secondary',
                   '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                    color: '#5d4037',
+                    color: 'text.secondary',
                   },
                   '& .MuiIconButton-root': {
-                    color: '#c25e00',
+                    color: 'primary.main',
                     '&:hover': {
-                      backgroundColor: 'rgba(194, 94, 0, 0.08)',
+                      backgroundColor: 'rgba(180, 83, 9, 0.08)',
                     },
                   },
                 }}
