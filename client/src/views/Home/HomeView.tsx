@@ -127,19 +127,6 @@ export default function HomeView() {
                   position: "relative",
                   display: "inline-block",
                   color: "primary.main",
-                  "&::after": {
-                    content: '""',
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    bottom: "0.06em",
-                    height: "0.32em",
-                    borderRadius: 999,
-                    background: isLight
-                      ? "rgba(240,166,59,0.35)"
-                      : "rgba(240,166,59,0.3)",
-                    zIndex: -1,
-                  },
                 }}
               >
                 {profile.name}
