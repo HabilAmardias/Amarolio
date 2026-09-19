@@ -1,5 +1,6 @@
 import type { Profile, Experience, Project } from "./types";
 import AmaryHomepage from "../assets/Amary-Homepage.png";
+import AppSecurityReviewHomepage from "../assets/Security-Review-Homepage.png"
 
 export const PROFILE: Profile = {
   name: "Muhammad Habil Amardias", // {/* TODO: Replace with real content */}
@@ -27,7 +28,7 @@ export const EXPERIENCES: Experience[] = [
     role: "BFLP IT Trainee", // {/* TODO: Replace with real content */}
     period: "May 2026 – Now", // {/* TODO: Replace with real content */}
     location: "Jakarta, Indonesia", // {/* TODO: Replace with real content */}
-    description: "IT Banking (Web/Mobile Developer)", // {/* TODO: Replace with real content */}
+    description: "IT Banking (Application Security)", // {/* TODO: Replace with real content */}
     tags: [],
   },
   {
@@ -62,4 +63,14 @@ export const PROJECTS: Project[] = [
     repoUrl: "https://github.com/HabilAmardias/Amarolio",
     featured: true,
   },
+  {
+    id: "proj-2",
+    title: "AI-Assisted Design Security Review", // {/* TODO: Replace with real content */}
+    description: "On-Prem AI pipeline design security review to decide DAST or Penetration Testing", // {/* TODO: Replace with real content */}
+    tags: ["React", "Python", "SQLite"],
+    imageUrl: AppSecurityReviewHomepage, // {/* TODO: Replace with real content */}
+    liveUrl: "#", // {/* TODO: Replace with real content */}
+    repoUrl: "https://github.com/HabilAmardias/Security-Review-Assistant", // {/* TODO: Replace with real content */}
+    featured: true,
+  }
 ];
