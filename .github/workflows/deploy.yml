@@ -34,6 +34,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
@@ -41,6 +44,8 @@ jobs:
           file: ./client/Dockerfile
           push: true
           tags: ghcr.io/habilamardias/amarolio-client:latest
+          cache-from: type=gha,scope=amarolio-client
+          cache-to: type=gha,mode=max,scope=amarolio-client
           
 
   # ==========================================
@@ -66,6 +71,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
@@ -73,6 +81,8 @@ jobs:
           file: ./amary-client/Dockerfile
           push: true
           tags: ghcr.io/habilamardias/amary-client:latest
+          cache-from: type=gha,scope=amary-client
+          cache-to: type=gha,mode=max,scope=amary-client
         
 
   # ==========================================
@@ -98,6 +108,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
@@ -105,6 +118,8 @@ jobs:
           file: ./amary-redirect/Dockerfile
           push: true
           tags: ghcr.io/habilamardias/amary-redirect:latest
+          cache-from: type=gha,scope=amary-redirect
+          cache-to: type=gha,mode=max,scope=amary-redirect
 
   # ==========================================
   # JOB 4: Amary
@@ -122,6 +137,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
@@ -129,6 +147,8 @@ jobs:
           file: ./amary/Dockerfile
           push: true
           tags: ghcr.io/habilamardias/amary-amarolio:latest
+          cache-from: type=gha,scope=amary
+          cache-to: type=gha,mode=max,scope=amary
 
   # ==========================================
   # JOB 5: Auth
@@ -147,6 +167,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
@@ -154,6 +177,8 @@ jobs:
           file: ./auth/Dockerfile
           push: true
           tags: ghcr.io/habilamardias/auth-amarolio:latest
+          cache-from: type=gha,scope=auth
+          cache-to: type=gha,mode=max,scope=auth
   
   # ==========================================
   # JOB 6: Gateway
@@ -172,6 +197,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
@@ -179,6 +207,8 @@ jobs:
           file: ./gateway/Dockerfile
           push: true
           tags: ghcr.io/habilamardias/gateway-amarolio:latest
+          cache-from: type=gha,scope=gateway
+          cache-to: type=gha,mode=max,scope=gateway
 
   # ==========================================
   # JOB 7: Deploy All
