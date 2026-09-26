@@ -90,7 +90,7 @@ func (us *UserServiceImpl) ResendVerification(ctx context.Context, email string)
 	}
 
 	go func() {
-		url := fmt.Sprintf("%s/api/v1/verification?token=%s", os.Getenv("SERVER_HOST"), token)
+		url := fmt.Sprintf("%s/api/v1/verification?user_id=%s&token=%s", os.Getenv("SERVER_HOST"), user.ID, token)
 		if err := us.mu.SendEmail(SendEmailParams{
 			Receiver:  user.Email,
 			Subject:   "User Verification | Amarolio",
@@ -200,7 +200,7 @@ func (us *UserServiceImpl) Register(ctx context.Context, email, password string)
 	}
 
 	go func() {
-		url := fmt.Sprintf("%s/api/v1/verification?token=%s", os.Getenv("SERVER_HOST"), *user.VerificationToken)
+		url := fmt.Sprintf("%s/api/v1/verification?user_id=%s&token=%s", os.Getenv("SERVER_HOST"), user.ID, *user.VerificationToken)
 		if err := us.mu.SendEmail(SendEmailParams{
 			Receiver:  user.Email,
 			Subject:   "User Verification | Amarolio",
