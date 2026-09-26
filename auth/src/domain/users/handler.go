@@ -1,21 +1,23 @@
 package users
 
 import (
-	"amarolio-auth/src/customerrors"
 	"amarolio-auth/src/dto"
 	"amarolio-auth/src/handlers"
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/gofiber/fiber/v3"
 )
 
 type UserServiceItf interface {
-	Login() (string, string)
+	Login(ctx context.Context, userID string, otp string) (string, string, error)
 	RefreshAuth(ctx context.Context, userID string) (string, error)
-	LoginCallback(ctx context.Context, code string) (string, string, error)
+	VerifyUser(ctx context.Context, userID, token string) error
 	GetProfile(ctx context.Context, userID string) (string, error)
+	Register(ctx context.Context, email, password string) error
+	ResendOTP(ctx context.Context, userID string) (string, error)
+	PreLogin(ctx context.Context, email string, password string) (string, error)
+	ResendVerification(ctx context.Context, email string) error
 }
 
 type UserHandlerImpl struct {
@@ -24,6 +26,88 @@ type UserHandlerImpl struct {
 
 func NewUserHandler(us UserServiceItf) *UserHandlerImpl {
 	return &UserHandlerImpl{us}
+}
+
+func (uh *UserHandlerImpl) ResendVerification(ctx fiber.Ctx) error {
+	body := new(ResendVerificationReq)
+	if err := ctx.Bind().JSON(body); err != nil {
+		return err
+	}
+	if err := uh.us.ResendVerification(ctx.RequestCtx(), body.Email); err != nil {
+		return err
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{
+		Success: true,
+		Data: dto.TextResponse{
+			Message: "User Verification URL Sent",
+		},
+	})
+}
+
+func (uh *UserHandlerImpl) PreLogin(ctx fiber.Ctx) error {
+	body := new(CredentialsReq)
+	if err := ctx.Bind().JSON(body); err != nil {
+		return err
+	}
+	token, err := uh.us.PreLogin(ctx.RequestCtx(), body.Email, body.Password)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{
+		Success: true,
+		Data: OTPRes{
+			OTPToken: token,
+		},
+	})
+}
+
+func (uh *UserHandlerImpl) ResendOTP(ctx fiber.Ctx) error {
+	userID, err := handlers.GetAuth(ctx)
+	if err != nil {
+		return err
+	}
+	token, err := uh.us.ResendOTP(ctx.RequestCtx(), userID)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{
+		Success: true,
+		Data: OTPRes{
+			OTPToken: token,
+		},
+	})
+}
+
+func (uh *UserHandlerImpl) Register(ctx fiber.Ctx) error {
+	body := new(CredentialsReq)
+	if err := ctx.Bind().JSON(body); err != nil {
+		return err
+	}
+	if err := uh.us.Register(ctx.RequestCtx(), body.Email, body.Password); err != nil {
+		return err
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{
+		Success: true,
+		Data: dto.TextResponse{
+			Message: "User Register Success",
+		},
+	})
+}
+
+func (uh *UserHandlerImpl) Verify(ctx fiber.Ctx) error {
+	query := new(VerifyReq)
+	if err := ctx.Bind().Query(query); err != nil {
+		return err
+	}
+	if err := uh.us.VerifyUser(ctx.RequestCtx(), query.UserID, query.Token); err != nil {
+		return err
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{
+		Success: true,
+		Data: dto.TextResponse{
+			Message: "Verify User Success",
+		},
+	})
 }
 
 func (uh *UserHandlerImpl) GetProfile(ctx fiber.Ctx) error {
@@ -46,12 +130,24 @@ func (uh *UserHandlerImpl) GetProfile(ctx fiber.Ctx) error {
 }
 
 func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
-	url, state := uh.us.Login()
+	userID, err := handlers.GetAuth(ctx)
+	if err != nil {
+		return err
+	}
+	req := new(LoginReq)
+	if err := ctx.Bind().JSON(req); err != nil {
+		return err
+	}
+
+	authToken, refreshToken, err := uh.us.Login(ctx.RequestCtx(), userID, req.OTP)
+	if err != nil {
+		return err
+	}
 	return ctx.JSON(dto.ServerResponse{
 		Success: true,
 		Data: LoginRes{
-			URL:   url,
-			State: state,
+			AuthToken:    authToken,
+			RefreshToken: refreshToken,
 		},
 	})
 }
@@ -69,42 +165,6 @@ func (uh *UserHandlerImpl) RefreshAuth(ctx fiber.Ctx) error {
 		Success: true,
 		Data: RefreshAuthRes{
 			AuthToken: authToken,
-		},
-	})
-}
-
-func (uh *UserHandlerImpl) LoginCallback(ctx fiber.Ctx) error {
-	req := new(LoginCallbackReq)
-	code := ctx.Query("code")
-	if err := ctx.Bind().JSON(req); err != nil {
-		return err
-	}
-
-	if len(code) == 0 {
-		return customerrors.NewError(
-			"failed to login",
-			errors.New("missing code in query param"),
-			customerrors.InvalidAction,
-		)
-	}
-
-	if ctx.Query("state") != req.State {
-		return customerrors.NewError(
-			"invalid credential",
-			errors.New("mismatch state parameters"),
-			customerrors.InvalidAction,
-		)
-	}
-
-	authToken, refreshToken, err := uh.us.LoginCallback(ctx.RequestCtx(), code)
-	if err != nil {
-		return err
-	}
-	return ctx.JSON(dto.ServerResponse{
-		Success: true,
-		Data: LoginCallbackRes{
-			AuthToken:    authToken,
-			RefreshToken: refreshToken,
 		},
 	})
 }
