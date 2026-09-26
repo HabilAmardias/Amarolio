@@ -12,11 +12,13 @@ import (
 
 func Bootstrap(db *db.DBHandle, rc *redis.Client, lg *zap.SugaredLogger, app *fiber.App) {
 	ju := users.CreateJWTUtil()
-	oau := users.CreateGoogleOauthUtil()
+	hu := users.CreateHasher()
+	mu := users.CreateGomailUtil()
+	ou := users.CreateOTPGenerator()
 
 	uc := users.NewUserCache(rc)
 
-	us := users.NewUserService(oau, ju, db, uc, lg)
+	us := users.NewUserService(hu, ou, mu, ju, db, uc, lg)
 
 	uh := users.NewUserHandler(us)
 
