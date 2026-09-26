@@ -77,7 +77,7 @@ func (ur *UserRepositoryImpl) UpdateVerificationToken(ctx context.Context, userI
 	return nil
 }
 
-func (ur *UserRepositoryImpl) UpdateOTP(ctx context.Context, userID string, otp string, user *User) error {
+func (ur *UserRepositoryImpl) UpdateOTP(ctx context.Context, userID string, otp *string, user *User) error {
 	query := `
 	UPDATE users
 	SET otp = $1, otp_expired_at = $2, updated_at = NOW()

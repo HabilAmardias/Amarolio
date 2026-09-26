@@ -64,12 +64,6 @@ func (us *UserServiceImpl) ResendVerification(ctx context.Context, email string)
 		if err := ur.FindByEmail(ctx, email, user); err != nil {
 			return err
 		}
-
-		go func() {
-			if err := us.renewCache(user); err != nil {
-				us.lg.Errorln(err.Error())
-			}
-		}()
 	}
 
 	if user.Verified {
@@ -100,6 +94,12 @@ func (us *UserServiceImpl) ResendVerification(ctx context.Context, email string)
 		}
 	}()
 
+	go func() {
+		if err := us.renewCache(user); err != nil {
+			us.lg.Errorln(err.Error())
+		}
+	}()
+
 	return nil
 }
 
@@ -111,11 +111,6 @@ func (us *UserServiceImpl) VerifyUser(ctx context.Context, userID, token string)
 		if err := ur.FindByID(ctx, userID, user); err != nil {
 			return err
 		}
-		go func() {
-			if err := us.renewCache(user); err != nil {
-				us.lg.Errorln(err.Error())
-			}
-		}()
 	}
 
 	if user.Verified {
@@ -142,6 +137,12 @@ func (us *UserServiceImpl) VerifyUser(ctx context.Context, userID, token string)
 	if err := ur.UpdateUserVerificationStatus(ctx, userID, true, user); err != nil {
 		return err
 	}
+
+	go func() {
+		if err := us.renewCache(user); err != nil {
+			us.lg.Errorln(err.Error())
+		}
+	}()
 
 	return nil
 }
@@ -244,11 +245,6 @@ func (us *UserServiceImpl) Login(ctx context.Context, userID string, otp string)
 		if err := ur.FindByID(ctx, userID, user); err != nil {
 			return "", "", err
 		}
-		go func() {
-			if err := us.renewCache(user); err != nil {
-				us.lg.Errorln(err.Error())
-			}
-		}()
 	}
 
 	if !user.Verified {
@@ -274,7 +270,14 @@ func (us *UserServiceImpl) Login(ctx context.Context, userID string, otp string)
 			customerrors.Unauthenticate,
 		)
 	}
-
+	if err := ur.UpdateOTP(ctx, userID, nil, user); err != nil {
+		return "", "", err
+	}
+	go func() {
+		if err := us.renewCache(user); err != nil {
+			us.lg.Errorln(err.Error())
+		}
+	}()
 	return us.generateAuthAndRefreshToken(userID)
 }
 
@@ -285,11 +288,6 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, userID string) (string
 		if err := ur.FindByID(ctx, userID, user); err != nil {
 			return "", err
 		}
-		go func() {
-			if err := us.renewCache(user); err != nil {
-				us.lg.Errorln(err.Error())
-			}
-		}()
 	}
 
 	// Check if the OTP has expired, if not, return an error
@@ -305,7 +303,7 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, userID string) (string
 	if err != nil {
 		return "", err
 	}
-	if err := ur.UpdateOTP(ctx, userID, otp, user); err != nil {
+	if err := ur.UpdateOTP(ctx, userID, &otp, user); err != nil {
 		return "", err
 	}
 
@@ -324,6 +322,12 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, userID string) (string
 		}
 	}()
 
+	go func() {
+		if err := us.renewCache(user); err != nil {
+			us.lg.Errorln(err.Error())
+		}
+	}()
+
 	return token, nil
 }
 
@@ -335,11 +339,6 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 		if err := ur.FindByEmail(ctx, email, user); err != nil {
 			return "", err
 		}
-		go func() {
-			if err := us.renewCache(user); err != nil {
-				us.lg.Errorln(err.Error())
-			}
-		}()
 	}
 	if !user.Verified {
 		return "", customerrors.NewError(
@@ -365,7 +364,7 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 	if err != nil {
 		return "", err
 	}
-	if err := ur.UpdateOTP(ctx, user.ID, otp, user); err != nil {
+	if err := ur.UpdateOTP(ctx, user.ID, &otp, user); err != nil {
 		return "", err
 	}
 
@@ -380,6 +379,12 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 			Subject:   "One Time Password For Login",
 			EmailBody: constants.BuildOTPEmailBody(strings.Split(user.Email, "@")[0], otp),
 		}); err != nil {
+			us.lg.Errorln(err.Error())
+		}
+	}()
+
+	go func() {
+		if err := us.renewCache(user); err != nil {
 			us.lg.Errorln(err.Error())
 		}
 	}()
