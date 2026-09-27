@@ -22,5 +22,5 @@ func (o *OTPGen) GenerateOTP() (string, error) {
 			customerrors.CommonErr,
 		)
 	}
-	return strconv.Itoa(int(n.Int64())), nil
+	return strconv.Itoa(int(n.Int64()) + 100000), nil
 }
