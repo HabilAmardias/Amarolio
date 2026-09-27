@@ -9,10 +9,6 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-type Logger interface {
-	Infoln(args ...interface{})
-}
-
 type DBTXItf interface {
 	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row

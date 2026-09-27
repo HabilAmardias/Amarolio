@@ -4,25 +4,24 @@ import (
 	"amarolio-auth/src/customerrors"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
-
-	"github.com/redis/go-redis/v9"
 )
 
+type CacheHandlerItf interface {
+	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
+	Get(ctx context.Context, key string) (string, error)
+}
+
 type UserCacheImpl struct {
-	rc  *redis.Client
-	age time.Duration
+	ch CacheHandlerItf
 }
 
-func NewUserCache(rc *redis.Client) *UserCacheImpl {
-	// no expiration
-	age := 0 * time.Second
-	return &UserCacheImpl{rc, age}
+func NewUserCache(rc CacheHandlerItf) *UserCacheImpl {
+	return &UserCacheImpl{rc}
 }
 
-func (uc *UserCacheImpl) SetCacheByEmail(ctx context.Context, user *User) error {
+func (uc *UserCacheImpl) SetCacheByEmail(ctx context.Context, age time.Duration, user *User) error {
 	key := fmt.Sprintf("users:email:%s", user.Email)
 	val, err := json.Marshal(*user)
 	if err != nil {
@@ -32,32 +31,17 @@ func (uc *UserCacheImpl) SetCacheByEmail(ctx context.Context, user *User) error 
 			customerrors.CommonErr,
 		)
 	}
-	if err := uc.rc.Set(ctx, key, string(val), uc.age).Err(); err != nil {
-		return customerrors.NewError(
-			"something went wrong",
-			err,
-			customerrors.DatabaseExecutionErr,
-		)
+	if err := uc.ch.Set(ctx, key, string(val), age); err != nil {
+		return err
 	}
 	return nil
 }
 
 func (uc *UserCacheImpl) FindCacheByEmail(ctx context.Context, userEmail string, user *User) error {
 	key := fmt.Sprintf("users:email:%s", userEmail)
-	val, err := uc.rc.Get(ctx, key).Result()
+	val, err := uc.ch.Get(ctx, key)
 	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return customerrors.NewError(
-				"no user found",
-				err,
-				customerrors.ItemNotFound,
-			)
-		}
-		return customerrors.NewError(
-			"something went wrong",
-			err,
-			customerrors.DatabaseExecutionErr,
-		)
+		return err
 	}
 	if err := json.Unmarshal([]byte(val), user); err != nil {
 		return customerrors.NewError(
@@ -69,7 +53,7 @@ func (uc *UserCacheImpl) FindCacheByEmail(ctx context.Context, userEmail string,
 	return nil
 }
 
-func (uc *UserCacheImpl) SetCacheByID(ctx context.Context, user *User) error {
+func (uc *UserCacheImpl) SetCacheByID(ctx context.Context, age time.Duration, user *User) error {
 	key := fmt.Sprintf("users:id:%s", user.ID)
 	val, err := json.Marshal(*user)
 	if err != nil {
@@ -79,33 +63,14 @@ func (uc *UserCacheImpl) SetCacheByID(ctx context.Context, user *User) error {
 			customerrors.CommonErr,
 		)
 	}
-	if err := uc.rc.Set(ctx, key, string(val), uc.age).Err(); err != nil {
-		return customerrors.NewError(
-			"something went wrong",
-			err,
-			customerrors.DatabaseExecutionErr,
-		)
-	}
-	return nil
+	return uc.ch.Set(ctx, key, string(val), age)
 }
 
 func (uc *UserCacheImpl) FindCacheByID(ctx context.Context, userID string, user *User) error {
 	key := fmt.Sprintf("users:id:%s", userID)
-	val, err := uc.rc.Get(ctx, key).Result()
-
+	val, err := uc.ch.Get(ctx, key)
 	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return customerrors.NewError(
-				"no user found",
-				err,
-				customerrors.ItemNotFound,
-			)
-		}
-		return customerrors.NewError(
-			"something went wrong",
-			err,
-			customerrors.DatabaseExecutionErr,
-		)
+		return err
 	}
 	if err := json.Unmarshal([]byte(val), user); err != nil {
 		return customerrors.NewError(

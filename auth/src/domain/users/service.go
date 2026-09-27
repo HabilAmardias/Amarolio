@@ -26,8 +26,8 @@ type MailItf interface {
 type UserCacheItf interface {
 	FindCacheByID(ctx context.Context, userID string, user *User) error
 	FindCacheByEmail(ctx context.Context, userEmail string, user *User) error
-	SetCacheByID(ctx context.Context, user *User) error
-	SetCacheByEmail(ctx context.Context, user *User) error
+	SetCacheByID(ctx context.Context, age time.Duration, user *User) error
+	SetCacheByEmail(ctx context.Context, age time.Duration, user *User) error
 }
 
 type HasherItf interface {
@@ -37,10 +37,6 @@ type HasherItf interface {
 
 type OTPGenItf interface {
 	GenerateOTP() (string, error)
-}
-
-type Logger interface {
-	Errorln(args ...interface{})
 }
 
 type UserServiceImpl struct {
@@ -439,11 +435,11 @@ func (us *UserServiceImpl) generateAuthAndRefreshToken(userID string) (string, s
 func (us *UserServiceImpl) renewCache(user *User) error {
 	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
-	if err := us.uc.SetCacheByID(newCtx, user); err != nil {
+	cacheAge := 15 * time.Minute
+	if err := us.uc.SetCacheByID(newCtx, cacheAge, user); err != nil {
 		return err
 	}
-	return us.uc.SetCacheByEmail(newCtx, user)
+	return us.uc.SetCacheByEmail(newCtx, cacheAge, user)
 }
 
 func (us *UserServiceImpl) generateVerificationToken() (string, error) {
