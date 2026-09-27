@@ -24,7 +24,6 @@ func (gu GomailUtil) SendEmail(email SendEmailParams) error {
 	if err != nil {
 		return err
 	}
-
 	d := gomail.NewDialer(os.Getenv("SMTP_SERVER"), port, os.Getenv("SENDER"), os.Getenv("SENDER_PASSWORD"))
 	if err := d.DialAndSend(m); err != nil {
 		return err

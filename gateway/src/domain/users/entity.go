@@ -1,13 +1,6 @@
 package users
 
 type (
-	LoginCallback struct {
-		AuthToken    string `json:"auth_token"`
-		RefreshToken string `json:"refresh_token"`
-	}
-	LoginCallbackBody struct {
-		State string `json:"oauthstate"`
-	}
 	Login struct {
 		AuthToken    string `json:"auth_token"`
 		RefreshToken string `json:"refresh_token"`
@@ -33,5 +26,9 @@ type (
 	}
 	ResendVerificationBody struct {
 		Email string `json:"email"`
+	}
+	VerificationBody struct {
+		UserID string `json:"user_id"`
+		Token  string `json:"token"`
 	}
 )

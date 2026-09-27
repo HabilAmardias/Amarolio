@@ -2,7 +2,7 @@ import { atom, type PrimitiveAtom } from "jotai";
 import type { User } from "./type";
 
 class UserModel {
-    private _userAtom: PrimitiveAtom<User>;
+    private _userAtom: PrimitiveAtom<User | null>;
     constructor() {
         const initialUser: User | null = null;
         this._userAtom = atom<User | null>(initialUser);

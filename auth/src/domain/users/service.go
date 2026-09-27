@@ -80,14 +80,16 @@ func (us *UserServiceImpl) ResendVerification(ctx context.Context, email string)
 	}
 
 	go func() {
-		url := fmt.Sprintf("%s/api/v1/verification?user_id=%s&token=%s", os.Getenv("SERVER_HOST"), user.ID, token)
+		url := fmt.Sprintf("%s/verify?user_id=%s&token=%s", os.Getenv("AUTH_CLIENT_URL"), user.ID, token)
 		if err := us.mu.SendEmail(SendEmailParams{
 			Receiver:  user.Email,
 			Subject:   "User Verification | Amarolio",
 			EmailBody: constants.BuildVerificationEmailBody(strings.Split(user.Email, "@")[0], url),
 		}); err != nil {
 			us.lg.Errorln(err.Error())
+			return
 		}
+		us.lg.Infoln("email sent")
 	}()
 
 	go func() {
@@ -197,14 +199,16 @@ func (us *UserServiceImpl) Register(ctx context.Context, email, password string)
 	}
 
 	go func() {
-		url := fmt.Sprintf("%s/api/v1/verification?user_id=%s&token=%s", os.Getenv("SERVER_HOST"), user.ID, *user.VerificationToken)
+		url := fmt.Sprintf("%s/verify?user_id=%s&token=%s", os.Getenv("AUTH_CLIENT_URL"), user.ID, *user.VerificationToken)
 		if err := us.mu.SendEmail(SendEmailParams{
 			Receiver:  user.Email,
 			Subject:   "User Verification | Amarolio",
 			EmailBody: constants.BuildVerificationEmailBody(strings.Split(user.Email, "@")[0], url),
 		}); err != nil {
 			us.lg.Errorln(err.Error())
+			return
 		}
+		us.lg.Infoln("email sent")
 	}()
 
 	go func() {
@@ -311,11 +315,13 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, userID string) (string
 	go func() {
 		if err := us.mu.SendEmail(SendEmailParams{
 			Receiver:  user.Email,
-			Subject:   "One Time Password For Login",
+			Subject:   "Your Amarolio sign-in code",
 			EmailBody: constants.BuildOTPEmailBody(strings.Split(user.Email, "@")[0], otp),
 		}); err != nil {
 			us.lg.Errorln(err.Error())
+			return
 		}
+		us.lg.Infoln("email sent")
 	}()
 
 	go func() {
@@ -372,11 +378,13 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 	go func() {
 		if err := us.mu.SendEmail(SendEmailParams{
 			Receiver:  user.Email,
-			Subject:   "One Time Password For Login",
+			Subject:   "Your Amarolio sign-in code",
 			EmailBody: constants.BuildOTPEmailBody(strings.Split(user.Email, "@")[0], otp),
 		}); err != nil {
 			us.lg.Errorln(err.Error())
+			return
 		}
+		us.lg.Infoln("email sent")
 	}()
 
 	go func() {

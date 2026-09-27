@@ -91,7 +91,13 @@ services:
     ports:
       - "127.0.0.1:${AMARY_REDIRECT_PORT}:80"
     restart: unless-stopped
-  
+  auth_client:
+    container_name: auth-client-container
+    image: ghcr.io/habilamardias/auth-client:latest
+    ports:
+      - "127.0.0.1:${AUTH_CLIENT_PORT}:80"
+    restart: unless-stopped
+
 volumes:
   database_auth_data:
   redis_auth_data:

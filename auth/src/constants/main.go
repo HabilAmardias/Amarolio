@@ -27,41 +27,44 @@ const (
 	AUTH_KEY = "auth_key"
 )
 
+// Email colors mirror client/src/theme/theme.ts: cream #F7F4EE, paper #FFFFFF,
+// mist #DCE8FB, blue #3D6BD4, sky #8FB3F0, amber #F0A63B, ink #222A3B,
+// slate #5C6B84, navy #253350.
+
 func BuildVerificationEmailBody(username, verificationURL string) string {
 	const verificationEmailTemplate = `<!DOCTYPE html>
 	<html lang="en">
 	<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify your Amary account</title>
+  <title>Verify your Amarolio account</title>
 	</head>
-	<body style="margin:0;padding:0;background-color:#F3E2C7;font-family:Georgia,'Times New Roman',serif;">
-  <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F3E2C7;padding:24px 12px;">
+	<body style="margin:0;padding:0;background-color:#F7F4EE;font-family:'Poppins','Open Sans','Helvetica Neue',Arial,sans-serif;">
+  <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F7F4EE;padding:24px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background-color:#FFF6E9;border-radius:14px;overflow:hidden;border:1px solid #E6CFA8;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background-color:#FFFFFF;border-radius:22px;overflow:hidden;border:1px solid #DCE8FB;">
 
           <!-- Header -->
           <tr>
-            <td align="center" style="background-color:#C2571A;padding:28px 20px 22px 20px;">
-              <div style="font-size:26px;letter-spacing:8px;line-height:1;">🍂 🍁 🍂</div>
-              <h1 style="margin:12px 0 0 0;font-size:32px;font-weight:bold;color:#FFF6E9;letter-spacing:2px;">amary</h1>
-              <p style="margin:4px 0 0 0;font-size:13px;color:#FAD9B0;font-style:italic;">shorten your links, gather your leaves</p>
+            <td align="center" style="background-color:#3D6BD4;background-image:linear-gradient(160deg,#8FB3F0 0%%,#3D6BD4 100%%);padding:30px 20px 24px 20px;">
+              <div style="width:52px;height:52px;line-height:52px;border-radius:16px;background-color:#FFFFFF;color:#3D6BD4;font-size:26px;font-weight:bold;text-align:center;">A</div>
+              <h1 style="margin:14px 0 0 0;font-size:26px;font-weight:bold;color:#FFFFFF;letter-spacing:1px;">Amarolio</h1>
+              <p style="margin:6px 0 0 0;font-size:13px;color:#DCE8FB;">one account for every Amarolio service</p>
             </td>
           </tr>
 
           <!-- Accent stripe -->
           <tr>
-            <td style="height:6px;line-height:6px;font-size:0;background-color:#E0A526;border-bottom:3px solid #9B2C1F;">&nbsp;</td>
+            <td style="height:5px;line-height:5px;font-size:0;background-color:#F0A63B;">&nbsp;</td>
           </tr>
 
           <!-- Body -->
           <tr>
-            <td style="padding:32px 32px 8px 32px;color:#4A2C17;">
-              <p style="margin:0 0 14px 0;font-size:20px;color:#9B2C1F;font-weight:bold;">Hello, %[1]s 🍁</p>
-              <p style="margin:0 0 22px 0;font-size:16px;line-height:1.6;">
-                Welcome to Amary! The leaves are turning and it's time to confirm your email address.
-                Tap the button below to verify your account.
+            <td style="padding:32px 32px 8px 32px;color:#222A3B;">
+              <p style="margin:0 0 14px 0;font-size:20px;color:#3D6BD4;font-weight:bold;">Hello, %[1]s</p>
+              <p style="margin:0 0 22px 0;font-size:16px;line-height:1.7;color:#5C6B84;">
+                Welcome to Amarolio! Confirm your email address to activate your account and use it across every Amarolio service.
               </p>
             </td>
           </tr>
@@ -71,8 +74,8 @@ func BuildVerificationEmailBody(username, verificationURL string) string {
             <td align="center" style="padding:0 32px;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td align="center" bgcolor="#C2571A" style="background-color:#C2571A;border-radius:10px;border-bottom:4px solid #9B2C1F;">
-                    <a href="%[2]s" target="_blank" style="display:inline-block;padding:15px 38px;font-family:Georgia,'Times New Roman',serif;font-size:18px;font-weight:bold;letter-spacing:1px;color:#FFF6E9;text-decoration:none;">🍁 Verify my account</a>
+                  <td align="center" bgcolor="#3D6BD4" style="background-color:#3D6BD4;border-radius:999px;">
+                    <a href="%[2]s" target="_blank" style="display:inline-block;padding:15px 42px;font-family:'Poppins','Open Sans','Helvetica Neue',Arial,sans-serif;font-size:17px;font-weight:bold;letter-spacing:0.2px;color:#FFFFFF;text-decoration:none;">Verify my account</a>
                   </td>
                 </tr>
               </table>
@@ -81,27 +84,27 @@ func BuildVerificationEmailBody(username, verificationURL string) string {
 
           <!-- Fallback link + notes -->
           <tr>
-            <td style="padding:26px 32px 30px 32px;color:#4A2C17;">
-              <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;color:#7A5A40;">
+            <td style="padding:26px 32px 30px 32px;color:#222A3B;">
+              <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;color:#5C6B84;">
                 Button not working? Copy and paste this link into your browser:
               </p>
               <p style="margin:0 0 18px 0;font-size:13px;line-height:1.5;word-break:break-all;">
-                <a href="%[2]s" target="_blank" style="color:#9B2C1F;text-decoration:underline;">%[2]s</a>
+                <a href="%[2]s" target="_blank" style="color:#3D6BD4;text-decoration:underline;">%[2]s</a>
               </p>
               <p style="margin:0 0 12px 0;font-size:15px;line-height:1.6;">
-                🕰️ This link will fall away in <strong>%[3]d minutes</strong>.
+                This link will expire in <strong>%[3]d minutes</strong>.
               </p>
-              <p style="margin:0;font-size:14px;line-height:1.6;color:#7A5A40;">
-                If you didn't create an Amary account, you can safely ignore this email.
+              <p style="margin:0;font-size:14px;line-height:1.6;color:#5C6B84;">
+                If you didn't create an Amarolio account, you can safely ignore this email.
               </p>
             </td>
           </tr>
 
           <!-- Bottom bar -->
           <tr>
-            <td align="center" style="background-color:#4A2C17;padding:16px 20px;">
-              <p style="margin:0;font-size:12px;color:#E6CFA8;">
-                🍂 Sent with warmth by the Amary team 🍂
+            <td align="center" style="background-color:#253350;padding:16px 20px;">
+              <p style="margin:0;font-size:12px;color:#DCE8FB;">
+                Sent by the Amarolio team
               </p>
             </td>
           </tr>
@@ -125,35 +128,34 @@ func BuildOTPEmailBody(username, otp string) string {
 	<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Amary verification code</title>
+  <title>Your Amarolio sign-in code</title>
 	</head>
-	<body style="margin:0;padding:0;background-color:#F3E2C7;font-family:Georgia,'Times New Roman',serif;">
-  <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F3E2C7;padding:24px 12px;">
+	<body style="margin:0;padding:0;background-color:#F7F4EE;font-family:'Poppins','Open Sans','Helvetica Neue',Arial,sans-serif;">
+  <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F7F4EE;padding:24px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background-color:#FFF6E9;border-radius:14px;overflow:hidden;border:1px solid #E6CFA8;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background-color:#FFFFFF;border-radius:22px;overflow:hidden;border:1px solid #DCE8FB;">
 
           <!-- Header -->
           <tr>
-            <td align="center" style="background-color:#C2571A;padding:28px 20px 22px 20px;">
-              <div style="font-size:26px;letter-spacing:8px;line-height:1;">🍂 🍁 🍂</div>
-              <h1 style="margin:12px 0 0 0;font-size:32px;font-weight:bold;color:#FFF6E9;letter-spacing:2px;">amary</h1>
-              <p style="margin:4px 0 0 0;font-size:13px;color:#FAD9B0;font-style:italic;">shorten your links, gather your leaves</p>
+            <td align="center" style="background-color:#3D6BD4;background-image:linear-gradient(160deg,#8FB3F0 0%%,#3D6BD4 100%%);padding:30px 20px 24px 20px;">
+              <div style="width:52px;height:52px;line-height:52px;border-radius:16px;background-color:#FFFFFF;color:#3D6BD4;font-size:26px;font-weight:bold;text-align:center;">A</div>
+              <h1 style="margin:14px 0 0 0;font-size:26px;font-weight:bold;color:#FFFFFF;letter-spacing:1px;">Amarolio</h1>
+              <p style="margin:6px 0 0 0;font-size:13px;color:#DCE8FB;">one account for every Amarolio service</p>
             </td>
           </tr>
 
           <!-- Accent stripe -->
           <tr>
-            <td style="height:6px;line-height:6px;font-size:0;background-color:#E0A526;border-bottom:3px solid #9B2C1F;">&nbsp;</td>
+            <td style="height:5px;line-height:5px;font-size:0;background-color:#F0A63B;">&nbsp;</td>
           </tr>
 
           <!-- Body -->
           <tr>
-            <td style="padding:32px 32px 8px 32px;color:#4A2C17;">
-              <p style="margin:0 0 14px 0;font-size:20px;color:#9B2C1F;font-weight:bold;">Hello, %s 🍁</p>
-              <p style="margin:0 0 22px 0;font-size:16px;line-height:1.6;">
-                The leaves are turning and it's time to verify your account.
-                Use the one-time passcode below to continue with Amary.
+            <td style="padding:32px 32px 8px 32px;color:#222A3B;">
+              <p style="margin:0 0 14px 0;font-size:20px;color:#3D6BD4;font-weight:bold;">Hello, %[1]s</p>
+              <p style="margin:0 0 22px 0;font-size:16px;line-height:1.7;color:#5C6B84;">
+                Use the one-time passcode below to continue signing in to your Amarolio account.
               </p>
             </td>
           </tr>
@@ -161,11 +163,11 @@ func BuildOTPEmailBody(username, otp string) string {
           <!-- OTP box -->
           <tr>
             <td align="center" style="padding:0 32px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background-color:#FDEBD0;border:2px dashed #C2571A;border-radius:12px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background-color:#DCE8FB;border:2px solid #3D6BD4;border-radius:14px;">
                 <tr>
                   <td align="center" style="padding:18px 34px;">
-                    <div style="font-size:12px;letter-spacing:3px;color:#9B2C1F;text-transform:uppercase;margin-bottom:8px;">Your passcode</div>
-                    <div style="font-family:'Courier New',Courier,monospace;font-size:38px;font-weight:bold;letter-spacing:10px;color:#4A2C17;">%s</div>
+                    <div style="font-size:12px;letter-spacing:3px;color:#3D6BD4;font-weight:bold;text-transform:uppercase;margin-bottom:8px;">Your passcode</div>
+                    <div style="font-family:'Courier New',Courier,monospace;font-size:38px;font-weight:bold;letter-spacing:10px;color:#222A3B;">%[2]s</div>
                   </td>
                 </tr>
               </table>
@@ -174,11 +176,11 @@ func BuildOTPEmailBody(username, otp string) string {
 
           <!-- Footer text -->
           <tr>
-            <td style="padding:26px 32px 30px 32px;color:#4A2C17;">
+            <td style="padding:26px 32px 30px 32px;color:#222A3B;">
               <p style="margin:0 0 12px 0;font-size:15px;line-height:1.6;">
-                🕰️ This code will fall away in <strong>%d minutes</strong>.
+                This code will expire in <strong>%[3]d minutes</strong>.
               </p>
-              <p style="margin:0;font-size:14px;line-height:1.6;color:#7A5A40;">
+              <p style="margin:0;font-size:14px;line-height:1.6;color:#5C6B84;">
                 If you didn't request this, you can safely ignore this email.
                 For your security, never share this code with anyone.
               </p>
@@ -187,9 +189,9 @@ func BuildOTPEmailBody(username, otp string) string {
 
           <!-- Bottom bar -->
           <tr>
-            <td align="center" style="background-color:#4A2C17;padding:16px 20px;">
-              <p style="margin:0;font-size:12px;color:#E6CFA8;">
-                🍂 Sent with warmth by the Amary team 🍂
+            <td align="center" style="background-color:#253350;padding:16px 20px;">
+              <p style="margin:0;font-size:12px;color:#DCE8FB;">
+                Sent by the Amarolio team
               </p>
             </td>
           </tr>
@@ -201,8 +203,8 @@ func BuildOTPEmailBody(username, otp string) string {
 	</body>
 	</html>`
 	return fmt.Sprintf(otpEmailTemplate,
-		html.EscapeString(username),
-		html.EscapeString(otp),
-		int(OTP_AGE),
+		html.EscapeString(username), // %[1]s
+		html.EscapeString(otp),      // %[2]s
+		int(OTP_AGE.Minutes()),      // %[3]d
 	)
 }

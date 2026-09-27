@@ -86,6 +86,42 @@ jobs:
         
 
   # ==========================================
+  # JOB 2b: AUTH CLIENT (Port 4000)
+  # ==========================================
+  auth-client:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Inject Env
+        working-directory: ./auth-client
+        run: |
+          cat << 'EOF' > .env
+          ${{ secrets.PROD_CLIENT_ENV }}
+          EOF
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./auth-client
+          file: ./auth-client/Dockerfile
+          push: true
+          tags: ghcr.io/habilamardias/auth-client:latest
+          cache-from: type=gha,scope=auth-client
+          cache-to: type=gha,mode=max,scope=auth-client
+
+  # ==========================================
   # JOB 3: AMARY REDIRECT (Port 8000)
   # ==========================================
   amary-redirect:
@@ -215,7 +251,7 @@ jobs:
   # ==========================================
   deploy-all:
     runs-on: ubuntu-latest
-    needs: [amarolio-client, amary-client, amary-redirect, amary-amarolio, auth-amarolio, gateway-amarolio]
+    needs: [amarolio-client, amary-client, auth-client, amary-redirect, amary-amarolio, auth-amarolio, gateway-amarolio]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

@@ -52,11 +52,19 @@ func (us *UserServiceImpl) callGetProfile(userID string) (*dto.ServerResponse[Ge
 }
 
 func (us *UserServiceImpl) callVerify(userID string, token string) (*dto.ServerResponse[Text], error) {
-	queries := map[string]string{
-		"token":   token,
-		"user_id": userID,
+	body := VerificationBody{
+		UserID: userID,
+		Token:  token,
 	}
-	return services.Call[Text](us.hs, us.pr, "/api/v1/verify", fasthttp.MethodGet, fasthttp.StatusOK, nil, queries, nil)
+	b, err := json.Marshal(body)
+	if err != nil {
+		return nil, customerrors.NewError(
+			"something went wrong",
+			err,
+			customerrors.CommonErr,
+		)
+	}
+	return services.Call[Text](us.hs, us.pr, "/api/v1/verify", fasthttp.MethodPost, fasthttp.StatusOK, b, nil, nil)
 }
 
 func (us *UserServiceImpl) callRegister(email, password string) (*dto.ServerResponse[Text], error) {
