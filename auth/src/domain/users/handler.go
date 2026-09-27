@@ -4,7 +4,6 @@ import (
 	"amarolio-auth/src/dto"
 	"amarolio-auth/src/handlers"
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/gofiber/fiber/v3"
@@ -100,8 +99,6 @@ func (uh *UserHandlerImpl) Verify(ctx fiber.Ctx) error {
 	if err := ctx.Bind().JSON(body); err != nil {
 		return err
 	}
-	log.Println("UserID: ", body.UserID)
-	log.Println("Token: ", body.Token)
 	if err := uh.us.VerifyUser(ctx.RequestCtx(), body.UserID, body.Token); err != nil {
 		return err
 	}
