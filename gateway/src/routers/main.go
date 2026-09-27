@@ -9,6 +9,7 @@ import (
 	"amarolio-gateway/src/middlewares"
 	"amarolio-gateway/src/utils"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
@@ -37,12 +38,7 @@ func (ar *AppRouter) Setup() {
 		AllowOriginsFunc: func(origin string) bool {
 			allowed := os.Getenv("ALLOWED_ORIGIN")
 			origins := strings.Split(allowed, ";")
-			for _, o := range origins {
-				if origin == o {
-					return true
-				}
-			}
-			return false
+			return slices.Contains(origins, origin)
 		},
 		AllowCredentials: true,
 		AllowMethods:     []string{fasthttp.MethodGet, fasthttp.MethodPost, fasthttp.MethodDelete, fasthttp.MethodPatch, fasthttp.MethodPut},
@@ -55,9 +51,24 @@ func (ar *AppRouter) Setup() {
 func (ar *AppRouter) SetupPublicRoute() {
 	v1 := ar.App.Group("/api/v1")
 	v1.Use(middlewares.NewRateLimiterMiddleware(constants.AUTH_CLAIM_KEY))
-	v1.Post("/login", ar.UserHandler.Login)
-	v1.Get("/login/callback", ar.UserHandler.LoginCallback)
-	v1.Post("/logout", ar.UserHandler.LogOut)
+	v1.Post("/prelogin", ar.UserHandler.PreLogin)
+	v1.Get("/verify/send", ar.UserHandler.ResendVerification)
+	v1.Post("/login", middlewares.NewAuthMiddleware(
+		ar.JWTUtil,
+		constants.AUTH_TOKEN,
+		constants.ForOTP,
+		constants.AUTH_CLAIM_KEY,
+		false,
+	), ar.UserHandler.Login)
+	v1.Get("/otp/send", middlewares.NewAuthMiddleware(
+		ar.JWTUtil,
+		constants.AUTH_TOKEN,
+		constants.ForOTP,
+		constants.AUTH_CLAIM_KEY,
+		false,
+	), ar.UserHandler.ResendOTP)
+	v1.Post("/register", ar.UserHandler.Register)
+	v1.Post("/verify", ar.UserHandler.Verify)
 	v1.Post("/refresh", middlewares.NewAuthMiddleware(
 		ar.JWTUtil,
 		constants.REFRESH_TOKEN,
@@ -90,4 +101,5 @@ func (ar *AppRouter) SetupPrivateRoute() {
 	v1.Get("/me/url", ar.ShortenURLHandler.GetUserLinks)
 	v1.Post("/url/custom-code", ar.ShortenURLHandler.IsCustomURLAvailable)
 	v1.Get("/url/:id/dashboard", ar.ShortenURLHandler.GetVisitSummary)
+	v1.Post("/logout", ar.UserHandler.LogOut)
 }

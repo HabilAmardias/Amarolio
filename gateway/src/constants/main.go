@@ -15,6 +15,7 @@ const (
 
 const (
 	ForAuth = iota + 1
+	ForOTP
 	ForRefresh
 )
 

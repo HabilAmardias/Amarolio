@@ -27,7 +27,7 @@ func (ar *AppRouter) publicSetup() {
 
 	v1.Post("/register", ar.Uh.Register)
 
-	v1.Get("/verify", ar.Uh.Verify)
+	v1.Post("/verify", ar.Uh.Verify)
 
 	v1.Post("/verify/send", ar.Uh.ResendVerification)
 

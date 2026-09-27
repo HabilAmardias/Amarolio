@@ -1,22 +1,24 @@
 package users
 
 type (
-	RefreshAuthRes struct {
-		Message string `json:"message"`
-	}
 	GetProfileRes struct {
 		Username string `json:"username"`
 	}
 	LoginReq struct {
-		RedirectURI string `json:"redirect_uri" validate:"required"`
+		OTP string `json:"otp"`
 	}
-	LogoutReq struct {
-		RedirectURI string `json:"redirect_uri" validate:"required"`
+	VerifyReq struct {
+		Token  string `json:"token"`
+		UserID string `json:"user_id"`
 	}
-	LoginRes struct {
-		RedirectURI string `json:"redirect_uri"`
+	CredentialsReq struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
-	LogoutRes struct {
-		RedirectURI string `json:"redirect_uri"`
+	OTPRes struct {
+		OTPToken string `json:"otp_token"`
+	}
+	ResendVerificationReq struct {
+		Email string `json:"email"`
 	}
 )

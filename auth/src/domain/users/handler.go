@@ -95,11 +95,11 @@ func (uh *UserHandlerImpl) Register(ctx fiber.Ctx) error {
 }
 
 func (uh *UserHandlerImpl) Verify(ctx fiber.Ctx) error {
-	query := new(VerifyReq)
-	if err := ctx.Bind().Query(query); err != nil {
+	body := new(VerifyReq)
+	if err := ctx.Bind().JSON(body); err != nil {
 		return err
 	}
-	if err := uh.us.VerifyUser(ctx.RequestCtx(), query.UserID, query.Token); err != nil {
+	if err := uh.us.VerifyUser(ctx.RequestCtx(), body.UserID, body.Token); err != nil {
 		return err
 	}
 	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{
@@ -143,7 +143,7 @@ func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return ctx.JSON(dto.ServerResponse{
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{
 		Success: true,
 		Data: LoginRes{
 			AuthToken:    authToken,
@@ -161,7 +161,7 @@ func (uh *UserHandlerImpl) RefreshAuth(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return ctx.JSON(dto.ServerResponse{
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{
 		Success: true,
 		Data: RefreshAuthRes{
 			AuthToken: authToken,
