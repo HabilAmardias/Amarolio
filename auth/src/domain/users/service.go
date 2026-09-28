@@ -28,6 +28,10 @@ type UserCacheItf interface {
 	FindCacheByEmail(ctx context.Context, userEmail string, user *User) error
 	SetCacheByID(ctx context.Context, age time.Duration, user *User) error
 	SetCacheByEmail(ctx context.Context, age time.Duration, user *User) error
+	GetLoginAttempts(ctx context.Context, email string) (int, error)
+	IncreaseLoginAttempts(ctx context.Context, email string, max int, lock time.Duration) (int, error)
+	ResetLoginAttempts(ctx context.Context, email string) error
+	LoginLockRemaining(ctx context.Context, email string) (time.Duration, error)
 }
 
 type HasherItf interface {
@@ -51,6 +55,55 @@ type UserServiceImpl struct {
 
 func NewUserService(hu HasherItf, ou OTPGenItf, mu MailItf, ju JWTUtilItf, dbtx *db.DBHandle, uc UserCacheItf, lg Logger) *UserServiceImpl {
 	return &UserServiceImpl{hu, ou, mu, ju, dbtx, uc, lg}
+}
+
+func lockoutError(ttl time.Duration) error {
+	minutes := int(ttl.Round(time.Minute).Minutes())
+	if minutes < 1 {
+		minutes = 1
+	}
+	return customerrors.NewError(
+		fmt.Sprintf("Too many failed attempts. Try again in %d minutes.", minutes),
+		errors.New("too many failed login attempts"),
+		customerrors.TooManyAttempts,
+	)
+}
+
+// loginLockError returns a 429 error when the account has reached the failed
+// attempt threshold. Infrastructure errors fail open so a cache outage cannot
+// block every login.
+func (us *UserServiceImpl) loginLockError(ctx context.Context, email string) error {
+	attempts, err := us.uc.GetLoginAttempts(ctx, email)
+	if err != nil {
+		us.lg.Errorln("login lock check:", err.Error())
+		return nil
+	}
+	if attempts < constants.MaxLoginAttempts {
+		return nil
+	}
+	ttl, err := us.uc.LoginLockRemaining(ctx, email)
+	if err != nil {
+		us.lg.Errorln("login lock ttl:", err.Error())
+	}
+	return lockoutError(ttl)
+}
+
+// recordFailedLogin counts a failed attempt and returns the lockout error once
+// the threshold is reached, otherwise the provided fallback error.
+func (us *UserServiceImpl) recordFailedLogin(ctx context.Context, email string, fallback error) error {
+	count, err := us.uc.IncreaseLoginAttempts(ctx, email, constants.MaxLoginAttempts, constants.LoginLockDuration)
+	if err != nil {
+		us.lg.Errorln("record login attempt:", err.Error())
+		return fallback
+	}
+	if count >= constants.MaxLoginAttempts {
+		ttl, ttlErr := us.uc.LoginLockRemaining(ctx, email)
+		if ttlErr != nil {
+			us.lg.Errorln("login lock ttl:", ttlErr.Error())
+		}
+		return lockoutError(ttl)
+	}
+	return fallback
 }
 
 func (us *UserServiceImpl) ResetPassword(ctx context.Context, userID string, token string, newPassword string) error {
@@ -101,6 +154,10 @@ func (us *UserServiceImpl) ResetPassword(ctx context.Context, userID string, tok
 		return err
 	}
 
+	if err := us.uc.ResetLoginAttempts(ctx, user.Email); err != nil {
+		us.lg.Errorln("reset login attempts:", err.Error())
+	}
+
 	go func() {
 		if err := us.renewCache(user); err != nil {
 			us.lg.Errorln(err)
@@ -112,13 +169,15 @@ func (us *UserServiceImpl) ResetPassword(ctx context.Context, userID string, tok
 func (us *UserServiceImpl) SendResetPasswordEmail(ctx context.Context, email string) error {
 	user := new(User)
 	ur := NewUserRepository(us.dbtx)
+
 	if err := us.uc.FindCacheByEmail(ctx, email, user); err != nil {
 		if err := ur.FindByEmail(ctx, email, user); err != nil {
-			return err
+			// return nil even when the email does not exist, to prevent enumeration attack
+			return nil
 		}
 	}
 
-	token, err := us.generateVerificationToken()
+	token, err := us.generateRandomToken()
 	if err != nil {
 		return err
 	}
@@ -165,7 +224,7 @@ func (us *UserServiceImpl) ResendVerification(ctx context.Context, email string)
 		)
 	}
 
-	token, err := us.generateVerificationToken()
+	token, err := us.generateRandomToken()
 	if err != nil {
 		return err
 	}
@@ -282,7 +341,7 @@ func (us *UserServiceImpl) Register(ctx context.Context, email, password string)
 			return err
 		}
 
-		token, err := us.generateVerificationToken()
+		token, err := us.generateRandomToken()
 		if err != nil {
 			return err
 		}
@@ -342,6 +401,10 @@ func (us *UserServiceImpl) Login(ctx context.Context, userID string, otp string)
 		}
 	}
 
+	if err := us.loginLockError(ctx, user.Email); err != nil {
+		return "", "", err
+	}
+
 	if !user.Verified {
 		return "", "", customerrors.NewError(
 			"user not verified",
@@ -350,14 +413,8 @@ func (us *UserServiceImpl) Login(ctx context.Context, userID string, otp string)
 		)
 	}
 
-	if !user.IsOTPMatches(otp) {
-		return "", "", customerrors.NewError(
-			"Incorrect otp",
-			errors.New("invalid otp"),
-			customerrors.Unauthenticate,
-		)
-	}
-
+	// An expired OTP is not a wrong credential, so it is checked first and not
+	// counted toward the lockout.
 	if user.IsOTPExpired() {
 		return "", "", customerrors.NewError(
 			"OTP has expired",
@@ -365,8 +422,20 @@ func (us *UserServiceImpl) Login(ctx context.Context, userID string, otp string)
 			customerrors.Unauthenticate,
 		)
 	}
+
+	if !user.IsOTPMatches(otp) {
+		return "", "", us.recordFailedLogin(ctx, user.Email, customerrors.NewError(
+			"Incorrect otp",
+			errors.New("invalid otp"),
+			customerrors.Unauthenticate,
+		))
+	}
+
 	if err := ur.UpdateOTP(ctx, userID, nil, user); err != nil {
 		return "", "", err
+	}
+	if err := us.uc.ResetLoginAttempts(ctx, user.Email); err != nil {
+		us.lg.Errorln("reset login attempts:", err.Error())
 	}
 	go func() {
 		if err := us.renewCache(user); err != nil {
@@ -383,6 +452,10 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, userID string) (string
 		if err := ur.FindByID(ctx, userID, user); err != nil {
 			return "", err
 		}
+	}
+
+	if err := us.loginLockError(ctx, user.Email); err != nil {
+		return "", err
 	}
 
 	// Check if the OTP has expired, if not, return an error
@@ -402,7 +475,7 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, userID string) (string
 		return "", err
 	}
 
-	token, err := us.ju.GenerateJWT(user.ID, constants.ForOTP, constants.AUTH_AGE)
+	token, err := us.ju.GenerateJWT(user.ID, constants.ForOTP, 2*constants.OTP_AGE)
 	if err != nil {
 		return "", err
 	}
@@ -429,11 +502,30 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, userID string) (string
 }
 
 func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password string) (string, error) {
+	if err := us.loginLockError(ctx, email); err != nil {
+		return "", err
+	}
+
 	user := new(User)
 
 	ur := NewUserRepository(us.dbtx)
 	if err := us.uc.FindCacheByEmail(ctx, email, user); err != nil {
 		if err := ur.FindByEmail(ctx, email, user); err != nil {
+			var parsedErr *customerrors.CustomError
+			if !errors.As(err, &parsedErr) {
+				return "", customerrors.NewError(
+					"something went wrong",
+					errors.New("parse error fail"),
+					customerrors.CommonErr,
+				)
+			}
+			if parsedErr.ErrCode == customerrors.ItemNotFound {
+				return "", us.recordFailedLogin(ctx, email, customerrors.NewError(
+					"invalid credentials",
+					err,
+					customerrors.InvalidAction,
+				))
+			}
 			return "", err
 		}
 	}
@@ -450,11 +542,11 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 		return "", err
 	}
 	if !match {
-		return "", customerrors.NewError(
+		return "", us.recordFailedLogin(ctx, email, customerrors.NewError(
 			"invalid credentials",
 			errors.New("invalid password"),
 			customerrors.InvalidAction,
-		)
+		))
 	}
 
 	otp, err := us.ou.GenerateOTP()
@@ -465,7 +557,7 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 		return "", err
 	}
 
-	token, err := us.ju.GenerateJWT(user.ID, constants.ForOTP, constants.AUTH_AGE)
+	token, err := us.ju.GenerateJWT(user.ID, constants.ForOTP, 2*constants.OTP_AGE)
 	if err != nil {
 		return "", err
 	}
@@ -545,7 +637,7 @@ func (us *UserServiceImpl) renewCache(user *User) error {
 	return us.uc.SetCacheByEmail(newCtx, cacheAge, user)
 }
 
-func (us *UserServiceImpl) generateVerificationToken() (string, error) {
+func (us *UserServiceImpl) generateRandomToken() (string, error) {
 	b := make([]byte, 32)
 
 	if _, err := rand.Read(b); err != nil {

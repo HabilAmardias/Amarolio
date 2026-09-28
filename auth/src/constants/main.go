@@ -12,6 +12,8 @@ const (
 	REFRESH_AGE                      = 7 * 24 * time.Hour
 	VerificationLinkValidityMinutes  = 60
 	ResetPasswordLinkValidityMinutes = VerificationLinkValidityMinutes
+	MaxLoginAttempts                 = 3
+	LoginLockDuration                = time.Hour
 )
 
 const (

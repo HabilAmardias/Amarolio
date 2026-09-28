@@ -18,6 +18,8 @@ const (
 func NewRateLimiterMiddleware(ctxKey string) fiber.Handler {
 	return limiter.New(
 		limiter.Config{
+			// Sliding window smooths out the boundary bursts a fixed window allows.
+			LimiterMiddleware: limiter.SlidingWindow{},
 			MaxFunc: func(c fiber.Ctx) int {
 				_, ok := c.Locals(ctxKey).(*utils.CustomClaim)
 				if !ok {
@@ -27,11 +29,10 @@ func NewRateLimiterMiddleware(ctxKey string) fiber.Handler {
 			},
 			Expiration: time.Second,
 			KeyGenerator: func(c fiber.Ctx) string {
-				claim, ok := c.Locals(ctxKey).(*utils.CustomClaim)
-				if !ok {
-					return c.IP()
+				if claim, ok := c.Locals(ctxKey).(*utils.CustomClaim); ok {
+					return "user:" + claim.Subject
 				}
-				return claim.Subject
+				return "ip:" + c.IP()
 			},
 			LimitReached: func(c fiber.Ctx) error {
 				return c.Status(http.StatusTooManyRequests).JSON(dto.ServerResponse[dto.ErrorResponse]{

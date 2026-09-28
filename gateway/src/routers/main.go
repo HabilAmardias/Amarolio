@@ -44,26 +44,32 @@ func (ar *AppRouter) Setup() {
 		AllowMethods:     []string{fasthttp.MethodGet, fasthttp.MethodPost, fasthttp.MethodDelete, fasthttp.MethodPatch, fasthttp.MethodPut},
 	}))
 	ar.App.Use(middlewares.NewLoggerMiddleware(ar.Logger))
+	ar.App.Use(middlewares.NewIdentityMiddleware(
+		ar.JWTUtil,
+		constants.AUTH_TOKEN,
+		constants.ForAuth,
+		constants.IDENTITY_CLAIM_KEY,
+	))
+	ar.App.Use(middlewares.NewRateLimiterMiddleware(constants.IDENTITY_CLAIM_KEY))
 	ar.SetupPublicRoute()
 	ar.SetupPrivateRoute()
 }
 
 func (ar *AppRouter) SetupPublicRoute() {
 	v1 := ar.App.Group("/api/v1")
-	v1.Use(middlewares.NewRateLimiterMiddleware(constants.AUTH_CLAIM_KEY))
 	v1.Post("/prelogin", ar.UserHandler.PreLogin)
 	v1.Post("/verify/send", ar.UserHandler.ResendVerification)
 	v1.Post("/logout", ar.UserHandler.LogOut)
 	v1.Post("/login", middlewares.NewAuthMiddleware(
 		ar.JWTUtil,
-		constants.AUTH_TOKEN,
+		constants.OTP_TOKEN,
 		constants.ForOTP,
 		constants.AUTH_CLAIM_KEY,
 		false,
 	), ar.UserHandler.Login)
 	v1.Get("/otp/send", middlewares.NewAuthMiddleware(
 		ar.JWTUtil,
-		constants.AUTH_TOKEN,
+		constants.OTP_TOKEN,
 		constants.ForOTP,
 		constants.AUTH_CLAIM_KEY,
 		false,
@@ -99,7 +105,6 @@ func (ar *AppRouter) SetupPrivateRoute() {
 		constants.AUTH_CLAIM_KEY,
 		false,
 	))
-	v1.Use(middlewares.NewRateLimiterMiddleware(constants.AUTH_CLAIM_KEY))
 	v1.Get("/me", ar.UserHandler.GetProfile)
 	v1.Get("/me/url", ar.ShortenURLHandler.GetUserLinks)
 	v1.Post("/url/custom-code", ar.ShortenURLHandler.IsCustomURLAvailable)

@@ -59,6 +59,14 @@ func (uh *UserHandlerImpl) ResetPassword(ctx fiber.Ctx) error {
 		SameSite: "Lax",
 		Expires:  time.Now().Add(-3 * time.Minute),
 	})
+	ctx.Cookie(&fiber.Cookie{
+		Name:     constants.OTP_TOKEN,
+		Value:    "",
+		HTTPOnly: true,
+		Secure:   secure,
+		SameSite: "Lax",
+		Expires:  time.Now().Add(-3 * time.Minute),
+	})
 	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
 		Success: true,
 		Data: dto.TextResponse{
@@ -112,7 +120,7 @@ func (uh *UserHandlerImpl) PreLogin(ctx fiber.Ctx) error {
 	}
 	secure := os.Getenv("ENVIRONMENT") == constants.PRODUCTION
 	ctx.Cookie(&fiber.Cookie{
-		Name:     constants.AUTH_TOKEN,
+		Name:     constants.OTP_TOKEN,
 		Value:    token,
 		Expires:  time.Now().Add(2 * constants.AUTH_AGE),
 		HTTPOnly: true,
@@ -138,7 +146,7 @@ func (uh *UserHandlerImpl) ResendOTP(ctx fiber.Ctx) error {
 	}
 	secure := os.Getenv("ENVIRONMENT") == constants.PRODUCTION
 	ctx.Cookie(&fiber.Cookie{
-		Name:     constants.AUTH_TOKEN,
+		Name:     constants.OTP_TOKEN,
 		Value:    token,
 		Expires:  time.Now().Add(2 * constants.AUTH_AGE),
 		HTTPOnly: true,
@@ -205,6 +213,14 @@ func (uh *UserHandlerImpl) LogOut(ctx fiber.Ctx) error {
 		SameSite: "Lax",
 		Expires:  time.Now().Add(-3 * time.Minute),
 	})
+	ctx.Cookie(&fiber.Cookie{
+		Name:     constants.OTP_TOKEN,
+		Value:    "",
+		HTTPOnly: true,
+		Secure:   secure,
+		SameSite: "Lax",
+		Expires:  time.Now().Add(-3 * time.Minute),
+	})
 	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
 		Success: true,
 		Data: dto.TextResponse{
@@ -261,6 +277,14 @@ func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
 		HTTPOnly: true,
 		SameSite: "Lax",
 		Secure:   secure,
+	})
+	ctx.Cookie(&fiber.Cookie{
+		Name:     constants.OTP_TOKEN,
+		Value:    "",
+		HTTPOnly: true,
+		SameSite: "Lax",
+		Secure:   secure,
+		Expires:  time.Now().Add(-3 * time.Minute),
 	})
 	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
 		Success: true,
