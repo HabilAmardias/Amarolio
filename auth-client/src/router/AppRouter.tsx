@@ -4,6 +4,8 @@ import { AccountPage } from "../pages/account";
 import { LoginPage } from "../pages/login";
 import { RegisterPage } from "../pages/register";
 import { VerifyPage } from "../pages/verify";
+import { ForgotPasswordPage } from "../pages/forgot-password";
+import { ResetPasswordPage } from "../pages/reset-password";
 import { LogoutPage } from "../pages/logout";
 import { Error404Page } from "../pages/error";
 
@@ -17,6 +19,8 @@ export function AppRouter() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/verify" element={<VerifyPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/logout" element={<LogoutPage />} />
           <Route path="*" element={<Error404Page />} />
         </Routes>

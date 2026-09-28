@@ -31,6 +31,9 @@ func (ar *AppRouter) publicSetup() {
 
 	v1.Post("/verify/send", ar.Uh.ResendVerification)
 
+	v1.Post("/reset-password/send", ar.Uh.SendResetPasswordEmail)
+	v1.Post("/reset-password", ar.Uh.ResetPassword)
+
 }
 
 func (ar *AppRouter) privateSetup() {

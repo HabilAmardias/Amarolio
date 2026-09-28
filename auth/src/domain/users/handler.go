@@ -18,6 +18,8 @@ type UserServiceItf interface {
 	ResendOTP(ctx context.Context, userID string) (string, error)
 	PreLogin(ctx context.Context, email string, password string) (string, error)
 	ResendVerification(ctx context.Context, email string) error
+	SendResetPasswordEmail(ctx context.Context, email string) error
+	ResetPassword(ctx context.Context, userID string, token string, newPassword string) error
 }
 
 type UserHandlerImpl struct {
@@ -28,8 +30,40 @@ func NewUserHandler(us UserServiceItf) *UserHandlerImpl {
 	return &UserHandlerImpl{us}
 }
 
+func (uh *UserHandlerImpl) ResetPassword(ctx fiber.Ctx) error {
+	body := new(ResetPasswordReq)
+	if err := ctx.Bind().JSON(body); err != nil {
+		return err
+	}
+	if err := uh.us.ResetPassword(ctx.RequestCtx(), body.UserID, body.Token, body.NewPassword); err != nil {
+		return err
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{
+		Success: true,
+		Data: dto.TextResponse{
+			Message: "Password Reset Successfully",
+		},
+	})
+}
+
+func (uh *UserHandlerImpl) SendResetPasswordEmail(ctx fiber.Ctx) error {
+	body := new(SendEmailReq)
+	if err := ctx.Bind().JSON(body); err != nil {
+		return err
+	}
+	if err := uh.us.SendResetPasswordEmail(ctx.RequestCtx(), body.Email); err != nil {
+		return err
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{
+		Success: true,
+		Data: dto.TextResponse{
+			Message: "Reset Password URL Sent",
+		},
+	})
+}
+
 func (uh *UserHandlerImpl) ResendVerification(ctx fiber.Ctx) error {
-	body := new(ResendVerificationReq)
+	body := new(SendEmailReq)
 	if err := ctx.Bind().JSON(body); err != nil {
 		return err
 	}

@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	UNAUTHENTICATED_LIMIT = 60
-	AUTHENTICATED_LIMIT   = 500
+	UNAUTHENTICATED_LIMIT = 5
+	AUTHENTICATED_LIMIT   = 20
 )
 
 func NewRateLimiterMiddleware(ctxKey string) fiber.Handler {
@@ -25,7 +25,7 @@ func NewRateLimiterMiddleware(ctxKey string) fiber.Handler {
 				}
 				return AUTHENTICATED_LIMIT
 			},
-			Expiration: time.Minute,
+			Expiration: time.Second,
 			KeyGenerator: func(c fiber.Ctx) string {
 				claim, ok := c.Locals(ctxKey).(*utils.CustomClaim)
 				if !ok {

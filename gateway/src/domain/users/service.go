@@ -19,6 +19,38 @@ func NewUserService(hs string, pr string) *UserServiceImpl {
 	return &UserServiceImpl{hs, pr}
 }
 
+func (us *UserServiceImpl) callResetPassword(userID string, token string, newPassword string) (*dto.ServerResponse[Text], error) {
+	body := ResetPasswordBody{
+		UserID:      userID,
+		Token:       token,
+		NewPassword: newPassword,
+	}
+	b, err := json.Marshal(body)
+	if err != nil {
+		return nil, customerrors.NewError(
+			"something went wrong",
+			err,
+			customerrors.CommonErr,
+		)
+	}
+	return services.Call[Text](us.hs, us.pr, "/api/v1/reset-password", fasthttp.MethodPost, fasthttp.StatusOK, b, nil, nil)
+}
+
+func (us *UserServiceImpl) callSendResetPasswordEmail(email string) (*dto.ServerResponse[Text], error) {
+	body := SendEmailBody{
+		Email: email,
+	}
+	b, err := json.Marshal(body)
+	if err != nil {
+		return nil, customerrors.NewError(
+			"something went wrong",
+			err,
+			customerrors.CommonErr,
+		)
+	}
+	return services.Call[Text](us.hs, us.pr, "/api/v1/reset-password/send", fasthttp.MethodPost, fasthttp.StatusOK, b, nil, nil)
+}
+
 func (us *UserServiceImpl) callLogin(userID string, otp string) (*dto.ServerResponse[Login], error) {
 	headers := map[string]string{
 		constants.X_USER_ID: userID,
@@ -107,7 +139,7 @@ func (us *UserServiceImpl) callPreLogin(email, password string) (*dto.ServerResp
 }
 
 func (us *UserServiceImpl) callResendVerification(email string) (*dto.ServerResponse[Text], error) {
-	body := ResendVerificationBody{
+	body := SendEmailBody{
 		Email: email,
 	}
 	b, err := json.Marshal(body)
@@ -119,6 +151,22 @@ func (us *UserServiceImpl) callResendVerification(email string) (*dto.ServerResp
 		)
 	}
 	return services.Call[Text](us.hs, us.pr, "/api/v1/verify/send", fasthttp.MethodPost, fasthttp.StatusOK, b, nil, nil)
+}
+
+func (us *UserServiceImpl) ResetPassword(userID string, token string, newPassword string) (string, error) {
+	res, err := us.callResetPassword(userID, token, newPassword)
+	if err != nil {
+		return "", err
+	}
+	return res.Data.Message, nil
+}
+
+func (us *UserServiceImpl) SendResetPasswordEmail(email string) (string, error) {
+	res, err := us.callSendResetPasswordEmail(email)
+	if err != nil {
+		return "", err
+	}
+	return res.Data.Message, nil
 }
 
 func (us *UserServiceImpl) ResendVerification(email string) (string, error) {

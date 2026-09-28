@@ -86,6 +86,8 @@ func (ar *AppRouter) SetupPublicRoute() {
 	), ar.ShortenURLHandler.NewShortURL)
 	v1.Get("/url/:id/redirect", middlewares.NewTurnstileMiddleware(ar.TurnstileUtil), ar.ShortenURLHandler.RedirectToURL)
 	v1.Get("/url/:id/metadata", ar.ShortenURLHandler.FindOriginalURL)
+	v1.Post("/reset-password/send", ar.UserHandler.SendResetPasswordEmail)
+	v1.Post("/reset-password", ar.UserHandler.ResetPassword)
 }
 
 func (ar *AppRouter) SetupPrivateRoute() {

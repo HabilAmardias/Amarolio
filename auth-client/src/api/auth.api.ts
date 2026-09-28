@@ -49,6 +49,28 @@ export async function verify(userId: string, token: string): Promise<void> {
   });
 }
 
+export async function sendResetPasswordEmail(email: string): Promise<void> {
+  await apiFetch<{ message: string }>("/api/v1/reset-password/send", 200, {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function resetPassword(
+  userId: string,
+  token: string,
+  newPassword: string,
+): Promise<void> {
+  await apiFetch<{ message: string }>("/api/v1/reset-password", 200, {
+    method: "POST",
+    body: JSON.stringify({
+      user_id: userId,
+      token,
+      new_password: newPassword,
+    }),
+  });
+}
+
 export async function getMe(): Promise<User | null> {
   try {
     const body = await apiFetch<User>("/api/v1/me", 200, { method: "GET" });

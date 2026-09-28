@@ -25,7 +25,12 @@ type (
 	OTPRes struct {
 		OTPToken string `json:"otp_token"`
 	}
-	ResendVerificationReq struct {
+	SendEmailReq struct {
 		Email string `json:"email" validate:"required,email"`
+	}
+	ResetPasswordReq struct {
+		Token       string `json:"token" validate:"required"`
+		UserID      string `json:"user_id" validate:"required"`
+		NewPassword string `json:"new_password" validate:"required,min=8,max=13,alphanum"`
 	}
 )

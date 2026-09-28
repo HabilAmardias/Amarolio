@@ -54,6 +54,14 @@ export function LoginPage() {
     [redirectParam]
   );
 
+  const forgotLink = useMemo(
+    () =>
+      redirectParam
+        ? `/forgot-password?redirect_uri=${encodeURIComponent(redirectParam)}`
+        : "/forgot-password",
+    [redirectParam]
+  );
+
   const showUnverified =
     flow.errorCode === 40001 && /not verified/i.test(flow.error);
 
@@ -202,12 +210,26 @@ export function LoginPage() {
               />
             </Stack>
 
+            <Box sx={{ textAlign: "right", mt: 1 }}>
+              <Box
+                component={RouterLink}
+                to={forgotLink}
+                sx={{
+                  color: "primary.main",
+                  fontWeight: 600,
+                  fontSize: "0.85rem",
+                }}
+              >
+                Forgot password?
+              </Box>
+            </Box>
+
             <Button
               type="submit"
               fullWidth
               variant="contained"
               disabled={flow.isLoading}
-              sx={{ mt: 3, py: 1.4 }}
+              sx={{ mt: 2.5, py: 1.4 }}
             >
               {flow.isLoading ? "Signing in..." : "Sign in"}
             </Button>

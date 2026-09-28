@@ -53,6 +53,101 @@ func NewUserService(hu HasherItf, ou OTPGenItf, mu MailItf, ju JWTUtilItf, dbtx 
 	return &UserServiceImpl{hu, ou, mu, ju, dbtx, uc, lg}
 }
 
+func (us *UserServiceImpl) ResetPassword(ctx context.Context, userID string, token string, newPassword string) error {
+	user := new(User)
+	ur := NewUserRepository(us.dbtx)
+	if err := us.uc.FindCacheByID(ctx, userID, user); err != nil {
+		if err := ur.FindByID(ctx, userID, user); err != nil {
+			return err
+		}
+	}
+	if !user.IsResetPasswordTokenMatched(token) {
+		return customerrors.NewError(
+			"Unauthorized",
+			errors.New("invalid reset password token"),
+			customerrors.Unauthenticate,
+		)
+	}
+	if user.IsResetPasswordTokenExpired() {
+		return customerrors.NewError(
+			"Unauthorized",
+			errors.New("reset password token expired"),
+			customerrors.Unauthenticate,
+		)
+	}
+	match, err := us.hu.ValidatePassword(user.Password, newPassword)
+	if err != nil {
+		return err
+	}
+	if match {
+		return customerrors.NewError(
+			"new password cannot be the same as the old password",
+			errors.New("new password cannot be the same as the old password"),
+			customerrors.InvalidAction,
+		)
+	}
+	hashedPass, err := us.hu.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+
+	if err := services.WithTransaction(us.dbtx, func(tx db.DBTXItf) error {
+		txUR := NewUserRepository(tx)
+		if err := txUR.UpdateUserPassword(ctx, user.ID, hashedPass, user); err != nil {
+			return err
+		}
+		return txUR.UpdateResetPasswordToken(ctx, user.ID, nil, nil, user)
+	}); err != nil {
+		return err
+	}
+
+	go func() {
+		if err := us.renewCache(user); err != nil {
+			us.lg.Errorln(err)
+		}
+	}()
+	return nil
+}
+
+func (us *UserServiceImpl) SendResetPasswordEmail(ctx context.Context, email string) error {
+	user := new(User)
+	ur := NewUserRepository(us.dbtx)
+	if err := us.uc.FindCacheByEmail(ctx, email, user); err != nil {
+		if err := ur.FindByEmail(ctx, email, user); err != nil {
+			return err
+		}
+	}
+
+	token, err := us.generateVerificationToken()
+	if err != nil {
+		return err
+	}
+	eat := time.Now().Add(time.Hour)
+	if err := ur.UpdateResetPasswordToken(ctx, user.ID, &token, &eat, user); err != nil {
+		return err
+	}
+
+	go func() {
+		url := fmt.Sprintf("%s/reset-password?user_id=%s&token=%s", os.Getenv("AUTH_CLIENT_URL"), user.ID, token)
+		if err := us.mu.SendEmail(SendEmailParams{
+			Receiver:  user.Email,
+			Subject:   "Reset Password | Amarolio",
+			EmailBody: constants.BuildResetPasswordEmailBody(strings.Split(user.Email, "@")[0], url),
+		}); err != nil {
+			us.lg.Errorln(err)
+			return
+		}
+		us.lg.Infoln("email sent")
+	}()
+
+	go func() {
+		if err := us.renewCache(user); err != nil {
+			us.lg.Errorln(err)
+		}
+	}()
+	return nil
+}
+
 func (us *UserServiceImpl) ResendVerification(ctx context.Context, email string) error {
 	user := new(User)
 	ur := NewUserRepository(us.dbtx)

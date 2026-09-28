@@ -24,11 +24,16 @@ type (
 	OTP struct {
 		OTPToken string `json:"otp_token"`
 	}
-	ResendVerificationBody struct {
+	SendEmailBody struct {
 		Email string `json:"email"`
 	}
 	VerificationBody struct {
 		UserID string `json:"user_id"`
 		Token  string `json:"token"`
+	}
+	ResetPasswordBody struct {
+		UserID      string `json:"user_id"`
+		Token       string `json:"token"`
+		NewPassword string `json:"new_password"`
 	}
 )
