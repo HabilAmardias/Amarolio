@@ -8,8 +8,7 @@ type (
 		OTP string `json:"otp"`
 	}
 	VerifyReq struct {
-		Token  string `json:"token"`
-		UserID string `json:"user_id"`
+		Token string `json:"token"`
 	}
 	CredentialsReq struct {
 		Email    string `json:"email"`

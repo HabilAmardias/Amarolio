@@ -15,8 +15,7 @@ type (
 		Username string `json:"username"`
 	}
 	VerifyReq struct {
-		Token  string `json:"token" validate:"required"`
-		UserID string `json:"user_id" validate:"required"`
+		Token string `json:"token" validate:"required"`
 	}
 	CredentialsReq struct {
 		Email    string `json:"email" validate:"required,email"`

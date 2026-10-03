@@ -5,6 +5,7 @@ import (
 	"amarolio-auth/src/customerrors"
 	"amarolio-auth/src/db"
 	otpchallenges "amarolio-auth/src/domain/otp_challenges"
+	verifyuserchallenges "amarolio-auth/src/domain/verify_user_challenges"
 	"amarolio-auth/src/services"
 	"context"
 	"crypto/rand"
@@ -208,6 +209,17 @@ func (us *UserServiceImpl) ResendVerification(ctx context.Context, email string)
 	ur := NewUserRepository(us.dbtx)
 	if err := us.uc.FindCacheByEmail(ctx, email, user); err != nil {
 		if err := ur.FindByEmail(ctx, email, user); err != nil {
+			var parsedErr *customerrors.CustomError
+			if !errors.As(err, &parsedErr) {
+				return customerrors.NewError(
+					"something went wrong",
+					errors.New("parse error failed"),
+					customerrors.CommonErr,
+				)
+			}
+			if parsedErr.ErrCode == customerrors.ItemNotFound {
+				return nil
+			}
 			return err
 		}
 	}
@@ -225,12 +237,20 @@ func (us *UserServiceImpl) ResendVerification(ctx context.Context, email string)
 		return err
 	}
 	eat := time.Now().Add(time.Hour)
-	if err := ur.UpdateVerificationToken(ctx, user.ID, token, eat, user); err != nil {
+
+	challenge := new(verifyuserchallenges.VerifyUserChallenge)
+	if err := services.WithTransaction(us.dbtx, func(tx db.DBTXItf) error {
+		txvur := verifyuserchallenges.NewVerifyUserChallengeRepository(tx)
+		if err := txvur.DeleteAllByUserID(ctx, user.ID); err != nil {
+			return err
+		}
+		return txvur.CreateNewVerifyUserChallenge(ctx, token, user.ID, eat, challenge)
+	}); err != nil {
 		return err
 	}
 
 	go func() {
-		url := fmt.Sprintf("%s/verify?user_id=%s&token=%s", os.Getenv("AUTH_CLIENT_URL"), user.ID, token)
+		url := fmt.Sprintf("%s/verify?token=%s", os.Getenv("AUTH_CLIENT_URL"), challenge.ID)
 		if err := us.mu.SendEmail(SendEmailParams{
 			Receiver:  user.Email,
 			Subject:   "User Verification | Amarolio",
@@ -251,12 +271,19 @@ func (us *UserServiceImpl) ResendVerification(ctx context.Context, email string)
 	return nil
 }
 
-func (us *UserServiceImpl) VerifyUser(ctx context.Context, userID, token string) error {
+func (us *UserServiceImpl) VerifyUser(ctx context.Context, token string) error {
 	user := new(User)
-	ur := NewUserRepository(us.dbtx)
+	challenge := new(verifyuserchallenges.VerifyUserChallenge)
 
-	if err := us.uc.FindCacheByID(ctx, userID, user); err != nil {
-		if err := ur.FindByID(ctx, userID, user); err != nil {
+	ur := NewUserRepository(us.dbtx)
+	vur := verifyuserchallenges.NewVerifyUserChallengeRepository(us.dbtx)
+
+	if err := vur.FindByID(ctx, token, challenge); err != nil {
+		return err
+	}
+
+	if err := us.uc.FindCacheByID(ctx, challenge.UserID, user); err != nil {
+		if err := ur.FindByID(ctx, challenge.UserID, user); err != nil {
 			return err
 		}
 	}
@@ -268,21 +295,23 @@ func (us *UserServiceImpl) VerifyUser(ctx context.Context, userID, token string)
 			customerrors.InvalidAction,
 		)
 	}
-	if user.IsVerificationTokenExpired() {
+
+	if challenge.IsExpired() {
 		return customerrors.NewError(
 			"verification token expired",
 			errors.New("verification token expired"),
 			customerrors.InvalidAction,
 		)
 	}
-	if !user.IsVerificationTokenMatches(token) {
-		return customerrors.NewError(
-			"invalid verification token",
-			errors.New("invalid verification token"),
-			customerrors.InvalidAction,
-		)
-	}
-	if err := ur.UpdateUserVerificationStatus(ctx, userID, true, user); err != nil {
+
+	if err := services.WithTransaction(us.dbtx, func(tx db.DBTXItf) error {
+		txur := NewUserRepository(tx)
+		txvur := verifyuserchallenges.NewVerifyUserChallengeRepository(tx)
+		if err := txur.UpdateUserVerificationStatus(ctx, challenge.UserID, true, user); err != nil {
+			return err
+		}
+		return txvur.DeleteAllByUserID(ctx, user.ID)
+	}); err != nil {
 		return err
 	}
 
@@ -330,9 +359,10 @@ func (us *UserServiceImpl) Register(ctx context.Context, email, password string)
 	if err != nil {
 		return err
 	}
-
+	challenge := new(verifyuserchallenges.VerifyUserChallenge)
 	if err := services.WithTransaction(us.dbtx, func(tx db.DBTXItf) error {
 		txUR := NewUserRepository(tx)
+		txVUR := verifyuserchallenges.NewVerifyUserChallengeRepository(tx)
 		if err := txUR.AddNewUser(ctx, email, hashedPassword, user); err != nil {
 			return err
 		}
@@ -343,13 +373,13 @@ func (us *UserServiceImpl) Register(ctx context.Context, email, password string)
 		}
 		eat := time.Now().Add(time.Hour)
 
-		return txUR.UpdateVerificationToken(ctx, user.ID, token, eat, user)
+		return txVUR.CreateNewVerifyUserChallenge(ctx, token, user.ID, eat, challenge)
 	}); err != nil {
 		return err
 	}
 
 	go func() {
-		url := fmt.Sprintf("%s/verify?user_id=%s&token=%s", os.Getenv("AUTH_CLIENT_URL"), user.ID, *user.VerificationToken)
+		url := fmt.Sprintf("%s/verify?token=%s", os.Getenv("AUTH_CLIENT_URL"), challenge.ID)
 		if err := us.mu.SendEmail(SendEmailParams{
 			Receiver:  user.Email,
 			Subject:   "User Verification | Amarolio",
@@ -474,6 +504,14 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, challengeID string) (s
 		}
 	}
 
+	if !user.Verified {
+		return "", customerrors.NewError(
+			"User not verified",
+			errors.New("user not verified"),
+			customerrors.Unauthenticate,
+		)
+	}
+
 	if err := us.loginLockError(ctx, user.Email); err != nil {
 		return "", err
 	}
@@ -486,6 +524,10 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, challengeID string) (s
 			customerrors.Unauthenticate,
 		)
 	}
+	otp, err := us.ou.GenerateOTP()
+	if err != nil {
+		return "", err
+	}
 
 	if err := services.WithTransaction(us.dbtx, func(tx db.DBTXItf) error {
 		txocr := otpchallenges.NewOTPChallengeRepository(tx)
@@ -493,10 +535,7 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, challengeID string) (s
 		if err := txocr.DeleteAllByUserID(ctx, user.ID); err != nil {
 			return err
 		}
-		otp, err := us.ou.GenerateOTP()
-		if err != nil {
-			return err
-		}
+
 		challengeID, err := us.generateRandomToken()
 		if err != nil {
 			return err
@@ -505,17 +544,22 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, challengeID string) (s
 		if err != nil {
 			return err
 		}
-		if err := txocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(time.Minute), challenge); err != nil {
-			return err
-		}
-		return us.mu.SendEmail(SendEmailParams{
-			Receiver:  user.Email,
-			Subject:   "Your Amarolio sign-in code",
-			EmailBody: constants.BuildOTPEmailBody(strings.Split(user.Email, "@")[0], otp),
-		})
+		return txocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(time.Minute), challenge)
 	}); err != nil {
 		return "", err
 	}
+
+	go func() {
+		if err := us.mu.SendEmail(SendEmailParams{
+			Receiver:  user.Email,
+			Subject:   "Your Amarolio sign-in code",
+			EmailBody: constants.BuildOTPEmailBody(strings.Split(user.Email, "@")[0], otp),
+		}); err != nil {
+			us.lg.Errorln(err.Error())
+			return
+		}
+		us.lg.Errorln("email sent")
+	}()
 
 	go func() {
 		if err := us.renewCache(user); err != nil {
@@ -574,15 +618,16 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 		))
 	}
 
+	otp, err := us.ou.GenerateOTP()
+	if err != nil {
+		return "", err
+	}
+
 	challenge := new(otpchallenges.OTPChallenge)
 	if err := services.WithTransaction(us.dbtx, func(tx db.DBTXItf) error {
 		ocr := otpchallenges.NewOTPChallengeRepository(tx)
 		// invalidate all existing challenges for this user
 		if err := ocr.DeleteAllByUserID(ctx, user.ID); err != nil {
-			return err
-		}
-		otp, err := us.ou.GenerateOTP()
-		if err != nil {
 			return err
 		}
 		challengeID, err := us.generateRandomToken()
@@ -593,17 +638,22 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 		if err != nil {
 			return err
 		}
-		if err := ocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(time.Minute), challenge); err != nil {
-			return err
-		}
-		return us.mu.SendEmail(SendEmailParams{
-			Receiver:  user.Email,
-			Subject:   "Your Amarolio sign-in code",
-			EmailBody: constants.BuildOTPEmailBody(strings.Split(user.Email, "@")[0], otp),
-		})
+		return ocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(time.Minute), challenge)
 	}); err != nil {
 		return "", err
 	}
+
+	go func() {
+		if err := us.mu.SendEmail(SendEmailParams{
+			Receiver:  user.Email,
+			Subject:   "Your Amarolio sign-in code",
+			EmailBody: constants.BuildOTPEmailBody(strings.Split(user.Email, "@")[0], otp),
+		}); err != nil {
+			us.lg.Errorln(err.Error())
+			return
+		}
+		us.lg.Infoln("email sent")
+	}()
 
 	go func() {
 		if err := us.renewCache(user); err != nil {

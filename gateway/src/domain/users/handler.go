@@ -14,7 +14,7 @@ import (
 
 type UserServiceItf interface {
 	Register(email, password string) (string, error)
-	Verify(userID string, token string) (string, error)
+	Verify(token string) (string, error)
 	PreLogin(email, password string) (string, error)
 	Login(challengeID string, otp string) (string, string, error)
 	RefreshAuth(userID string) (string, error)
@@ -180,7 +180,7 @@ func (uh *UserHandlerImpl) Verify(ctx fiber.Ctx) error {
 	if err := ctx.Bind().JSON(body); err != nil {
 		return err
 	}
-	msg, err := uh.us.Verify(body.UserID, body.Token)
+	msg, err := uh.us.Verify(body.Token)
 	if err != nil {
 		return err
 	}

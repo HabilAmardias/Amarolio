@@ -25,11 +25,10 @@ type Status = "verifying" | "success" | "error";
 
 export function VerifyPage() {
   const [searchParams] = useSearchParams();
-  const userId = searchParams.get("user_id") ?? "";
   const token = searchParams.get("token") ?? "";
   const redirectParam = searchParams.get("redirect_uri");
 
-  const hasParams = Boolean(userId && token);
+  const hasParams = Boolean(token);
   const [status, setStatus] = useState<Status>(hasParams ? "verifying" : "error");
   const [error, setError] = useState(
     hasParams ? "" : "This verification link is incomplete or invalid."
@@ -49,13 +48,13 @@ export function VerifyPage() {
     if (ran.current || !hasParams) return;
     ran.current = true;
 
-    verify(userId, token)
+    verify(token)
       .then(() => setStatus("success"))
       .catch((err) => {
         setStatus("error");
         setError(toApiError(err).message);
       });
-  }, [userId, token, hasParams]);
+  }, [token, hasParams]);
 
   const signInLink = useMemo(
     () =>

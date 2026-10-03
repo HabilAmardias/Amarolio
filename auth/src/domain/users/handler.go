@@ -12,7 +12,7 @@ import (
 type UserServiceItf interface {
 	Login(ctx context.Context, challengeID string, otp string) (string, string, error)
 	RefreshAuth(ctx context.Context, userID string) (string, error)
-	VerifyUser(ctx context.Context, userID, token string) error
+	VerifyUser(ctx context.Context, token string) error
 	GetProfile(ctx context.Context, userID string) (string, error)
 	Register(ctx context.Context, email, password string) error
 	ResendOTP(ctx context.Context, challengeID string) (string, error)
@@ -133,7 +133,7 @@ func (uh *UserHandlerImpl) Verify(ctx fiber.Ctx) error {
 	if err := ctx.Bind().JSON(body); err != nil {
 		return err
 	}
-	if err := uh.us.VerifyUser(ctx.RequestCtx(), body.UserID, body.Token); err != nil {
+	if err := uh.us.VerifyUser(ctx.RequestCtx(), body.Token); err != nil {
 		return err
 	}
 	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{

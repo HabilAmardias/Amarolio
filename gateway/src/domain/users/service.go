@@ -83,10 +83,9 @@ func (us *UserServiceImpl) callGetProfile(userID string) (*dto.ServerResponse[Ge
 	return services.Call[GetProfile](us.hs, us.pr, "/api/v1/me", fasthttp.MethodGet, fasthttp.StatusOK, nil, nil, headers)
 }
 
-func (us *UserServiceImpl) callVerify(userID string, token string) (*dto.ServerResponse[Text], error) {
+func (us *UserServiceImpl) callVerify(token string) (*dto.ServerResponse[Text], error) {
 	body := VerificationBody{
-		UserID: userID,
-		Token:  token,
+		Token: token,
 	}
 	b, err := json.Marshal(body)
 	if err != nil {
@@ -201,8 +200,8 @@ func (us *UserServiceImpl) Register(email, password string) (string, error) {
 	return res.Data.Message, nil
 }
 
-func (us *UserServiceImpl) Verify(userID string, token string) (string, error) {
-	res, err := us.callVerify(userID, token)
+func (us *UserServiceImpl) Verify(token string) (string, error) {
+	res, err := us.callVerify(token)
 	if err != nil {
 		return "", err
 	}

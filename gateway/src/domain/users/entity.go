@@ -28,8 +28,7 @@ type (
 		Email string `json:"email"`
 	}
 	VerificationBody struct {
-		UserID string `json:"user_id"`
-		Token  string `json:"token"`
+		Token string `json:"token"`
 	}
 	ResetPasswordBody struct {
 		UserID      string `json:"user_id"`

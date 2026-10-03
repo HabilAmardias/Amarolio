@@ -42,10 +42,10 @@ export async function resendVerification(email: string): Promise<void> {
   });
 }
 
-export async function verify(userId: string, token: string): Promise<void> {
+export async function verify(token: string): Promise<void> {
   await apiFetch<{ message: string }>("/api/v1/verify", 200, {
     method: "POST",
-    body: JSON.stringify({ user_id: userId, token }),
+    body: JSON.stringify({ token }),
   });
 }
 
