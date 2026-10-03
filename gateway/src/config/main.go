@@ -2,7 +2,6 @@ package config
 
 import (
 	"amarolio-gateway/src/constants"
-	"amarolio-gateway/src/db"
 	"amarolio-gateway/src/logger"
 	"amarolio-gateway/src/middlewares"
 	"context"
@@ -32,12 +31,6 @@ func Run() {
 	if err != nil {
 		panic(err)
 	}
-	rc := db.NewRedisClient(
-		os.Getenv("AMAROLIO_REDIS_HOST"),
-		os.Getenv("REDIS_PORT"),
-		os.Getenv("AMAROLIO_REDIS_PASSWORD"),
-	)
-
 	app := fiber.New(fiber.Config{
 		ErrorHandler:    middlewares.NewErrorMiddleware(lg),
 		StructValidator: &structValidator{validate: validator.New()},
@@ -49,7 +42,7 @@ func Run() {
 		ProxyHeader:        "X-Real-IP",
 		EnableIPValidation: true,
 	})
-	Bootstrap(rc, lg, app)
+	Bootstrap(lg, app)
 
 	server := &fasthttp.Server{
 		Handler: app.Handler(),

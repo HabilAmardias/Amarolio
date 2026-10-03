@@ -2,8 +2,6 @@ package routers
 
 import (
 	"amarolio-gateway/src/constants"
-	"amarolio-gateway/src/domain/chatrooms"
-	"amarolio-gateway/src/domain/messages"
 	shortenurls "amarolio-gateway/src/domain/shorten_urls"
 	"amarolio-gateway/src/domain/users"
 	"amarolio-gateway/src/middlewares"
@@ -25,8 +23,6 @@ type Logger interface {
 type AppRouter struct {
 	App               *fiber.App
 	UserHandler       *users.UserHandlerImpl
-	MessageHandler    *messages.MessageHandlerImpl
-	ChatroomHandler   *chatrooms.ChatroomHandlerImpl
 	ShortenURLHandler *shortenurls.ShortenURLHandlerImpl
 	JWTUtil           *utils.JWTUtil
 	TurnstileUtil     *utils.TurnstileUtil
