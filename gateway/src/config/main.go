@@ -2,7 +2,6 @@ package config
 
 import (
 	"amarolio-gateway/src/constants"
-	"amarolio-gateway/src/db"
 	"amarolio-gateway/src/logger"
 	"amarolio-gateway/src/middlewares"
 	"context"
@@ -32,17 +31,18 @@ func Run() {
 	if err != nil {
 		panic(err)
 	}
-	rc := db.NewRedisClient(
-		os.Getenv("AMAROLIO_REDIS_HOST"),
-		os.Getenv("REDIS_PORT"),
-		os.Getenv("AMAROLIO_REDIS_PASSWORD"),
-	)
-
 	app := fiber.New(fiber.Config{
 		ErrorHandler:    middlewares.NewErrorMiddleware(lg),
 		StructValidator: &structValidator{validate: validator.New()},
+		// Behind nginx: resolve the real client IP from X-Real-IP (set by the
+		// trusted reverse proxy). EnableIPValidation makes Fiber ignore
+		// invalid/spoofed values and fall back to the TCP peer address.
+		TrustProxy:         true,
+		TrustProxyConfig:   fiber.TrustProxyConfig{Loopback: true},
+		ProxyHeader:        "X-Real-IP",
+		EnableIPValidation: true,
 	})
-	Bootstrap(rc, lg, app)
+	Bootstrap(lg, app)
 
 	server := &fasthttp.Server{
 		Handler: app.Handler(),

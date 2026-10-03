@@ -28,7 +28,7 @@ func (sur *URLRepoImpl) FindByCode(ctx context.Context, shortCode string) (URL, 
 	SELECT
 		id,
 		user_id,
-		encrypted_long_url,
+		long_url,
 		short_code,
 		created_at,
 		updated_at,
@@ -40,7 +40,7 @@ func (sur *URLRepoImpl) FindByCode(ctx context.Context, shortCode string) (URL, 
 	if err := driver.QueryRowContext(ctx, query, shortCode).Scan(
 		&url.ID,
 		&url.UserID,
-		&url.EncryptedLongUrl,
+		&url.LongURL,
 		&url.ShortCode,
 		&url.CreatedAt,
 		&url.UpdatedAt,
@@ -69,7 +69,7 @@ func (sur *URLRepoImpl) UpdateShortCode(ctx context.Context, id int64, shortCode
 	UPDATE urls
 	SET short_code = $1, updated_at = CURRENT_TIMESTAMP
 	WHERE id = $2 AND deleted_at IS NULL
-	RETURNING id, user_id, encrypted_long_url, short_code, created_at, updated_at, deleted_at, expired_at
+	RETURNING id, user_id, long_url, short_code, created_at, updated_at, deleted_at, expired_at
 	`
 	var driver db.DBTX = sur.handle
 	if tx := repository.GetTransactionFromCtx(ctx); tx != nil {
@@ -78,7 +78,7 @@ func (sur *URLRepoImpl) UpdateShortCode(ctx context.Context, id int64, shortCode
 	if err := driver.QueryRowContext(ctx, query, shortCode, id).Scan(
 		&url.ID,
 		&url.UserID,
-		&url.EncryptedLongUrl,
+		&url.LongURL,
 		&url.ShortCode,
 		&url.CreatedAt,
 		&url.UpdatedAt,
@@ -100,14 +100,14 @@ func (sur *URLRepoImpl) FindUserLinks(ctx context.Context, userID string, lastID
 	SELECT
 		id,
 		user_id,
-		encrypted_long_url,
+		long_url,
 		short_code,
 		created_at,
 		updated_at,
 		deleted_at,
 		expired_at
 	FROM urls
-	WHERE user_id = $1 
+	WHERE user_id = $1
 	AND id < COALESCE($2, 9223372036854775807)
 	AND deleted_at IS NULL
 	ORDER BY id DESC
@@ -132,7 +132,7 @@ func (sur *URLRepoImpl) FindUserLinks(ctx context.Context, userID string, lastID
 		if err := rows.Scan(
 			&l.ID,
 			&l.UserID,
-			&l.EncryptedLongUrl,
+			&l.LongURL,
 			&l.ShortCode,
 			&l.CreatedAt,
 			&l.UpdatedAt,
@@ -167,9 +167,9 @@ func (sur *URLRepoImpl) InsertNewURL(
 ) (URL, error) {
 	shortenURL := URL{}
 	query := `
-	INSERT INTO urls (user_id, encrypted_long_url, expired_at)
+	INSERT INTO urls (user_id, long_url, expired_at)
 	VALUES ($1, $2, $3)
-	RETURNING id, user_id, encrypted_long_url, created_at, updated_at, deleted_at, expired_at
+	RETURNING id, user_id, long_url, created_at, updated_at, deleted_at, expired_at
 	`
 	var driver db.DBTX = sur.handle
 	if tx := repository.GetTransactionFromCtx(ctx); tx != nil {
@@ -178,7 +178,7 @@ func (sur *URLRepoImpl) InsertNewURL(
 	if err := driver.QueryRowContext(ctx, query, userID, encryptedLongURL, expiredAt).Scan(
 		&shortenURL.ID,
 		&shortenURL.UserID,
-		&shortenURL.EncryptedLongUrl,
+		&shortenURL.LongURL,
 		&shortenURL.CreatedAt,
 		&shortenURL.UpdatedAt,
 		&shortenURL.DeletedAt,
@@ -199,7 +199,7 @@ func (sur *URLRepoImpl) FindByID(ctx context.Context, id int64) (URL, error) {
 	SELECT
 		id,
 		user_id,
-		encrypted_long_url,
+		long_url,
 		short_code,
 		created_at,
 		updated_at,
@@ -215,7 +215,7 @@ func (sur *URLRepoImpl) FindByID(ctx context.Context, id int64) (URL, error) {
 	if err := driver.QueryRowContext(ctx, query, id).Scan(
 		&url.ID,
 		&url.UserID,
-		&url.EncryptedLongUrl,
+		&url.LongURL,
 		&url.ShortCode,
 		&url.CreatedAt,
 		&url.UpdatedAt,

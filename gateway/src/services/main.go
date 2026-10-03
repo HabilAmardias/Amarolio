@@ -51,11 +51,10 @@ func Call[T any](host string, port string, path string, method string, successSt
 				customerrors.CommonErr,
 			)
 		}
-		code := res.StatusCode() * 100
 		return nil, customerrors.NewError(
 			resBody.Data.Detail,
 			errors.New(resBody.Data.Detail),
-			code,
+			resBody.Data.ErrorCode,
 		)
 	}
 	resBody := new(dto.ServerResponse[T])

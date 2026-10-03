@@ -12,14 +12,14 @@ import (
 )
 
 type TaggedURL struct {
-	ID               int64      `json:"id"`
-	UserID           *string    `json:"user_id"`
-	EncryptedLongUrl string     `json:"encrypted_long_url"`
-	ShortCode        *string    `json:"short_code"`
-	CreatedAt        time.Time  `json:"created_at"`
-	UpdatedAt        time.Time  `json:"updated_at"`
-	DeletedAt        *time.Time `json:"deleted_at"`
-	ExpiredAt        *time.Time `json:"expired_at"`
+	ID        int64      `json:"id"`
+	UserID    *string    `json:"user_id"`
+	LongURL   string     `json:"long_url"`
+	ShortCode *string    `json:"short_code"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
+	ExpiredAt *time.Time `json:"expired_at"`
 }
 
 type URLCache struct {
