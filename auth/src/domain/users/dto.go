@@ -29,7 +29,6 @@ type (
 	}
 	ResetPasswordReq struct {
 		Token       string `json:"token" validate:"required"`
-		UserID      string `json:"user_id" validate:"required"`
 		NewPassword string `json:"new_password" validate:"required,min=8,max=13,alphanum"`
 	}
 )

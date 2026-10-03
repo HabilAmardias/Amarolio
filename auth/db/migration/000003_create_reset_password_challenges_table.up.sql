@@ -3,6 +3,6 @@ CREATE TABLE IF NOT EXISTS reset_password_challenges (
     user_id UUID NOT NULL REFERENCES users(id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    reset_password_challenges_expired_at TIMESTAMPTZ NOT NULL,
+    reset_password_challenge_expired_at TIMESTAMPTZ NOT NULL,
     deleted_at TIMESTAMPTZ
 );

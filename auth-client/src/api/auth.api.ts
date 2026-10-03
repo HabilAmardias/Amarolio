@@ -57,14 +57,12 @@ export async function sendResetPasswordEmail(email: string): Promise<void> {
 }
 
 export async function resetPassword(
-  userId: string,
   token: string,
   newPassword: string,
 ): Promise<void> {
   await apiFetch<{ message: string }>("/api/v1/reset-password", 200, {
     method: "POST",
     body: JSON.stringify({
-      user_id: userId,
       token,
       new_password: newPassword,
     }),

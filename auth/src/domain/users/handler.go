@@ -19,7 +19,7 @@ type UserServiceItf interface {
 	PreLogin(ctx context.Context, email string, password string) (string, error)
 	ResendVerification(ctx context.Context, email string) error
 	SendResetPasswordEmail(ctx context.Context, email string) error
-	ResetPassword(ctx context.Context, userID string, token string, newPassword string) error
+	ResetPassword(ctx context.Context, token string, newPassword string) error
 }
 
 type UserHandlerImpl struct {
@@ -35,7 +35,7 @@ func (uh *UserHandlerImpl) ResetPassword(ctx fiber.Ctx) error {
 	if err := ctx.Bind().JSON(body); err != nil {
 		return err
 	}
-	if err := uh.us.ResetPassword(ctx.RequestCtx(), body.UserID, body.Token, body.NewPassword); err != nil {
+	if err := uh.us.ResetPassword(ctx.RequestCtx(), body.Token, body.NewPassword); err != nil {
 		return err
 	}
 	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse{

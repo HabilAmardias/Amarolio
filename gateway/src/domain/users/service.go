@@ -19,9 +19,8 @@ func NewUserService(hs string, pr string) *UserServiceImpl {
 	return &UserServiceImpl{hs, pr}
 }
 
-func (us *UserServiceImpl) callResetPassword(userID string, token string, newPassword string) (*dto.ServerResponse[Text], error) {
+func (us *UserServiceImpl) callResetPassword(token string, newPassword string) (*dto.ServerResponse[Text], error) {
 	body := ResetPasswordBody{
-		UserID:      userID,
 		Token:       token,
 		NewPassword: newPassword,
 	}
@@ -152,8 +151,8 @@ func (us *UserServiceImpl) callResendVerification(email string) (*dto.ServerResp
 	return services.Call[Text](us.hs, us.pr, "/api/v1/verify/send", fasthttp.MethodPost, fasthttp.StatusOK, b, nil, nil)
 }
 
-func (us *UserServiceImpl) ResetPassword(userID string, token string, newPassword string) (string, error) {
-	res, err := us.callResetPassword(userID, token, newPassword)
+func (us *UserServiceImpl) ResetPassword(token string, newPassword string) (string, error) {
+	res, err := us.callResetPassword(token, newPassword)
 	if err != nil {
 		return "", err
 	}

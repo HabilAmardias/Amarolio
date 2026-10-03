@@ -22,7 +22,7 @@ type UserServiceItf interface {
 	GetProfile(userID string) (string, error)
 	ResendOTP(challengeID string) (string, error)
 	SendResetPasswordEmail(email string) (string, error)
-	ResetPassword(userID string, token string, newPassword string) (string, error)
+	ResetPassword(token string, newPassword string) (string, error)
 }
 
 type UserHandlerImpl struct {
@@ -38,7 +38,7 @@ func (uh *UserHandlerImpl) ResetPassword(ctx fiber.Ctx) error {
 	if err := ctx.Bind().JSON(body); err != nil {
 		return err
 	}
-	msg, err := uh.us.ResetPassword(body.UserID, body.Token, body.NewPassword)
+	msg, err := uh.us.ResetPassword(body.Token, body.NewPassword)
 	if err != nil {
 		return err
 	}

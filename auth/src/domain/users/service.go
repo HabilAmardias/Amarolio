@@ -5,6 +5,7 @@ import (
 	"amarolio-auth/src/customerrors"
 	"amarolio-auth/src/db"
 	otpchallenges "amarolio-auth/src/domain/otp_challenges"
+	resetpasswordchallenges "amarolio-auth/src/domain/reset_password_challenges"
 	verifyuserchallenges "amarolio-auth/src/domain/verify_user_challenges"
 	"amarolio-auth/src/services"
 	"context"
@@ -103,28 +104,31 @@ func (us *UserServiceImpl) recordFailedLogin(ctx context.Context, email string, 
 	return fallback
 }
 
-func (us *UserServiceImpl) ResetPassword(ctx context.Context, userID string, token string, newPassword string) error {
+func (us *UserServiceImpl) ResetPassword(ctx context.Context, token string, newPassword string) error {
 	user := new(User)
+	challenge := new(resetpasswordchallenges.ResetPasswordChallenge)
+
+	rur := resetpasswordchallenges.NewResetPasswordChallengeRepository(us.dbtx)
 	ur := NewUserRepository(us.dbtx)
-	if err := us.uc.FindCacheByID(ctx, userID, user); err != nil {
-		if err := ur.FindByID(ctx, userID, user); err != nil {
+
+	if err := rur.FindByID(ctx, token, challenge); err != nil {
+		return err
+	}
+
+	if err := us.uc.FindCacheByID(ctx, challenge.UserID, user); err != nil {
+		if err := ur.FindByID(ctx, challenge.UserID, user); err != nil {
 			return err
 		}
 	}
-	if !user.IsResetPasswordTokenMatched(token) {
-		return customerrors.NewError(
-			"Unauthorized",
-			errors.New("invalid reset password token"),
-			customerrors.Unauthenticate,
-		)
-	}
-	if user.IsResetPasswordTokenExpired() {
+
+	if challenge.IsExpired() {
 		return customerrors.NewError(
 			"Unauthorized",
 			errors.New("reset password token expired"),
 			customerrors.Unauthenticate,
 		)
 	}
+
 	match, err := us.hu.Validate(user.Password, newPassword)
 	if err != nil {
 		return err
@@ -143,10 +147,12 @@ func (us *UserServiceImpl) ResetPassword(ctx context.Context, userID string, tok
 
 	if err := services.WithTransaction(us.dbtx, func(tx db.DBTXItf) error {
 		txUR := NewUserRepository(tx)
+		txRUR := resetpasswordchallenges.NewResetPasswordChallengeRepository(tx)
+
 		if err := txUR.UpdateUserPassword(ctx, user.ID, hashedPass, user); err != nil {
 			return err
 		}
-		return txUR.UpdateResetPasswordToken(ctx, user.ID, nil, nil, user)
+		return txRUR.DeleteAllByUserID(ctx, user.ID)
 	}); err != nil {
 		return err
 	}
@@ -174,17 +180,22 @@ func (us *UserServiceImpl) SendResetPasswordEmail(ctx context.Context, email str
 		}
 	}
 
-	token, err := us.generateRandomToken()
-	if err != nil {
-		return err
-	}
-	eat := time.Now().Add(time.Hour)
-	if err := ur.UpdateResetPasswordToken(ctx, user.ID, &token, &eat, user); err != nil {
-		return err
-	}
+	challenge := new(resetpasswordchallenges.ResetPasswordChallenge)
+	services.WithTransaction(us.dbtx, func(tx db.DBTXItf) error {
+		txRUR := resetpasswordchallenges.NewResetPasswordChallengeRepository(tx)
+		eat := time.Now().Add(time.Hour)
+		if err := txRUR.DeleteAllByUserID(ctx, user.ID); err != nil {
+			return err
+		}
+		token, err := us.generateRandomToken()
+		if err != nil {
+			return err
+		}
+		return txRUR.CreateNewResetPasswordChallenge(ctx, token, user.ID, eat, challenge)
+	})
 
 	go func() {
-		url := fmt.Sprintf("%s/reset-password?user_id=%s&token=%s", os.Getenv("AUTH_CLIENT_URL"), user.ID, token)
+		url := fmt.Sprintf("%s/reset-password?token=%s", os.Getenv("AUTH_CLIENT_URL"), challenge.ID)
 		if err := us.mu.SendEmail(SendEmailParams{
 			Receiver:  user.Email,
 			Subject:   "Reset Password | Amarolio",

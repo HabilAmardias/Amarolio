@@ -23,11 +23,10 @@ import { validatePassword } from "../../lib/validation";
 
 export function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
-  const userId = searchParams.get("user_id") ?? "";
   const token = searchParams.get("token") ?? "";
   const redirectParam = searchParams.get("redirect_uri");
 
-  const hasParams = Boolean(userId && token);
+  const hasParams = Boolean(token);
 
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -71,7 +70,7 @@ export function ResetPasswordPage() {
     setError("");
     setIsLoading(true);
     try {
-      await resetPassword(userId, token, newPassword);
+      await resetPassword(token, newPassword);
       clearPersistedRedirectUri();
       setIsDone(true);
     } catch (err) {
