@@ -505,7 +505,7 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, challengeID string) (s
 		if err != nil {
 			return err
 		}
-		if err := txocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(time.Hour), challenge); err != nil {
+		if err := txocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(time.Minute), challenge); err != nil {
 			return err
 		}
 		return us.mu.SendEmail(SendEmailParams{
@@ -564,7 +564,6 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 
 	match, err := us.hu.Validate(user.Password, password)
 	if err != nil {
-		us.lg.Infoln("wrong password")
 		return "", err
 	}
 	if !match {
@@ -592,7 +591,6 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 		}
 		otpHash, err := us.hu.Hash(otp)
 		if err != nil {
-			us.lg.Infoln("hash otp failed")
 			return err
 		}
 		if err := ocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(time.Minute), challenge); err != nil {
