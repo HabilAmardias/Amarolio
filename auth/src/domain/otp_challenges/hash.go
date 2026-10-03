@@ -1,4 +1,4 @@
-package users
+package otpchallenges
 
 type HasherItf interface {
 	Hash(plainText string) (string, error)

@@ -4,6 +4,7 @@ import (
 	"amarolio-auth/src/db"
 	"amarolio-auth/src/domain/users"
 	"amarolio-auth/src/routers"
+	"amarolio-auth/src/utils"
 
 	"github.com/gofiber/fiber/v3"
 	"go.uber.org/zap"
@@ -11,7 +12,7 @@ import (
 
 func Bootstrap(db *db.DBHandle, rc *db.CacheHandler, lg *zap.SugaredLogger, app *fiber.App) {
 	ju := users.CreateJWTUtil()
-	hu := users.CreateHasher()
+	hu := utils.CreateHasher()
 	mu := users.CreateGomailUtil()
 	ou := users.CreateOTPGenerator()
 

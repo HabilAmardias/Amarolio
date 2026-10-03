@@ -10,12 +10,12 @@ import (
 )
 
 type UserServiceItf interface {
-	Login(ctx context.Context, userID string, otp string) (string, string, error)
+	Login(ctx context.Context, challengeID string, otp string) (string, string, error)
 	RefreshAuth(ctx context.Context, userID string) (string, error)
 	VerifyUser(ctx context.Context, userID, token string) error
 	GetProfile(ctx context.Context, userID string) (string, error)
 	Register(ctx context.Context, email, password string) error
-	ResendOTP(ctx context.Context, userID string) (string, error)
+	ResendOTP(ctx context.Context, challengeID string) (string, error)
 	PreLogin(ctx context.Context, email string, password string) (string, error)
 	ResendVerification(ctx context.Context, email string) error
 	SendResetPasswordEmail(ctx context.Context, email string) error

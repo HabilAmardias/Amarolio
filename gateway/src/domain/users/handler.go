@@ -16,11 +16,11 @@ type UserServiceItf interface {
 	Register(email, password string) (string, error)
 	Verify(userID string, token string) (string, error)
 	PreLogin(email, password string) (string, error)
-	Login(userID string, otp string) (string, string, error)
+	Login(challengeID string, otp string) (string, string, error)
 	RefreshAuth(userID string) (string, error)
 	ResendVerification(email string) (string, error)
 	GetProfile(userID string) (string, error)
-	ResendOTP(userID string) (string, error)
+	ResendOTP(challengeID string) (string, error)
 	SendResetPasswordEmail(email string) (string, error)
 	ResetPassword(userID string, token string, newPassword string) (string, error)
 }
@@ -114,15 +114,15 @@ func (uh *UserHandlerImpl) PreLogin(ctx fiber.Ctx) error {
 	if err := ctx.Bind().JSON(body); err != nil {
 		return err
 	}
-	token, err := uh.us.PreLogin(body.Email, body.Password)
+	challengeID, err := uh.us.PreLogin(body.Email, body.Password)
 	if err != nil {
 		return err
 	}
 	secure := os.Getenv("ENVIRONMENT") == constants.PRODUCTION
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.OTP_TOKEN,
-		Value:    token,
-		Expires:  time.Now().Add(2 * constants.AUTH_AGE),
+		Value:    challengeID,
+		Expires:  time.Now().Add(2 * time.Minute),
 		HTTPOnly: true,
 		SameSite: "Lax",
 		Secure:   secure,
@@ -136,19 +136,16 @@ func (uh *UserHandlerImpl) PreLogin(ctx fiber.Ctx) error {
 }
 
 func (uh *UserHandlerImpl) ResendOTP(ctx fiber.Ctx) error {
-	claim, err := handlers.GetAuthPayload(ctx, constants.AUTH_CLAIM_KEY)
-	if err != nil {
-		return err
-	}
-	token, err := uh.us.ResendOTP(claim.Subject)
+	challengeID := ctx.Cookies(constants.OTP_TOKEN)
+	newChallengeID, err := uh.us.ResendOTP(challengeID)
 	if err != nil {
 		return err
 	}
 	secure := os.Getenv("ENVIRONMENT") == constants.PRODUCTION
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.OTP_TOKEN,
-		Value:    token,
-		Expires:  time.Now().Add(2 * constants.AUTH_AGE),
+		Value:    newChallengeID,
+		Expires:  time.Now().Add(2 * time.Minute),
 		HTTPOnly: true,
 		SameSite: "Lax",
 		Secure:   secure,
@@ -247,16 +244,12 @@ func (uh *UserHandlerImpl) GetProfile(ctx fiber.Ctx) error {
 }
 
 func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
-	claim, err := handlers.GetAuthPayload(ctx, constants.AUTH_CLAIM_KEY)
-	if err != nil {
-		return err
-	}
-
+	challengeID := ctx.Cookies(constants.OTP_TOKEN)
 	req := new(LoginReq)
 	if err := ctx.Bind().JSON(req); err != nil {
 		return err
 	}
-	authToken, refreshToken, err := uh.us.Login(claim.Subject, req.OTP)
+	authToken, refreshToken, err := uh.us.Login(challengeID, req.OTP)
 	if err != nil {
 		return err
 	}
@@ -273,7 +266,7 @@ func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.REFRESH_TOKEN,
 		Value:    refreshToken,
-		Expires:  time.Now().Add(constants.REFRESH_AGE),
+		Expires:  time.Now().Add(2 * constants.REFRESH_AGE),
 		HTTPOnly: true,
 		SameSite: "Lax",
 		Secure:   secure,

@@ -4,6 +4,7 @@ import (
 	"amarolio-auth/src/constants"
 	"amarolio-auth/src/customerrors"
 	"amarolio-auth/src/db"
+	otpchallenges "amarolio-auth/src/domain/otp_challenges"
 	"amarolio-auth/src/services"
 	"context"
 	"crypto/rand"
@@ -32,11 +33,6 @@ type UserCacheItf interface {
 	IncreaseLoginAttempts(ctx context.Context, email string, max int, lock time.Duration) (int, error)
 	ResetLoginAttempts(ctx context.Context, email string) error
 	LoginLockRemaining(ctx context.Context, email string) (time.Duration, error)
-}
-
-type HasherItf interface {
-	HashPassword(password string) (string, error)
-	ValidatePassword(encodedHash, password string) (bool, error)
 }
 
 type OTPGenItf interface {
@@ -128,7 +124,7 @@ func (us *UserServiceImpl) ResetPassword(ctx context.Context, userID string, tok
 			customerrors.Unauthenticate,
 		)
 	}
-	match, err := us.hu.ValidatePassword(user.Password, newPassword)
+	match, err := us.hu.Validate(user.Password, newPassword)
 	if err != nil {
 		return err
 	}
@@ -139,7 +135,7 @@ func (us *UserServiceImpl) ResetPassword(ctx context.Context, userID string, tok
 			customerrors.InvalidAction,
 		)
 	}
-	hashedPass, err := us.hu.HashPassword(newPassword)
+	hashedPass, err := us.hu.Hash(newPassword)
 	if err != nil {
 		return err
 	}
@@ -330,7 +326,7 @@ func (us *UserServiceImpl) Register(ctx context.Context, email, password string)
 		}
 	}
 
-	hashedPassword, err := us.hu.HashPassword(password)
+	hashedPassword, err := us.hu.Hash(password)
 	if err != nil {
 		return err
 	}
@@ -392,11 +388,19 @@ func (us *UserServiceImpl) GetProfile(ctx context.Context, userID string) (strin
 	return strings.Split(user.Email, "@")[0], nil
 }
 
-func (us *UserServiceImpl) Login(ctx context.Context, userID string, otp string) (string, string, error) {
+func (us *UserServiceImpl) Login(ctx context.Context, challengeID string, otp string) (string, string, error) {
 	user := new(User)
+	challenge := new(otpchallenges.OTPChallenge)
+
 	ur := NewUserRepository(us.dbtx)
-	if err := us.uc.FindCacheByID(ctx, userID, user); err != nil {
-		if err := ur.FindByID(ctx, userID, user); err != nil {
+	ocr := otpchallenges.NewOTPChallengeRepository(us.dbtx)
+
+	if err := ocr.FindByID(ctx, challengeID, challenge); err != nil {
+		return "", "", err
+	}
+
+	if err := us.uc.FindCacheByID(ctx, challenge.UserID, user); err != nil {
+		if err := ur.FindByID(ctx, challenge.UserID, user); err != nil {
 			return "", "", err
 		}
 	}
@@ -415,15 +419,18 @@ func (us *UserServiceImpl) Login(ctx context.Context, userID string, otp string)
 
 	// An expired OTP is not a wrong credential, so it is checked first and not
 	// counted toward the lockout.
-	if user.IsOTPExpired() {
+	if challenge.IsExpired() {
 		return "", "", customerrors.NewError(
 			"OTP has expired",
 			errors.New("otp has expired"),
 			customerrors.Unauthenticate,
 		)
 	}
-
-	if !user.IsOTPMatches(otp) {
+	match, err := challenge.VerifyOTP(otp, us.hu)
+	if err != nil {
+		return "", "", err
+	}
+	if !match {
 		return "", "", us.recordFailedLogin(ctx, user.Email, customerrors.NewError(
 			"Incorrect otp",
 			errors.New("invalid otp"),
@@ -431,25 +438,38 @@ func (us *UserServiceImpl) Login(ctx context.Context, userID string, otp string)
 		))
 	}
 
-	if err := ur.UpdateOTP(ctx, userID, nil, user); err != nil {
+	// ---------------- Clean Up ----------------
+	// invalidate all OTP Challenge for the user
+	if err := ocr.DeleteAllByUserID(ctx, user.ID); err != nil {
 		return "", "", err
 	}
+	// Reset login attempts for the user
 	if err := us.uc.ResetLoginAttempts(ctx, user.Email); err != nil {
 		us.lg.Errorln("reset login attempts:", err.Error())
 	}
+	// renew cache for the user
 	go func() {
 		if err := us.renewCache(user); err != nil {
 			us.lg.Errorln(err.Error())
 		}
 	}()
-	return us.generateAuthAndRefreshToken(userID)
+
+	return us.generateAuthAndRefreshToken(user.ID)
 }
 
-func (us *UserServiceImpl) ResendOTP(ctx context.Context, userID string) (string, error) {
+func (us *UserServiceImpl) ResendOTP(ctx context.Context, challengeID string) (string, error) {
 	user := new(User)
+	challenge := new(otpchallenges.OTPChallenge)
+
 	ur := NewUserRepository(us.dbtx)
-	if err := us.uc.FindCacheByID(ctx, userID, user); err != nil {
-		if err := ur.FindByID(ctx, userID, user); err != nil {
+	ocr := otpchallenges.NewOTPChallengeRepository(us.dbtx)
+
+	if err := ocr.FindByID(ctx, challengeID, challenge); err != nil {
+		return "", err
+	}
+
+	if err := us.uc.FindCacheByID(ctx, challenge.UserID, user); err != nil {
+		if err := ur.FindByID(ctx, challenge.UserID, user); err != nil {
 			return "", err
 		}
 	}
@@ -459,7 +479,7 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, userID string) (string
 	}
 
 	// Check if the OTP has expired, if not, return an error
-	if !user.IsOTPExpired() {
+	if !challenge.IsExpired() {
 		return "", customerrors.NewError(
 			"OTP not expired yet",
 			errors.New("otp not expired yet"),
@@ -467,30 +487,35 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, userID string) (string
 		)
 	}
 
-	otp, err := us.ou.GenerateOTP()
-	if err != nil {
-		return "", err
-	}
-	if err := ur.UpdateOTP(ctx, userID, &otp, user); err != nil {
-		return "", err
-	}
-
-	token, err := us.ju.GenerateJWT(user.ID, constants.ForOTP, 2*constants.OTP_AGE)
-	if err != nil {
-		return "", err
-	}
-
-	go func() {
-		if err := us.mu.SendEmail(SendEmailParams{
+	if err := services.WithTransaction(us.dbtx, func(tx db.DBTXItf) error {
+		txocr := otpchallenges.NewOTPChallengeRepository(tx)
+		// invalidate all existing challenges for this user
+		if err := txocr.DeleteAllByUserID(ctx, user.ID); err != nil {
+			return err
+		}
+		otp, err := us.ou.GenerateOTP()
+		if err != nil {
+			return err
+		}
+		challengeID, err := us.generateRandomToken()
+		if err != nil {
+			return err
+		}
+		otpHash, err := us.hu.Hash(otp)
+		if err != nil {
+			return err
+		}
+		if err := txocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(time.Hour), challenge); err != nil {
+			return err
+		}
+		return us.mu.SendEmail(SendEmailParams{
 			Receiver:  user.Email,
 			Subject:   "Your Amarolio sign-in code",
 			EmailBody: constants.BuildOTPEmailBody(strings.Split(user.Email, "@")[0], otp),
-		}); err != nil {
-			us.lg.Errorln(err.Error())
-			return
-		}
-		us.lg.Infoln("email sent")
-	}()
+		})
+	}); err != nil {
+		return "", err
+	}
 
 	go func() {
 		if err := us.renewCache(user); err != nil {
@@ -498,7 +523,7 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, userID string) (string
 		}
 	}()
 
-	return token, nil
+	return challenge.ID, nil
 }
 
 func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password string) (string, error) {
@@ -537,8 +562,9 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 		)
 	}
 
-	match, err := us.hu.ValidatePassword(user.Password, password)
+	match, err := us.hu.Validate(user.Password, password)
 	if err != nil {
+		us.lg.Infoln("wrong password")
 		return "", err
 	}
 	if !match {
@@ -549,30 +575,37 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 		))
 	}
 
-	otp, err := us.ou.GenerateOTP()
-	if err != nil {
-		return "", err
-	}
-	if err := ur.UpdateOTP(ctx, user.ID, &otp, user); err != nil {
-		return "", err
-	}
-
-	token, err := us.ju.GenerateJWT(user.ID, constants.ForOTP, 2*constants.OTP_AGE)
-	if err != nil {
-		return "", err
-	}
-
-	go func() {
-		if err := us.mu.SendEmail(SendEmailParams{
+	challenge := new(otpchallenges.OTPChallenge)
+	if err := services.WithTransaction(us.dbtx, func(tx db.DBTXItf) error {
+		ocr := otpchallenges.NewOTPChallengeRepository(tx)
+		// invalidate all existing challenges for this user
+		if err := ocr.DeleteAllByUserID(ctx, user.ID); err != nil {
+			return err
+		}
+		otp, err := us.ou.GenerateOTP()
+		if err != nil {
+			return err
+		}
+		challengeID, err := us.generateRandomToken()
+		if err != nil {
+			return err
+		}
+		otpHash, err := us.hu.Hash(otp)
+		if err != nil {
+			us.lg.Infoln("hash otp failed")
+			return err
+		}
+		if err := ocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(time.Minute), challenge); err != nil {
+			return err
+		}
+		return us.mu.SendEmail(SendEmailParams{
 			Receiver:  user.Email,
 			Subject:   "Your Amarolio sign-in code",
 			EmailBody: constants.BuildOTPEmailBody(strings.Split(user.Email, "@")[0], otp),
-		}); err != nil {
-			us.lg.Errorln(err.Error())
-			return
-		}
-		us.lg.Infoln("email sent")
-	}()
+		})
+	}); err != nil {
+		return "", err
+	}
 
 	go func() {
 		if err := us.renewCache(user); err != nil {
@@ -580,7 +613,7 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 		}
 	}()
 
-	return token, nil
+	return challenge.ID, nil
 }
 
 func (us *UserServiceImpl) RefreshAuth(ctx context.Context, userID string) (string, error) {

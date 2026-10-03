@@ -60,20 +60,8 @@ func (ar *AppRouter) SetupPublicRoute() {
 	v1.Post("/prelogin", ar.UserHandler.PreLogin)
 	v1.Post("/verify/send", ar.UserHandler.ResendVerification)
 	v1.Post("/logout", ar.UserHandler.LogOut)
-	v1.Post("/login", middlewares.NewAuthMiddleware(
-		ar.JWTUtil,
-		constants.OTP_TOKEN,
-		constants.ForOTP,
-		constants.AUTH_CLAIM_KEY,
-		false,
-	), ar.UserHandler.Login)
-	v1.Get("/otp/send", middlewares.NewAuthMiddleware(
-		ar.JWTUtil,
-		constants.OTP_TOKEN,
-		constants.ForOTP,
-		constants.AUTH_CLAIM_KEY,
-		false,
-	), ar.UserHandler.ResendOTP)
+	v1.Post("/login", ar.UserHandler.Login)
+	v1.Get("/otp/send", ar.UserHandler.ResendOTP)
 	v1.Post("/register", ar.UserHandler.Register)
 	v1.Post("/verify", ar.UserHandler.Verify)
 	v1.Post("/refresh", middlewares.NewAuthMiddleware(
