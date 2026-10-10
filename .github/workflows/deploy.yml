@@ -263,7 +263,7 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           source: "docker-compose.yaml"
-          target: "/root/apps/amarolio"
+          target: "/home/${{ secrets.VPS_USERNAME }}/apps/amarolio"
 
       - name: Trigger Remote Docker Compose Up
         uses: appleboy/ssh-action@v1.0.3
@@ -274,7 +274,7 @@ jobs:
           envs: GITHUB_TOKEN,GITHUB_ACTOR
           script: |
             echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-            cd /root/apps/amarolio
+            cd /home/${{ secrets.VPS_USERNAME }}/apps/amarolio
 
             cat << 'EOF' > .env
             ${{ secrets.PROD_SERVER_ENV }}
