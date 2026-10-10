@@ -251,6 +251,9 @@ jobs:
   # ==========================================
   deploy-all:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     needs: [amarolio-client, amary-client, auth-client, amary-redirect, amary-amarolio, auth-amarolio, gateway-amarolio]
     steps:
       - name: Checkout Code
