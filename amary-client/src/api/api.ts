@@ -1,10 +1,10 @@
 import type { ErrorResponse, ServerResponse } from "../models/type";
-import type { LogoutRes } from "../models/user/type";
+import { redirectToLogin } from "../lib/authRedirect";
 
 // Store the active refresh promise to share across concurrent API requests
-let activeRefreshPromise: Promise<string> | null = null;
+let activeRefreshPromise: Promise<void> | null = null;
 
-async function refreshAuth(): Promise<string> {
+async function refreshAuth(): Promise<void> {
   if (activeRefreshPromise) {
     return activeRefreshPromise;
   }
@@ -17,55 +17,32 @@ async function refreshAuth(): Promise<string> {
         credentials: "include",
       });
 
-      if (!res.ok) {
-        let errorDetail = "Internal Server Error";
-        let errorCode: number | undefined;
-
-        const contentType = res.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          try {
-            const resBody: ServerResponse<ErrorResponse> = await res.json();
-            errorCode = resBody?.data?.error_code;
-            errorDetail = resBody?.data?.detail || errorDetail;
-          } catch (e) {
-            // Fallback if JSON parsing fails
-          }
-        }
-
-        // if other than refresh token expired (or error parsing code not matching), throw an error
-        if (errorCode !== 40102) {
-          throw new Error(errorDetail);
-        }
-
-        // if refresh token expired, remove all cookies and redirect to homepage
-        const origin = window.location.origin;
-        const reqBody = JSON.stringify({
-          redirect_uri: origin
-        });
-        const logoutURL = `${import.meta.env.VITE_SERVER_HOST}/api/v1/logout`;
-        const logoutRes = await fetch(logoutURL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: reqBody
-        });
-
-        if (logoutRes.ok) {
-          const contentTypeLogout = logoutRes.headers.get("content-type");
-          if (contentTypeLogout && contentTypeLogout.includes("application/json")) {
-            try {
-              const logoutResBody: ServerResponse<LogoutRes> = await logoutRes.json();
-              return logoutResBody.data.redirect_uri;
-            } catch (e) {
-              // ignore and fallback
-            }
-          }
-        }
-        return origin;
+      if (res.ok) {
+        return;
       }
-      return "";
+
+      let errorDetail = "Internal Server Error";
+      let errorCode: number | undefined;
+
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        try {
+          const resBody: ServerResponse<ErrorResponse> = await res.json();
+          errorCode = resBody?.data?.error_code;
+          errorDetail = resBody?.data?.detail || errorDetail;
+        } catch {
+          // Fallback if JSON parsing fails
+        }
+      }
+
+      // if the refresh token is still valid, surface the original error
+      if (errorCode !== 40102) {
+        throw new Error(errorDetail);
+      }
+
+      // refresh token expired — hand off to the centralized auth client
+      redirectToLogin(window.location.origin);
+      await new Promise<never>(() => {});
     } finally {
       activeRefreshPromise = null;
     }
@@ -95,7 +72,7 @@ export const apiFetch = async (
   if (contentType && contentType.includes("application/json")) {
     try {
       resBody = await res.json();
-    } catch (e) {
+    } catch {
       // Fallback
     }
   }
@@ -103,13 +80,9 @@ export const apiFetch = async (
   const errorCode = resBody?.data?.error_code;
   const errorDetail = resBody?.data?.detail || `HTTP Error ${res.status}`;
 
-  // if the error is about access token expired, then try to refresh the token and retry the request
+  // if the error is about access token expired, refresh the token and retry
   if (errorCode === 40102) {
-    const redirectURI = await refreshAuth();
-    if (redirectURI) {
-      window.location.href = redirectURI;
-      return new Promise<never>(() => { });
-    }
+    await refreshAuth();
 
     res = await fetch(info, {
       ...init,
@@ -125,11 +98,12 @@ export const apiFetch = async (
     if (retryContentType && retryContentType.includes("application/json")) {
       try {
         retryResBody = await res.json();
-      } catch (e) {
+      } catch {
         // Fallback
       }
     }
-    const retryErrorDetail = retryResBody?.data?.detail || `HTTP Error ${res.status}`;
+    const retryErrorDetail =
+      retryResBody?.data?.detail || `HTTP Error ${res.status}`;
     throw new Error(retryErrorDetail);
   }
 

@@ -18,9 +18,9 @@ import (
 type URLServiceItf interface {
 	NewShortURL(ctx context.Context, userID *string, longURL string, duration *int, customCode *string) (string, *time.Time, error)
 	VisitOriginalURL(ctx context.Context, encodedID string, device string) (string, error)
-	GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, error)
+	GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]ParsedURL, error)
 	IsCustomURLAvailable(ctx context.Context, customCode string) (bool, error)
-	FindOriginalURL(ctx context.Context, shortCode string) (DecryptedURL, error)
+	FindOriginalURL(ctx context.Context, shortCode string) (ParsedURL, error)
 }
 
 type URLHandlerImpl struct {

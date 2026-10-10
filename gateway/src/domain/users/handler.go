@@ -13,10 +13,16 @@ import (
 )
 
 type UserServiceItf interface {
-	Login() (string, string, error)
+	Register(email, password string) (string, error)
+	Verify(token string) (string, error)
+	PreLogin(email, password string) (string, error)
+	Login(challengeID string, otp string) (string, string, error)
 	RefreshAuth(userID string) (string, error)
-	LoginCallback(code string, state string) (string, string, error)
+	ResendVerification(email string) (string, error)
 	GetProfile(userID string) (string, error)
+	ResendOTP(challengeID string) (string, error)
+	SendResetPasswordEmail(email string) (string, error)
+	ResetPassword(token string, newPassword string) (string, error)
 }
 
 type UserHandlerImpl struct {
@@ -27,9 +33,13 @@ func NewUserHandler(us UserServiceItf) *UserHandlerImpl {
 	return &UserHandlerImpl{us}
 }
 
-func (uh *UserHandlerImpl) LogOut(ctx fiber.Ctx) error {
-	req := new(LogoutReq)
-	if err := ctx.Bind().JSON(req); err != nil {
+func (uh *UserHandlerImpl) ResetPassword(ctx fiber.Ctx) error {
+	body := new(ResetPasswordReq)
+	if err := ctx.Bind().JSON(body); err != nil {
+		return err
+	}
+	msg, err := uh.us.ResetPassword(body.Token, body.NewPassword)
+	if err != nil {
 		return err
 	}
 	secure := os.Getenv("ENVIRONMENT") == constants.PRODUCTION
@@ -38,6 +48,7 @@ func (uh *UserHandlerImpl) LogOut(ctx fiber.Ctx) error {
 		Value:    "",
 		HTTPOnly: true,
 		Secure:   secure,
+		SameSite: "Lax",
 		Expires:  time.Now().Add(-3 * time.Minute),
 	})
 	ctx.Cookie(&fiber.Cookie{
@@ -45,12 +56,172 @@ func (uh *UserHandlerImpl) LogOut(ctx fiber.Ctx) error {
 		Value:    "",
 		HTTPOnly: true,
 		Secure:   secure,
+		SameSite: "Lax",
 		Expires:  time.Now().Add(-3 * time.Minute),
 	})
-	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[LogoutRes]{
+	ctx.Cookie(&fiber.Cookie{
+		Name:     constants.OTP_TOKEN,
+		Value:    "",
+		HTTPOnly: true,
+		Secure:   secure,
+		SameSite: "Lax",
+		Expires:  time.Now().Add(-3 * time.Minute),
+	})
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
 		Success: true,
-		Data: LogoutRes{
-			RedirectURI: req.RedirectURI,
+		Data: dto.TextResponse{
+			Message: msg,
+		},
+	})
+}
+
+func (uh *UserHandlerImpl) SendResetPasswordEmail(ctx fiber.Ctx) error {
+	body := new(SendEmailReq)
+	if err := ctx.Bind().JSON(body); err != nil {
+		return err
+	}
+	msg, err := uh.us.SendResetPasswordEmail(body.Email)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
+		Success: true,
+		Data: dto.TextResponse{
+			Message: msg,
+		},
+	})
+}
+
+func (uh *UserHandlerImpl) ResendVerification(ctx fiber.Ctx) error {
+	body := new(SendEmailReq)
+	if err := ctx.Bind().JSON(body); err != nil {
+		return err
+	}
+	msg, err := uh.us.ResendVerification(body.Email)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
+		Success: true,
+		Data: dto.TextResponse{
+			Message: msg,
+		},
+	})
+}
+
+func (uh *UserHandlerImpl) PreLogin(ctx fiber.Ctx) error {
+	body := new(CredentialsReq)
+	if err := ctx.Bind().JSON(body); err != nil {
+		return err
+	}
+	challengeID, err := uh.us.PreLogin(body.Email, body.Password)
+	if err != nil {
+		return err
+	}
+	secure := os.Getenv("ENVIRONMENT") == constants.PRODUCTION
+	ctx.Cookie(&fiber.Cookie{
+		Name:     constants.OTP_TOKEN,
+		Value:    challengeID,
+		Expires:  time.Now().Add(2 * time.Minute),
+		HTTPOnly: true,
+		SameSite: "Lax",
+		Secure:   secure,
+	})
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
+		Success: true,
+		Data: dto.TextResponse{
+			Message: "Send OTP Success",
+		},
+	})
+}
+
+func (uh *UserHandlerImpl) ResendOTP(ctx fiber.Ctx) error {
+	challengeID := ctx.Cookies(constants.OTP_TOKEN)
+	newChallengeID, err := uh.us.ResendOTP(challengeID)
+	if err != nil {
+		return err
+	}
+	secure := os.Getenv("ENVIRONMENT") == constants.PRODUCTION
+	ctx.Cookie(&fiber.Cookie{
+		Name:     constants.OTP_TOKEN,
+		Value:    newChallengeID,
+		Expires:  time.Now().Add(2 * time.Minute),
+		HTTPOnly: true,
+		SameSite: "Lax",
+		Secure:   secure,
+	})
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
+		Success: true,
+		Data: dto.TextResponse{
+			Message: "Send OTP Success",
+		},
+	})
+}
+
+func (uh *UserHandlerImpl) Register(ctx fiber.Ctx) error {
+	body := new(CredentialsReq)
+	if err := ctx.Bind().JSON(body); err != nil {
+		return err
+	}
+	msg, err := uh.us.Register(body.Email, body.Password)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
+		Success: true,
+		Data: dto.TextResponse{
+			Message: msg,
+		},
+	})
+}
+
+func (uh *UserHandlerImpl) Verify(ctx fiber.Ctx) error {
+	body := new(VerifyReq)
+	if err := ctx.Bind().JSON(body); err != nil {
+		return err
+	}
+	msg, err := uh.us.Verify(body.Token)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
+		Success: true,
+		Data: dto.TextResponse{
+			Message: msg,
+		},
+	})
+}
+
+func (uh *UserHandlerImpl) LogOut(ctx fiber.Ctx) error {
+	secure := os.Getenv("ENVIRONMENT") == constants.PRODUCTION
+	ctx.Cookie(&fiber.Cookie{
+		Name:     constants.AUTH_TOKEN,
+		Value:    "",
+		HTTPOnly: true,
+		Secure:   secure,
+		SameSite: "Lax",
+		Expires:  time.Now().Add(-3 * time.Minute),
+	})
+	ctx.Cookie(&fiber.Cookie{
+		Name:     constants.REFRESH_TOKEN,
+		Value:    "",
+		HTTPOnly: true,
+		Secure:   secure,
+		SameSite: "Lax",
+		Expires:  time.Now().Add(-3 * time.Minute),
+	})
+	ctx.Cookie(&fiber.Cookie{
+		Name:     constants.OTP_TOKEN,
+		Value:    "",
+		HTTPOnly: true,
+		Secure:   secure,
+		SameSite: "Lax",
+		Expires:  time.Now().Add(-3 * time.Minute),
+	})
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
+		Success: true,
+		Data: dto.TextResponse{
+			Message: "Logged out successfully",
 		},
 	})
 }
@@ -72,77 +243,46 @@ func (uh *UserHandlerImpl) GetProfile(ctx fiber.Ctx) error {
 	})
 }
 
-func (uh *UserHandlerImpl) LoginCallback(ctx fiber.Ctx) error {
-	state := ctx.Cookies("oauthstate")
-	code := ctx.Query("code")
-	redirectURI := ctx.Cookies("redirect_uri")
-
-	authToken, refreshToken, err := uh.us.LoginCallback(code, state)
+func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
+	challengeID := ctx.Cookies(constants.OTP_TOKEN)
+	req := new(LoginReq)
+	if err := ctx.Bind().JSON(req); err != nil {
+		return err
+	}
+	authToken, refreshToken, err := uh.us.Login(challengeID, req.OTP)
 	if err != nil {
 		return err
 	}
+
 	secure := os.Getenv("ENVIRONMENT") == constants.PRODUCTION
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.AUTH_TOKEN,
 		Value:    authToken,
 		Expires:  time.Now().Add(2 * constants.AUTH_AGE),
 		HTTPOnly: true,
+		SameSite: "Lax",
 		Secure:   secure,
 	})
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.REFRESH_TOKEN,
 		Value:    refreshToken,
-		Expires:  time.Now().Add(constants.REFRESH_AGE),
+		Expires:  time.Now().Add(2 * constants.REFRESH_AGE),
 		HTTPOnly: true,
+		SameSite: "Lax",
 		Secure:   secure,
 	})
-
-	// remove redirect_uri and oauthstate cookies
 	ctx.Cookie(&fiber.Cookie{
-		Name:     "redirect_uri",
+		Name:     constants.OTP_TOKEN,
 		Value:    "",
 		HTTPOnly: true,
+		SameSite: "Lax",
 		Secure:   secure,
 		Expires:  time.Now().Add(-3 * time.Minute),
 	})
-	ctx.Cookie(&fiber.Cookie{
-		Name:     "oauthstate",
-		Value:    "",
-		HTTPOnly: true,
-		Secure:   secure,
-		Expires:  time.Now().Add(-3 * time.Minute),
-	})
-	return ctx.Redirect().Status(http.StatusTemporaryRedirect).To(redirectURI)
-}
-
-func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
-	req := new(LoginReq)
-	if err := ctx.Bind().JSON(req); err != nil {
-		return err
-	}
-	var isProd bool = os.Getenv("ENVIRONMENT") == constants.PRODUCTION
-	state, url, err := uh.us.Login()
-	if err != nil {
-		return err
-	}
-	ctx.Cookie(&fiber.Cookie{
-		Name:     "redirect_uri",
-		Expires:  time.Now().Add(constants.AUTH_AGE),
-		Value:    req.RedirectURI,
-		HTTPOnly: true,
-		Secure:   isProd,
-	})
-	ctx.Cookie(&fiber.Cookie{
-		Name:     "oauthstate",
-		Expires:  time.Now().Add(30 * time.Second),
-		Value:    state,
-		HTTPOnly: true,
-		Secure:   isProd,
-	})
-	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[LoginRes]{
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
 		Success: true,
-		Data: LoginRes{
-			RedirectURI: url,
+		Data: dto.TextResponse{
+			Message: "Login successful",
 		},
 	})
 }
@@ -160,12 +300,13 @@ func (uh *UserHandlerImpl) RefreshAuth(ctx fiber.Ctx) error {
 		Name:     constants.AUTH_TOKEN,
 		Value:    authToken,
 		HTTPOnly: true,
+		SameSite: "Lax",
 		Expires:  time.Now().Add(constants.AUTH_AGE),
 		Secure:   os.Getenv("ENVIRONMENT") == constants.PRODUCTION,
 	})
-	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[RefreshAuthRes]{
+	return ctx.Status(http.StatusOK).JSON(dto.ServerResponse[dto.TextResponse]{
 		Success: true,
-		Data: RefreshAuthRes{
+		Data: dto.TextResponse{
 			Message: "refresh token success",
 		},
 	})

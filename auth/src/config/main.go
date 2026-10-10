@@ -42,7 +42,7 @@ func Run() {
 		lg.Fatalln(err)
 	}
 
-	rc := db.NewRedisClient()
+	rc := db.NewCacheHandler(lg)
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler:    middlewares.NewErrorMiddleware(lg),

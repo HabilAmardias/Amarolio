@@ -103,7 +103,15 @@ services:
     ports:
       - ${AMARY_REDIRECT_PORT}:80
     restart: unless-stopped
-  
+  auth_client:
+    container_name: auth-client-container
+    build:
+      context: ./auth-client
+      dockerfile: Dockerfile
+    ports:
+      - ${AUTH_CLIENT_PORT}:80
+    restart: unless-stopped
+
 volumes:
   database_auth_data:
   redis_auth_data:

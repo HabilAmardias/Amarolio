@@ -9,6 +9,7 @@ const (
 	DatabaseExecutionErr = 50002
 	InvalidAction        = 40001
 	ValidationErr        = 40002
+	TooManyAttempts      = 42901
 )
 
 func NewError(userErr string, sysErr error, errCode int) *CustomError {

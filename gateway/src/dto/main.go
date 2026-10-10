@@ -45,6 +45,9 @@ type (
 	PlainMessageRes struct {
 		Message string `json:"message"`
 	}
+	TextResponse struct {
+		Message string `json:"message"`
+	}
 )
 
 func (de *DetailsError) ToString() string {

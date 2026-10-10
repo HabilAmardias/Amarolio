@@ -4,16 +4,16 @@ import "time"
 
 type (
 	URL struct {
-		ID               int64
-		UserID           *string
-		EncryptedLongUrl string
-		ShortCode        *string
-		CreatedAt        time.Time
-		UpdatedAt        time.Time
-		DeletedAt        *time.Time
-		ExpiredAt        *time.Time
+		ID        int64
+		UserID    *string
+		LongURL   string
+		ShortCode *string
+		CreatedAt time.Time
+		UpdatedAt time.Time
+		DeletedAt *time.Time
+		ExpiredAt *time.Time
 	}
-	DecryptedURL struct {
+	ParsedURL struct {
 		ID        int64
 		UserID    *string
 		ShortURL  string

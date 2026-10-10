@@ -2,13 +2,12 @@ package routers
 
 import (
 	"amarolio-gateway/src/constants"
-	"amarolio-gateway/src/domain/chatrooms"
-	"amarolio-gateway/src/domain/messages"
 	shortenurls "amarolio-gateway/src/domain/shorten_urls"
 	"amarolio-gateway/src/domain/users"
 	"amarolio-gateway/src/middlewares"
 	"amarolio-gateway/src/utils"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
@@ -24,8 +23,6 @@ type Logger interface {
 type AppRouter struct {
 	App               *fiber.App
 	UserHandler       *users.UserHandlerImpl
-	MessageHandler    *messages.MessageHandlerImpl
-	ChatroomHandler   *chatrooms.ChatroomHandlerImpl
 	ShortenURLHandler *shortenurls.ShortenURLHandlerImpl
 	JWTUtil           *utils.JWTUtil
 	TurnstileUtil     *utils.TurnstileUtil
@@ -37,27 +34,32 @@ func (ar *AppRouter) Setup() {
 		AllowOriginsFunc: func(origin string) bool {
 			allowed := os.Getenv("ALLOWED_ORIGIN")
 			origins := strings.Split(allowed, ";")
-			for _, o := range origins {
-				if origin == o {
-					return true
-				}
-			}
-			return false
+			return slices.Contains(origins, origin)
 		},
 		AllowCredentials: true,
 		AllowMethods:     []string{fasthttp.MethodGet, fasthttp.MethodPost, fasthttp.MethodDelete, fasthttp.MethodPatch, fasthttp.MethodPut},
 	}))
 	ar.App.Use(middlewares.NewLoggerMiddleware(ar.Logger))
+	ar.App.Use(middlewares.NewIdentityMiddleware(
+		ar.JWTUtil,
+		constants.AUTH_TOKEN,
+		constants.ForAuth,
+		constants.IDENTITY_CLAIM_KEY,
+	))
+	ar.App.Use(middlewares.NewRateLimiterMiddleware(constants.IDENTITY_CLAIM_KEY))
 	ar.SetupPublicRoute()
 	ar.SetupPrivateRoute()
 }
 
 func (ar *AppRouter) SetupPublicRoute() {
 	v1 := ar.App.Group("/api/v1")
-	v1.Use(middlewares.NewRateLimiterMiddleware(constants.AUTH_CLAIM_KEY))
-	v1.Post("/login", ar.UserHandler.Login)
-	v1.Get("/login/callback", ar.UserHandler.LoginCallback)
+	v1.Post("/prelogin", ar.UserHandler.PreLogin)
+	v1.Post("/verify/send", ar.UserHandler.ResendVerification)
 	v1.Post("/logout", ar.UserHandler.LogOut)
+	v1.Post("/login", ar.UserHandler.Login)
+	v1.Get("/otp/send", ar.UserHandler.ResendOTP)
+	v1.Post("/register", ar.UserHandler.Register)
+	v1.Post("/verify", ar.UserHandler.Verify)
 	v1.Post("/refresh", middlewares.NewAuthMiddleware(
 		ar.JWTUtil,
 		constants.REFRESH_TOKEN,
@@ -74,6 +76,8 @@ func (ar *AppRouter) SetupPublicRoute() {
 	), ar.ShortenURLHandler.NewShortURL)
 	v1.Get("/url/:id/redirect", middlewares.NewTurnstileMiddleware(ar.TurnstileUtil), ar.ShortenURLHandler.RedirectToURL)
 	v1.Get("/url/:id/metadata", ar.ShortenURLHandler.FindOriginalURL)
+	v1.Post("/reset-password/send", ar.UserHandler.SendResetPasswordEmail)
+	v1.Post("/reset-password", ar.UserHandler.ResetPassword)
 }
 
 func (ar *AppRouter) SetupPrivateRoute() {
@@ -85,7 +89,6 @@ func (ar *AppRouter) SetupPrivateRoute() {
 		constants.AUTH_CLAIM_KEY,
 		false,
 	))
-	v1.Use(middlewares.NewRateLimiterMiddleware(constants.AUTH_CLAIM_KEY))
 	v1.Get("/me", ar.UserHandler.GetProfile)
 	v1.Get("/me/url", ar.ShortenURLHandler.GetUserLinks)
 	v1.Post("/url/custom-code", ar.ShortenURLHandler.IsCustomURLAvailable)

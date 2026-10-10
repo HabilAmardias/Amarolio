@@ -12,11 +12,6 @@ import (
 	"time"
 )
 
-type URLEncryptorItf interface {
-	DecryptURL(cipherURL string) (string, error)
-	EncryptURL(plainURL string) (string, error)
-}
-
 type IDEncoderItf interface {
 	Encode(id int64) string
 	Decode(encodedID string) (int64, error)
@@ -55,7 +50,6 @@ type TransactionManagerItf interface {
 }
 
 type URLServiceImpl struct {
-	ue  URLEncryptorItf
 	ide IDEncoderItf
 	suc URLCacheItf
 	sur URLRepoItf
@@ -63,17 +57,17 @@ type URLServiceImpl struct {
 	trm TransactionManagerItf
 }
 
-func NewURLService(ue URLEncryptorItf, ide IDEncoderItf, suc URLCacheItf, sur URLRepoItf, vrr VisitRecordRepoItf, trm TransactionManagerItf) *URLServiceImpl {
-	return &URLServiceImpl{ue, ide, suc, sur, vrr, trm}
+func NewURLService(ide IDEncoderItf, suc URLCacheItf, sur URLRepoItf, vrr VisitRecordRepoItf, trm TransactionManagerItf) *URLServiceImpl {
+	return &URLServiceImpl{ide, suc, sur, vrr, trm}
 }
 
-func (sus *URLServiceImpl) FindOriginalURL(ctx context.Context, shortCode string) (DecryptedURL, error) {
+func (sus *URLServiceImpl) FindOriginalURL(ctx context.Context, shortCode string) (ParsedURL, error) {
 	now := time.Now()
 	url, err := sus.suc.Get(ctx, shortCode)
 	if err != nil {
 		url, err = sus.sur.FindByCode(ctx, shortCode)
 		if err != nil {
-			return DecryptedURL{}, err
+			return ParsedURL{}, err
 		}
 		go func(eid string, u URL) {
 			ttl := 24 * time.Hour
@@ -89,22 +83,17 @@ func (sus *URLServiceImpl) FindOriginalURL(ctx context.Context, shortCode string
 	}
 
 	if url.ExpiredAt != nil && now.After(*url.ExpiredAt) {
-		return DecryptedURL{}, customerror.NewError(
+		return ParsedURL{}, customerror.NewError(
 			"expired url",
 			errors.New("expired url"),
 			customerror.InvalidAction,
 		)
 	}
 
-	decryptedURL, err := sus.ue.DecryptURL(url.EncryptedLongUrl)
-	if err != nil {
-		return DecryptedURL{}, err
-	}
-
-	return DecryptedURL{
+	return ParsedURL{
 		ID:        url.ID,
 		UserID:    url.UserID,
-		LongURL:   decryptedURL,
+		LongURL:   url.LongURL,
 		ShortURL:  fmt.Sprintf("%s/%s", os.Getenv("AMARY_REDIRECT_DOMAIN"), *url.ShortCode),
 		Code:      *url.ShortCode,
 		CreatedAt: url.CreatedAt,
@@ -141,13 +130,12 @@ func (sus *URLServiceImpl) IsCustomURLAvailable(ctx context.Context, customCode 
 	return false, nil
 }
 
-func (sus *URLServiceImpl) GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]DecryptedURL, error) {
+func (sus *URLServiceImpl) GetUserLinks(ctx context.Context, userID string, lastID *int64, limit int64) ([]ParsedURL, error) {
 	links, err := sus.sur.FindUserLinks(ctx, userID, lastID, limit)
 	if err != nil {
 		return nil, err
 	}
-	// decrypt real url
-	return sus.decryptAndFormatURL(links)
+	return sus.parseURL(links), nil
 }
 
 func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, longURL string, duration *int, customCode *string) (string, *time.Time, error) {
@@ -165,12 +153,6 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 	if userID != nil && duration != nil {
 		expiration := now.Add(time.Duration(*duration) * 24 * time.Hour)
 		eat = &expiration
-	}
-
-	// encrypt original url
-	encryptedURL, err := sus.ue.EncryptURL(longURL)
-	if err != nil {
-		return "", nil, err
 	}
 
 	// if user is authenticated and provide custom code
@@ -219,7 +201,8 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 	)
 
 	if err := sus.trm.WithTransaction(ctx, func(c context.Context) error {
-		url, err = sus.sur.InsertNewURL(c, userID, encryptedURL, eat)
+		var err error
+		url, err = sus.sur.InsertNewURL(c, userID, longURL, eat)
 		if err != nil {
 			return err
 		}
@@ -230,7 +213,6 @@ func (sus *URLServiceImpl) NewShortURL(ctx context.Context, userID *string, long
 		}
 
 		url, err = sus.sur.UpdateShortCode(c, url.ID, shortCode)
-
 		return err
 	}); err != nil {
 		return "", nil, err
@@ -282,11 +264,6 @@ func (sus *URLServiceImpl) VisitOriginalURL(ctx context.Context, shortCode strin
 		)
 	}
 
-	decryptedURL, err := sus.ue.DecryptURL(url.EncryptedLongUrl)
-	if err != nil {
-		return "", err
-	}
-
 	go func(u URL, dev string) {
 		if u.UserID != nil {
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -300,27 +277,23 @@ func (sus *URLServiceImpl) VisitOriginalURL(ctx context.Context, shortCode strin
 		}
 	}(url, device)
 
-	return decryptedURL, nil
+	return url.LongURL, nil
 }
 
-func (sus *URLServiceImpl) decryptAndFormatURL(ls []URL) ([]DecryptedURL, error) {
-	decryptedLinks := []DecryptedURL{}
+func (sus *URLServiceImpl) parseURL(ls []URL) []ParsedURL {
+	parsedLinks := []ParsedURL{}
 	for _, l := range ls {
-		du, err := sus.ue.DecryptURL(l.EncryptedLongUrl)
-		if err != nil {
-			return nil, err
-		}
-		decryptedLinks = append(decryptedLinks, DecryptedURL{
+		parsedLinks = append(parsedLinks, ParsedURL{
 			ID:        l.ID,
 			UserID:    l.UserID,
-			LongURL:   du,
+			LongURL:   l.LongURL,
 			Code:      *l.ShortCode,
 			ShortURL:  fmt.Sprintf("%s/%s", os.Getenv("AMARY_REDIRECT_DOMAIN"), *l.ShortCode),
 			CreatedAt: l.CreatedAt,
 			ExpiredAt: l.ExpiredAt,
 		})
 	}
-	return decryptedLinks, nil
+	return parsedLinks
 }
 
 func (sus *URLServiceImpl) validateCustomCode(code string) error {
