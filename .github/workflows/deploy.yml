@@ -256,6 +256,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:ci
+
       - name: Copy docker-compose.yaml
         uses: appleboy/scp-action@v0.1.7
         with:
