@@ -1,0 +1,80 @@
+
+name: CodeQL Security Analysis
+
+on:
+  push:
+    branches: [master]
+
+  pull_request:
+    branches: [master]
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  codeql:
+    name: CodeQL - ${{ matrix.name }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: amary
+            language: go
+            build-mode: manual
+            directory: amary
+
+          - name: auth
+            language: go
+            build-mode: manual
+            directory: auth
+
+          - name: gateway
+            language: go
+            build-mode: manual
+            directory: gateway
+
+          - name: typescript
+            language: javascript-typescript
+            build-mode: none
+            directory: .
+
+          - name: python
+            language: python
+            build-mode: none
+            directory: .
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: ${{ matrix.directory }}/go.mod
+          cache-dependency-path: ${{ matrix.directory }}/go.sum
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-extended
+
+      - name: Build Go module
+        if: matrix.language == 'go'
+        working-directory: ${{ matrix.directory }}
+        run: go build ./...
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/service:${{ matrix.name }}"
