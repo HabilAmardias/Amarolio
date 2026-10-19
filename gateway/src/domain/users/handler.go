@@ -46,6 +46,7 @@ func (uh *UserHandlerImpl) ResetPassword(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.AUTH_TOKEN,
 		Value:    "",
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		HTTPOnly: true,
 		Secure:   secure,
 		SameSite: "Lax",
@@ -54,6 +55,7 @@ func (uh *UserHandlerImpl) ResetPassword(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.REFRESH_TOKEN,
 		Value:    "",
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		HTTPOnly: true,
 		Secure:   secure,
 		SameSite: "Lax",
@@ -62,6 +64,7 @@ func (uh *UserHandlerImpl) ResetPassword(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.OTP_TOKEN,
 		Value:    "",
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		HTTPOnly: true,
 		Secure:   secure,
 		SameSite: "Lax",
@@ -122,6 +125,7 @@ func (uh *UserHandlerImpl) PreLogin(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.OTP_TOKEN,
 		Value:    challengeID,
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		Expires:  time.Now().Add(2 * time.Minute),
 		HTTPOnly: true,
 		SameSite: "Lax",
@@ -145,6 +149,7 @@ func (uh *UserHandlerImpl) ResendOTP(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.OTP_TOKEN,
 		Value:    newChallengeID,
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		Expires:  time.Now().Add(2 * time.Minute),
 		HTTPOnly: true,
 		SameSite: "Lax",
@@ -197,6 +202,7 @@ func (uh *UserHandlerImpl) LogOut(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.AUTH_TOKEN,
 		Value:    "",
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		HTTPOnly: true,
 		Secure:   secure,
 		SameSite: "Lax",
@@ -205,6 +211,7 @@ func (uh *UserHandlerImpl) LogOut(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.REFRESH_TOKEN,
 		Value:    "",
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		HTTPOnly: true,
 		Secure:   secure,
 		SameSite: "Lax",
@@ -213,6 +220,7 @@ func (uh *UserHandlerImpl) LogOut(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.OTP_TOKEN,
 		Value:    "",
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		HTTPOnly: true,
 		Secure:   secure,
 		SameSite: "Lax",
@@ -258,6 +266,7 @@ func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.AUTH_TOKEN,
 		Value:    authToken,
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		Expires:  time.Now().Add(2 * constants.AUTH_AGE),
 		HTTPOnly: true,
 		SameSite: "Lax",
@@ -266,6 +275,7 @@ func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.REFRESH_TOKEN,
 		Value:    refreshToken,
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		Expires:  time.Now().Add(2 * constants.REFRESH_AGE),
 		HTTPOnly: true,
 		SameSite: "Lax",
@@ -274,6 +284,7 @@ func (uh *UserHandlerImpl) Login(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.OTP_TOKEN,
 		Value:    "",
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		HTTPOnly: true,
 		SameSite: "Lax",
 		Secure:   secure,
@@ -299,6 +310,7 @@ func (uh *UserHandlerImpl) RefreshAuth(ctx fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     constants.AUTH_TOKEN,
 		Value:    authToken,
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		HTTPOnly: true,
 		SameSite: "Lax",
 		Expires:  time.Now().Add(constants.AUTH_AGE),
