@@ -4,6 +4,7 @@ import (
 	"amarolio-gateway/src/customerrors"
 	"amarolio-gateway/src/dto"
 	"errors"
+	"html"
 	"net/http"
 	"strings"
 
@@ -21,6 +22,9 @@ func NewErrorMiddleware(logger Logger) fiber.ErrorHandler {
 		httpCode := http.StatusInternalServerError
 		var errDetail string = "Internal Server Error"
 		errorCode := customerrors.CommonErr
+		path := html.EscapeString(string(ctx.Request().URI().Path()))
+		path = strings.ReplaceAll(path, "\n", "")
+		path = strings.ReplaceAll(path, "\r", "")
 
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) {
@@ -36,7 +40,7 @@ func NewErrorMiddleware(logger Logger) fiber.ErrorHandler {
 			errDetail = strings.Join(fes, "; ")
 			errorCode = customerrors.ValidationErr
 
-			logger.Errorln(ctx.Method, ctx.Request().URI().Path(), httpCode, errorCode, ve.Error())
+			logger.Errorln(ctx.Method, path, httpCode, errorCode, ve.Error())
 		}
 
 		var ce *customerrors.CustomError
@@ -45,7 +49,7 @@ func NewErrorMiddleware(logger Logger) fiber.ErrorHandler {
 			errDetail = ce.UserErr
 			errorCode = ce.ErrCode
 
-			logger.Errorln(ctx.Method(), ctx.Path(), httpCode, errorCode, ce.Error())
+			logger.Errorln(ctx.Method(), path, httpCode, errorCode, ce.Error())
 		}
 
 		return ctx.Status(httpCode).JSON(dto.ServerResponse[dto.ErrorResponse]{

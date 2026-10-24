@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"html"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +15,10 @@ func NewLoggerMiddleware(lg Logger) gin.HandlerFunc {
 		ctx.Next()
 
 		elapsed := time.Since(start)
-		lg.Infoln(ctx.Request.Method, ctx.Request.URL.Path, ctx.Writer.Status(), elapsed.Abs().String())
+		path := html.EscapeString(ctx.Request.URL.Path)
+		path = strings.ReplaceAll(path, "\n", "")
+		path = strings.ReplaceAll(path, "\r", "")
+
+		lg.Infoln(ctx.Request.Method, path, ctx.Writer.Status(), elapsed.Abs().String())
 	}
 }

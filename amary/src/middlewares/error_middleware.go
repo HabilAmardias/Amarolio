@@ -4,6 +4,7 @@ import (
 	"amary/src/customerror"
 	"amary/src/dto"
 	"errors"
+	"html"
 	"net/http"
 	"strings"
 
@@ -25,6 +26,10 @@ func NewErrorMiddleware(lg Logger) gin.HandlerFunc {
 
 		httpCode := http.StatusInternalServerError
 		errorCode := customerror.CommonErr
+		path := html.EscapeString(ctx.Request.URL.Path)
+		path = strings.ReplaceAll(path, "\n", "")
+		path = strings.ReplaceAll(path, "\r", "")
+
 		var errDetail string = "Internal Server Error"
 		err := ctx.Errors[0]
 
@@ -42,7 +47,7 @@ func NewErrorMiddleware(lg Logger) gin.HandlerFunc {
 			errDetail = strings.Join(fes, "; ")
 			errorCode = customerror.ValidationErr
 
-			lg.Errorln(ctx.Request.Method, ctx.Request.URL.Path, httpCode, errorCode, ve.Error())
+			lg.Errorln(ctx.Request.Method, path, httpCode, errorCode, ve.Error())
 			ctx.JSON(httpCode, dto.ServerResponse[dto.ErrorResponse]{
 				Success: false,
 				Data: dto.ErrorResponse{
@@ -59,7 +64,7 @@ func NewErrorMiddleware(lg Logger) gin.HandlerFunc {
 			errDetail = ce.UserErr
 			errorCode = ce.ErrCode
 
-			lg.Errorln(ctx.Request.Method, ctx.Request.URL.Path, httpCode, errorCode, ce.Error())
+			lg.Errorln(ctx.Request.Method, path, httpCode, errorCode, ce.Error())
 			ctx.JSON(httpCode, dto.ServerResponse[dto.ErrorResponse]{
 				Success: false,
 				Data: dto.ErrorResponse{
@@ -70,7 +75,7 @@ func NewErrorMiddleware(lg Logger) gin.HandlerFunc {
 			return
 		}
 
-		lg.Errorln(ctx.Request.Method, ctx.Request.URL.Path, httpCode, errorCode, err.Error())
+		lg.Errorln(ctx.Request.Method, path, httpCode, errorCode, err.Error())
 		ctx.AbortWithStatusJSON(httpCode, dto.ServerResponse[dto.ErrorResponse]{
 			Success: false,
 			Data: dto.ErrorResponse{
