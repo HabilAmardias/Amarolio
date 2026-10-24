@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"html"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -15,7 +16,9 @@ func NewLoggerMiddleware(lg Logger) fiber.Handler {
 		}
 
 		elapsed := time.Since(start)
-		lg.Infoln(ctx.Method(), ctx.Path(), ctx.Response().StatusCode(), elapsed.Abs().String())
+		path := html.EscapeString(string(ctx.Request().URI().Path()))
+		lg.Infoln(ctx.Method(), path, ctx.Response().StatusCode(), elapsed.Abs().String())
+
 		return nil
 	}
 }
