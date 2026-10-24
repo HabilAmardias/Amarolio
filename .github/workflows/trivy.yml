@@ -39,3 +39,52 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
           category: trivy-sca
+
+  container-scan:
+    name: Scan Container - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - auth
+          - amary
+          - gateway
+          - client
+          - amary-client
+          - amary-redirect
+          - auth-client
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build container image
+        run: |
+          docker build \
+            -t amarolio-${{ matrix.service }}:scan \
+            ./${{ matrix.service }}
+
+      - name: Scan container image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: amarolio-${{ matrix.service }}:scan
+          scanners: vuln
+          vuln-type: os,library
+          format: sarif
+          output: trivy-image.sarif
+          severity: HIGH,CRITICAL
+          limit-severities-for-sarif: true
+          exit-code: "0"
+
+      - name: Upload container findings
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-image-${{ matrix.service }}
