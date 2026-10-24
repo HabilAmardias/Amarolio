@@ -27,6 +27,8 @@ func NewErrorMiddleware(lg Logger) gin.HandlerFunc {
 		httpCode := http.StatusInternalServerError
 		errorCode := customerror.CommonErr
 		path := html.EscapeString(ctx.Request.URL.Path)
+		path = strings.ReplaceAll(path, "\n", "")
+		path = strings.ReplaceAll(path, "\r", "")
 
 		var errDetail string = "Internal Server Error"
 		err := ctx.Errors[0]

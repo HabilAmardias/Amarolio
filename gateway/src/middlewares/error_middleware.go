@@ -23,6 +23,8 @@ func NewErrorMiddleware(logger Logger) fiber.ErrorHandler {
 		var errDetail string = "Internal Server Error"
 		errorCode := customerrors.CommonErr
 		path := html.EscapeString(string(ctx.Request().URI().Path()))
+		path = strings.ReplaceAll(path, "\n", "")
+		path = strings.ReplaceAll(path, "\r", "")
 
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) {
