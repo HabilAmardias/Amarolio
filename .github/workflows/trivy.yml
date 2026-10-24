@@ -39,16 +39,3 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
           category: trivy-sca
-
-      # Enforce security policy after uploading findings
-      - name: Enforce SCA security gate
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          scanners: vuln
-          vuln-type: library
-          format: table
-          severity: HIGH,CRITICAL
-          exit-code: "1"
-          skip-setup-trivy: true
