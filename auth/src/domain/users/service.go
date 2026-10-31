@@ -181,7 +181,7 @@ func (us *UserServiceImpl) SendResetPasswordEmail(ctx context.Context, email str
 	}
 
 	challenge := new(resetpasswordchallenges.ResetPasswordChallenge)
-	services.WithTransaction(us.dbtx, func(tx db.DBTXItf) error {
+	if err := services.WithTransaction(us.dbtx, func(tx db.DBTXItf) error {
 		txRUR := resetpasswordchallenges.NewResetPasswordChallengeRepository(tx)
 		eat := time.Now().Add(time.Hour)
 		if err := txRUR.DeleteAllByUserID(ctx, user.ID); err != nil {
@@ -192,7 +192,9 @@ func (us *UserServiceImpl) SendResetPasswordEmail(ctx context.Context, email str
 			return err
 		}
 		return txRUR.CreateNewResetPasswordChallenge(ctx, token, user.ID, eat, challenge)
-	})
+	}); err != nil {
+		return err
+	}
 
 	go func() {
 		url := fmt.Sprintf("%s/reset-password?token=%s", os.Getenv("AUTH_CLIENT_URL"), challenge.ID)
@@ -212,6 +214,7 @@ func (us *UserServiceImpl) SendResetPasswordEmail(ctx context.Context, email str
 			us.lg.Errorln(err)
 		}
 	}()
+
 	return nil
 }
 
@@ -527,14 +530,15 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, challengeID string) (s
 		return "", err
 	}
 
-	// Check if the OTP has expired, if not, return an error
-	if !challenge.IsExpired() {
+	// Check if 59 seconds has passed since otp challenge created, if not, return an error
+	if !challenge.CanCreateNew(constants.CanCreateNewDuration) {
 		return "", customerrors.NewError(
-			"OTP not expired yet",
-			errors.New("otp not expired yet"),
+			"You cannot issue new OTP, please wait a bit more",
+			fmt.Errorf("%d seconds after otp challenge create has not passed", constants.CanCreateNewDuration),
 			customerrors.Unauthenticate,
 		)
 	}
+
 	otp, err := us.ou.GenerateOTP()
 	if err != nil {
 		return "", err
@@ -555,7 +559,7 @@ func (us *UserServiceImpl) ResendOTP(ctx context.Context, challengeID string) (s
 		if err != nil {
 			return err
 		}
-		return txocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(time.Minute), challenge)
+		return txocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(constants.OTP_AGE), challenge)
 	}); err != nil {
 		return "", err
 	}
@@ -649,7 +653,7 @@ func (us *UserServiceImpl) PreLogin(ctx context.Context, email string, password 
 		if err != nil {
 			return err
 		}
-		return ocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(time.Minute), challenge)
+		return ocr.CreateNewOTPChallenge(ctx, challengeID, user.ID, otpHash, time.Now().Add(constants.OTP_AGE), challenge)
 	}); err != nil {
 		return "", err
 	}

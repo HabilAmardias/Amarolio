@@ -14,6 +14,10 @@ type (
 	}
 )
 
+func (o *OTPChallenge) CanCreateNew(durationInSecond time.Duration) bool {
+	return o.CreatedAt.Add(durationInSecond * time.Second).Before(time.Now())
+}
+
 func (o *OTPChallenge) IsExpired() bool {
 	return o.OTPExpiredAt.Before(time.Now())
 }
