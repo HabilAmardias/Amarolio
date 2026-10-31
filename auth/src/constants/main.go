@@ -8,12 +8,13 @@ import (
 
 const (
 	AUTH_AGE                         = 15 * time.Minute
-	OTP_AGE                          = time.Minute
+	OTP_AGE                          = 5 * time.Minute
 	REFRESH_AGE                      = 7 * 24 * time.Hour
 	VerificationLinkValidityMinutes  = 60
 	ResetPasswordLinkValidityMinutes = VerificationLinkValidityMinutes
 	MaxLoginAttempts                 = 3
 	LoginLockDuration                = time.Hour
+	CanCreateNewDuration             = 59
 )
 
 const (
