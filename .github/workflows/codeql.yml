@@ -38,6 +38,11 @@ jobs:
             build-mode: manual
             directory: gateway
 
+          - name: amarfin
+            language: go
+            build-mode: manual
+            directory: amarfin
+
           - name: typescript
             language: javascript-typescript
             build-mode: none
